@@ -10,4 +10,4 @@ Mario: 40x60
 8 Kick (4)
 9 Climb (2)
 
-status: 190x25
+status: 380x50
