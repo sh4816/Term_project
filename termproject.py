@@ -25,6 +25,23 @@ class StatBar:
         self.image.draw(self.x, self.y)
 
 # 지형
+class Tile:
+    def __init__(self):  # 생성자
+        self.image = load_image('tile_grass.png')
+        self.frameX, self.frameY = 30, 30  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
+        self.x, self.y = 0, 0
+        self.type = "Grass"
+
+    def draw(self):
+        if self.type == "Grass":
+            self.image = load_image('tile_grass.png')
+        elif self.type == "SnowField":
+            self.image = load_image('tile_snowfield.png')
+        elif self.type == "Dirt":
+            self.image = load_image('tile_dirt.png')
+
+        self.image.draw(self.x, self.y)
+
 class Ground:
     def __init__(self):
         self.image = load_image('ground.png')
@@ -84,6 +101,7 @@ class Character:
         # 점프 관련 변수
         self.jumpHeight = 15
         self.isUnderBlock = 0       # 상단이 블록으로 막혀있는지 (0: 막혀있지 않음, 1 이상: 막혀있음)
+        self.jump_collipseYPos = 0
         self.isLeap = False         # 도약 중인지
         self.isFall = False         # 낙하 중인지
         self.move_in_air = False    # 공중에서 좌우로 움직이는 지
@@ -131,15 +149,18 @@ class Character:
                 self.image = load_image('Mario_fire.png')    # 오른쪽을 보고 있는 리소스
             self.frameX, self.frameY = 40, 60                # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
 
-        # 발판 체크
-        if self.status == c_state.S_Idle or self.status == c_state.S_Walk or self.status == c_state.S_Dash:
+
+        # 상태 체크
+        #=== Idle
+        if self.status == c_state.S_Idle:
             # 1. 충돌하면 1을 더한다.
-            if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 ground1.w, ground1.h, ground1.cx, ground1.cy, True):
-                self.isOnGround += 1
+            for tile in tiles:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 tile.frameX, tile.frameY, tile.x, tile.y, True):
+                    self.isOnGround += 1
             for box in boxes:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                   box.frameX, box.frameY, box.x, box.y, True):
+                                 box.frameX, box.frameY, box.x, box.y, True):
                     self.isOnGround += 1
             for brick in bricks:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
@@ -152,16 +173,11 @@ class Character:
 
                 self.isLeap = False
                 self.isFall = True
-                self.isOnGround = 0
             else:
                 self.isOnGround = 0
-
-        # 상태 체크
-        #=== Idle
-        if self.status == c_state.S_Idle:
-            pass
         #=== Walk
         elif self.status == c_state.S_Walk:
+            # 이동
             if self.isWalk:
                 self.slowFrame += 1
                 self.frame = (self.slowFrame // 3) % 2
@@ -170,30 +186,77 @@ class Character:
                 else:
                     self.x += 5
 
+
+            # 1. 충돌하면 1을 더한다.
+            for tile in tiles:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 tile.frameX, tile.frameY, tile.x, tile.y, True):
+                    self.isOnGround += 1
+            for box in boxes:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 box.frameX, box.frameY, box.x, box.y, True):
+                    self.isOnGround += 1
+            for brick in bricks:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 brick.frameX, brick.frameY, brick.x, brick.y, True):
+                    self.isOnGround += 1
+            # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
+            if self.isOnGround == 0:
+                self.status = c_state.S_Jump
+                self.frame = 0
+
+                self.isLeap = False
+                self.isFall = True
+                self.move_in_air = True
+            else:
+                self.isOnGround = 0
+
         #=== Hit
         elif self.status == c_state.S_Hit:
-            pass
+            pass#미구현
         #=== Jump
         elif self.status == c_state.S_Jump:
+            # 공중에서 좌우로 움직이는 거
+            if self.move_in_air:
+                if self.isLeft:
+                    if self.dashJump:
+                        self.x -= 8
+                    else:
+                        self.x -= 5
+                else:
+                    if self.dashJump:
+                        self.x += 8
+                    else:
+                        self.x += 5
+
             if self.isLeap:
                 # 충돌체크 ( 이동 예정인 좌표와 오브젝트, 현재 좌표X )
                 # 1. 충돌하면 1을 더한다.
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
-                                 ground1.w, ground1.h, ground1.cx, ground1.cy, True):
-                    self.isUnderBlock += 1
+                for tile in tiles:
+                    if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
+                                     tile.frameX, tile.frameY, tile.x, tile.y, True):
+                        if tile.x - tile.frameX/2 <= self.x <= tile.x + tile.frameX/2:
+                            if self.y <= tile.y - tile.frameX/2:
+                                self.isUnderBlock += 1
+                                self.jump_collipseYPos = tile.y - tile.frameY/2 - self.frameY/2
                 for box in boxes:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
                                        box.frameX, box.frameY, box.x, box.y, True):
-                        self.isUnderBlock += 1
+                        if box.x - box.frameX/2 <= self.x <= box.x + box.frameX/2:
+                            if self.y <= box.y - box.frameX/2:
+                                self.isUnderBlock += 1
+                                self.jump_collipseYPos = box.y - box.frameY/2 - self.frameY/2
                 for brick in bricks:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
                                      brick.frameX, brick.frameY, brick.x, brick.y, True):
-                        self.isUnderBlock += 1
+                        if brick.x - brick.frameX/2 <= self.x <= brick.x + brick.frameX/2:
+                            if self.y <= brick.y - brick.frameX/2:
+                                self.isUnderBlock += 1
+                                self.jump_collipseYPos = brick.y - brick.frameY/2 - self.frameY/2
                 # 2. 하나라도 충돌했다면 isUnderBlock는 0이 아니게 된다는 점 이용
-                if self.isUnderBlock == 0:
-                    self.isUnderBlock = 0
-                else:
-                    self.y += 5
+                if not self.isUnderBlock == 0:
+                    self.y = self.jump_collipseYPos - 1
+                    print(self.y)
                     self.jumpHeight = 0
                     self.isUnderBlock = 0
 
@@ -212,20 +275,21 @@ class Character:
 
                 # 충돌체크
                 # 1. 충돌하면 1을 더한다.
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 ground1.w, ground1.h, ground1.cx, ground1.cy, True):
-                    self.isOnGround += 1
-                    self.gp_EndHeight = ground1.cy + ground1.h - 20
+                for tile in tiles:
+                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                     tile.frameX, tile.frameY, tile.x, tile.y, True):
+                        self.isOnGround += 1
+                        self.gp_EndHeight = tile.y + tile.frameY/2 + self.frameY/2
                 for box in boxes:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                        box.frameX, box.frameY, box.x, box.y, True):
                         self.isOnGround += 1
-                        self.gp_EndHeight = box.y + box.frameY + 10
+                        self.gp_EndHeight = box.y + box.frameY/2 + self.frameY/2
                 for brick in bricks:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                      brick.frameX, brick.frameY, brick.x, brick.y, True):
                         self.isOnGround += 1
-                        self.gp_EndHeight = brick.y + brick.frameY + 10
+                        self.gp_EndHeight = brick.y + brick.frameY/2 + self.frameY/2
                 # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
                 if self.isOnGround == 0:
                     self.isOnGround = 0
@@ -234,34 +298,54 @@ class Character:
                     self.dashJump = False
                     if self.move_in_air:
                         self.status = c_state.S_Walk
-                        self.frame = 0
-
                         self.isWalk = True
-                    else:
-                        #test
-                        self.status = c_state.S_Idle
+                        mario.move_in_air = False
                         self.frame = 0
+                        print('A')
+                    else:
+                        self.status = c_state.S_Idle
+                        self.isWalk = False
+                        mario.move_in_air = False
+                        self.frame = 0
+                        print('B')
 
                     self.jumpHeight = 15
                     self.isOnGround = 0
 
-                    self.y = self.gp_EndHeight
-
-            # 공중에서 좌우로 움직이는 거
-            if self.move_in_air:
-                if self.isLeft:
-                    if self.dashJump: self.x -= 10
-                    else:             self.x -= 5
-                else:
-                    if self.dashJump: self.x += 10
-                    else:             self.x += 5
+                    self.y = self.gp_EndHeight - 5
         #=== Dash
         elif self.status == c_state.S_Dash:
+            # 이동
             self.frame = (self.frame + 1) % 4
             if self.isLeft:
                 self.x -= 10
             else:
                 self.x += 10
+
+
+            # 1. 충돌하면 1을 더한다.
+            for tile in tiles:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 tile.frameX, tile.frameY, tile.x, tile.y, True):
+                    self.isOnGround += 1
+            for box in boxes:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 box.frameX, box.frameY, box.x, box.y, True):
+                    self.isOnGround += 1
+            for brick in bricks:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 brick.frameX, brick.frameY, brick.x, brick.y, True):
+                    self.isOnGround += 1
+            # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
+            if self.isOnGround == 0:
+                self.status = c_state.S_Jump
+                self.frame = 0
+
+                self.isLeap = False
+                self.isFall = True
+                self.move_in_air = True
+            else:
+                self.isOnGround = 0
         #=== Down
         elif self.status == c_state.S_Down:
             pass
@@ -273,26 +357,30 @@ class Character:
 
             # 충돌체크 ( 이동 예정인 좌표와 오브젝트, 현재 좌표X )
             # 1. 충돌하면 1을 더한다.
-            if collipseCheck(self.frameX, self.frameY, self.x, self.y - gp_gapHeight / 10 * self.gp_accel,
-                             ground1.w, ground1.h, ground1.cx, ground1.cy, True):
-                self.isOnGround += 1
-                self.gp_EndHeight = ground1.cy + ground1.h - 20
-                if not self.y == self.gp_EndHeight:
-                    self.gp_delay = 4  # 그라운드파운드 후딜레이
+            for tile in tiles:
+               if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                tile.frameX, tile.frameY, tile.x, tile.y, True):
+                    self.isOnGround += 1
+                    self.gp_EndHeight = tile.y + tile.frameY + 10
+                    if self.gp:
+                        self.gp_delay = 4  # 그라운드파운드 후딜레이
+                        self.gp = False
             for box in boxes:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                    box.frameX, box.frameY, box.x, box.y, True):
                     self.isOnGround += 1
                     self.gp_EndHeight = box.y + box.frameY + 10
-                    if not self.y == self.gp_EndHeight:
+                    if self.gp:
                         self.gp_delay = 4  # 그라운드파운드 후딜레이
+                        self.gp = False
             for brick in bricks:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  brick.frameX, brick.frameY, brick.x, brick.y, True):
                     self.isOnGround += 1
                     self.gp_EndHeight = box.y + box.frameY + 10
-                    if not self.y == self.gp_EndHeight:
+                    if self.gp:
                         self.gp_delay = 4   # 그라운드파운드 후딜레이
+                        self.gp = False
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:
                 self.y -= gp_gapHeight / 10 * self.gp_accel
@@ -300,19 +388,17 @@ class Character:
                 self.y = self.gp_EndHeight
                 # 착지 후 딜레이 계산
                 self.gp_delay -= 1
-                print('delay -1, delay: ' + str(self.gp_delay))
                 if self.gp_delay == 0:
-                    #test
                     self.status = c_state.S_Idle
                     self.frame = 0
 
-                    self.gp = False
                     self.isLeap = False
                     self.isFall = False
-                    self.gp_delay = 3
+                    gp_Collipse = True
                     gp_gapHeight = 0
                     self.gp_accel = 0
                     self.jumpHeight = 15
+                    self.gp_delay = 3
         #=== Action/Attack
         elif self.status == c_state.S_Action:
             self.act_Delay -= 1
@@ -339,9 +425,13 @@ class Character:
             if self.slowFrame > 10:
                 if self.isWalk:
                     self.status = c_state.S_Walk
+                    self.isWalk = True
+                    self.dash = self.dashJump = self.isLeap \
+                        = self.isFall = self.move_in_air = self.gp = False
                 else:
                     self.status = c_state.S_Idle
-                    self.isWalk = False
+                    self.isWalk = self.dash = self.dashJump = self.isLeap\
+                        = self.isFall = self.move_in_air = self.gp = False
 
     def draw(self):
         if self.transform == 0:
@@ -620,19 +710,17 @@ def handle_events():
             elif event.key == SDLK_LEFT:                              # 왼쪽 이동
                 if mario.status == c_state.S_Idle:
                     mario.status = c_state.S_Walk
+                    mario.isWalk = True
                     mario.frame = 0
                     mario.slowFrame = 0
-
-                    mario.isWalk = True
                 elif mario.status == c_state.S_Walk:
-                    if mario.isWalk:
-                        if not mario.isLeft:
-                            mario.status = c_state.S_Idle
-                            mario.frame = 0
-                            mario.slowFrame = 0
+                    if mario.isWalk and not mario.isLeft:
+                        mario.status = c_state.S_Idle
+                        mario.isWalk = False
+                        mario.frame = 0
+                        mario.slowFrame = 0
 
-                            mario.isWalk = False
-                            mario.doubleInput = True
+                        mario.doubleInput = True
 
                 if mario.isLeap or mario.isFall:                      # 도약 or 낙하 중
                     mario.move_in_air = True                          # 공중에서 좌우 움직임
@@ -642,36 +730,52 @@ def handle_events():
             elif event.key == SDLK_RIGHT:                             # 오른쪽 이동
                 if mario.status == c_state.S_Idle:
                     mario.status = c_state.S_Walk
+                    mario.isWalk = True
                     mario.frame = 0
                     mario.slowFrame = 0
-
-                    mario.isWalk = True
                 elif mario.status == c_state.S_Walk:
-                    if mario.isWalk:
-                        if mario.isLeft:
+                    if mario.isWalk and mario.isLeft:
                             mario.status = c_state.S_Idle
+                            mario.isWalk = False
                             mario.frame = 0
                             mario.slowFrame = 0
 
-                            mario.isWalk = False
                             mario.doubleInput = True
 
                 if mario.isLeap or mario.isFall:                      # 도약 or 낙하 중
                     mario.move_in_air = True                          # 공중에서 좌우 움직임
 
                 if mario.isLeft: mario.isLeft = False  # 왼쪽을 보고 있었다면 오른쪽을 보게 만든다.
+
             #=== z - 점프
             elif event.key == SDLK_z:
-                if mario.status == c_state.S_Idle or mario.status == c_state.S_Walk or mario.status == c_state.S_Dash:
-                    if mario.status == c_state.S_Dash:
-                        mario.dashJump = True
-
+                if mario.status == c_state.S_Idle:
                     mario.status = c_state.S_Jump
+                    mario.isLeap = True
+                    mario.isWalk = False
+                    mario.move_in_air = False
+                    mario.dash = False
+                    mario.dashJump = False
                     mario.frame = 0
                     mario.slowFrame = 0
-
-                    mario.isWalk = False
+                elif mario.status == c_state.S_Walk:
+                    mario.status = c_state.S_Jump
                     mario.isLeap = True
+                    mario.isWalk = False
+                    mario.move_in_air = True
+                    mario.dash = False
+                    mario.dashJump = False
+                    mario.frame = 0
+                    mario.slowFrame = 0
+                elif mario.status == c_state.S_Dash:
+                    mario.status = c_state.S_Jump
+                    mario.isLeap = True
+                    mario.isWalk = False
+                    mario.move_in_air = True
+                    mario.dash = False
+                    mario.dashJump = True
+                    mario.frame = 0
+                    mario.slowFrame = 0
             #=== x - 대쉬
             elif event.key == SDLK_x:
                 if mario.status != c_state.S_Jump and mario.isWalk:        # 점프 중에는 대쉬 불가 / 걷는 중에만 대쉬 가능
@@ -709,80 +813,88 @@ def handle_events():
 
                         mario.act = True
                         mario.act_Delay = 4
+            #=== t - "테스트 전용" 좌표값 출력
+            elif event.key == SDLK_t:
+                print('Pos: ' + str((mario.x, mario.y)) + ', Status: ' + str(mario.status))
+                if mario.isWalk: print('IsWalk: O')
+                if mario.dash: print('IsDash: O')
+                if mario.isLeap: print('IsLeap: O')
+                if mario.isFall: print('IsFall: O')
         # 키보드 입력 중지
         elif event.type == SDL_KEYUP:
             # 좌 방향키 떼기
             if event.key == SDLK_LEFT:
-                if mario.status == c_state.S_Idle:
-                    if mario.doubleInput:
+                if mario.status == c_state.S_Idle and mario.doubleInput:
                         mario.status = c_state.S_Walk
+                        mario.isWalk = True
                         mario.frame = 0
                         mario.slowFrame = 0
-
-                        mario.isWalk = True
                         mario.isLeft = False
-                elif mario.status == c_state.S_Walk:
+                elif mario.status == c_state.S_Walk and mario.isLeft:
                     mario.status = c_state.S_Idle
+                    mario.isWalk = False
                     mario.frame = 0
                     mario.slowFrame = 0
 
                     mario.isWalk = False
                 elif mario.status == c_state.S_Jump:
                     mario.move_in_air = False
+                    mario.isWalk = False
                 elif mario.status == c_state.S_Dash:
+                    mario.status = c_state.S_Idle
                     mario.dash = False
                     mario.dashJump = False
-                    mario.status = c_state.S_Idle
+                    mario.isWalk = False
                     mario.frame = 0
                     mario.slowFrame = 0
 
 
             # 우 방향키 떼기
             elif event.key == SDLK_RIGHT:
-                if mario.status == c_state.S_Idle:
-                    if mario.doubleInput:
+                if mario.status == c_state.S_Idle and mario.doubleInput:
                         mario.status = c_state.S_Walk
+                        mario.isWalk = True
                         mario.frame = 0
                         mario.slowFrame = 0
-
-                        mario.isWalk = True
                         mario.isLeft = True
                 elif mario.status == c_state.S_Walk:
                     mario.status = c_state.S_Idle
+                    mario.isWalk = False
                     mario.frame = 0
                     mario.slowFrame = 0
 
                     mario.isWalk = False
                 elif mario.status == c_state.S_Jump:
                     mario.move_in_air = False
+                    mario.isWalk = False
                 elif mario.status == c_state.S_Dash:
+                    mario.status = c_state.S_Idle
                     mario.dash = False
                     mario.dashJump = False
-                    mario.status = c_state.S_Idle
+                    mario.isWalk = False
                     mario.frame = 0
                     mario.slowFrame = 0
 
 
             # x 키 떼기
             elif event.key == SDLK_x:
-                if mario.isLeap or mario.isFall:
-                    pass
-                elif mario.dash:
-                    if mario.isWalk:
-                        mario.status = c_state.S_Walk
-                        mario.frame = 0
-                        mario.slowFrame = 0
-
-                else:
-                    mario.status = c_state.S_Idle
+                if mario.dash and mario.isWalk:
+                    mario.status = c_state.S_Walk
+                    mario.dash = False
                     mario.frame = 0
                     mario.slowFrame = 0
 
-                if mario.dash: mario.dash = False                     # 대쉬 중지
+                else:
+                    mario.status = c_state.S_Idle
+                    mario.dash = False
+                    mario.isWalk = False
+                    mario.frame = 0
+                    mario.slowFrame = 0
             # 아래 방향키 떼기
             elif event.key == SDLK_DOWN:
                 if mario.status == c_state.S_Down:
                     mario.status = c_state.S_Idle
+                    mario.isWalk = False
                     mario.frame = 0
                     mario.slowFrame = 0
 
@@ -798,9 +910,15 @@ stat = StatBar()
 mario = Character()
 
 # 지형
-ground1 = Ground_big() # 땅1
-ground1.w, ground1.h = 800, 90
-ground1.cx, ground1.cy = 400, 30
+tiles = []
+def make_tile(xPos, yPos, type):
+    newTile = Tile()
+    newTile.x, newTile.y = xPos, yPos
+    newTile.type = type
+
+    tiles.append(newTile)
+for i in range(100):
+    make_tile(i*30, 90, "Grass")
 
 # 박스
 boxes = []
@@ -810,10 +928,10 @@ def make_box(xPos, yPos, box_type):
     newBox.itemValue = box_type
 
     boxes.append(newBox)
-make_box(200, 180, 2)
-make_box(500, 300, 0)
-make_box(530, 300, 0)
-make_box(600, 300, 0)
+make_box(200, 200, 2)
+make_box(500, 320, 0)
+make_box(530, 320, 0)
+make_box(600, 320, 0)
 
 # 벽돌
 bricks = []
@@ -823,7 +941,7 @@ def make_brick(xPos, yPos):
 
     bricks.append(newBrick)
 for i in range(10):
-    make_brick(450+i*30, 180)
+    make_brick(450+i*30, 200)
 
 
 # 아이템
@@ -860,7 +978,8 @@ while running:
 
     mario.draw()
 
-    ground1.draw()
+    for tile in tiles:
+        tile.draw()
 
     for box in boxes:
         box.draw()
@@ -876,5 +995,5 @@ while running:
 
     update_canvas()
 
-    delay(0.03)
+    delay(0.015)
 
