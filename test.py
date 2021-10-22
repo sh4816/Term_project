@@ -4,6 +4,7 @@ import random
 from enum import *
 from State import *
 
+
 #=== Game Object
 #
 #BackGround
@@ -234,21 +235,21 @@ class Character:
                 # 1. 충돌하면 1을 더한다.
                 for tile in tiles:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
-                                     tile.frameX, tile.frameY, tile.x, tile.y, True):
+                                     tile.frameX, tile.frameY, tile.x, tile.y, False):
                         if tile.x - tile.frameX/2 <= self.x <= tile.x + tile.frameX/2:
                             if self.y <= tile.y - tile.frameX/2:
                                 self.isUnderBlock += 1
                                 self.jump_collipseYPos = tile.y - tile.frameY/2 - self.frameY/2
                 for box in boxes:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
-                                       box.frameX, box.frameY, box.x, box.y, True):
+                                       box.frameX, box.frameY, box.x, box.y, False):
                         if box.x - box.frameX/2 <= self.x <= box.x + box.frameX/2:
                             if self.y <= box.y - box.frameX/2:
                                 self.isUnderBlock += 1
                                 self.jump_collipseYPos = box.y - box.frameY/2 - self.frameY/2
                 for brick in bricks:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
-                                     brick.frameX, brick.frameY, brick.x, brick.y, True):
+                                     brick.frameX, brick.frameY, brick.x, brick.y, False):
                         if brick.x - brick.frameX/2 <= self.x <= brick.x + brick.frameX/2:
                             if self.y <= brick.y - brick.frameX/2:
                                 self.isUnderBlock += 1
@@ -256,7 +257,6 @@ class Character:
                 # 2. 하나라도 충돌했다면 isUnderBlock는 0이 아니게 된다는 점 이용
                 if not self.isUnderBlock == 0:
                     self.y = self.jump_collipseYPos - 1
-                    print(self.y)
                     self.jumpHeight = 0
                     self.isUnderBlock = 0
 
@@ -297,17 +297,20 @@ class Character:
                     self.isFall = False
                     self.dashJump = False
                     if self.move_in_air:
-                        self.status = c_state.S_Walk
+                        if self.dashJump:
+                            self.status = c_state.S_Dash
+                            self.dash = True
+                            self.dashJump = False
+                        else:
+                            self.status = c_state.S_Walk
                         self.isWalk = True
                         mario.move_in_air = False
                         self.frame = 0
-                        print('A')
                     else:
                         self.status = c_state.S_Idle
                         self.isWalk = False
                         mario.move_in_air = False
                         self.frame = 0
-                        print('B')
 
                     self.jumpHeight = 15
                     self.isOnGround = 0
@@ -351,17 +354,15 @@ class Character:
             pass
         #=== GroundPound
         elif self.status == c_state.S_GP:
-            gp_gapHeight = self.gp_StartHeight - self.gp_EndHeight
-            self.gp_accel += 1
-            # if self.gp_accel >= 10: self.gp_accel -= 1 # 최대 가속도 제한
+            self.gp_accel += 0.98 * 3
 
-            # 충돌체크 ( 이동 예정인 좌표와 오브젝트, 현재 좌표X )
+            # 충돌체크
             # 1. 충돌하면 1을 더한다.
             for tile in tiles:
                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                 tile.frameX, tile.frameY, tile.x, tile.y, True):
                     self.isOnGround += 1
-                    self.gp_EndHeight = tile.y + tile.frameY + 10
+                    self.gp_EndHeight = tile.y + tile.frameY/2 + self.frameY/2
                     if self.gp:
                         self.gp_delay = 4  # 그라운드파운드 후딜레이
                         self.gp = False
@@ -369,21 +370,22 @@ class Character:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                    box.frameX, box.frameY, box.x, box.y, True):
                     self.isOnGround += 1
-                    self.gp_EndHeight = box.y + box.frameY + 10
+                    self.gp_EndHeight = box.y + box.frameY/2 + self.frameY/2
                     if self.gp:
                         self.gp_delay = 4  # 그라운드파운드 후딜레이
                         self.gp = False
             for brick in bricks:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  brick.frameX, brick.frameY, brick.x, brick.y, True):
-                    self.isOnGround += 1
-                    self.gp_EndHeight = box.y + box.frameY + 10
-                    if self.gp:
-                        self.gp_delay = 4   # 그라운드파운드 후딜레이
-                        self.gp = False
+                    self.gp_accel /= 2
+                    # self.isOnGround += 1
+                    # self.gp_EndHeight = box.y + box.frameY/2 + self.frameY/2
+                    # if self.gp:
+                    #     self.gp_delay = 4   # 그라운드파운드 후딜레이
+                    #     self.gp = False
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:
-                self.y -= gp_gapHeight / 10 * self.gp_accel
+                self.y -= self.gp_accel
             else:
                 self.y = self.gp_EndHeight
                 # 착지 후 딜레이 계산
@@ -531,11 +533,9 @@ class Brick():
             if mario.status == c_state.S_Jump and mario.y < self.y:  # 마리오가 블록 아래에서 점프 중
                 self.destroy += 1
                 self.isCollipse += 1
-                print('1')
             elif mario.status == c_state.S_GP and mario.y > self.y:  # 마리오가 그라운드 파운드로 위에서 아래로 찍음
                 self.destroy += 1
                 self.isCollipse += 1
-                print('2')
         # 2. 하나라도 충돌했다면 0이 아니게 됨
         if not self.isCollipse == 0:
             if not self.destroy == 0:
@@ -884,12 +884,12 @@ def handle_events():
                     mario.frame = 0
                     mario.slowFrame = 0
 
-                else:
-                    mario.status = c_state.S_Idle
-                    mario.dash = False
-                    mario.isWalk = False
-                    mario.frame = 0
-                    mario.slowFrame = 0
+                # else:
+                #     mario.status = c_state.S_Idle
+                #     mario.dash = False
+                #     mario.isWalk = False
+                #     mario.frame = 0
+                #     mario.slowFrame = 0
             # 아래 방향키 떼기
             elif event.key == SDLK_DOWN:
                 if mario.status == c_state.S_Down:
@@ -919,6 +919,9 @@ def make_tile(xPos, yPos, type):
     tiles.append(newTile)
 for i in range(100):
     make_tile(i*30, 90, "Grass")
+
+for i in range(100):
+    make_tile(i*30, 60, "Dirt")
 
 # 박스
 boxes = []
@@ -956,6 +959,7 @@ fire1 = Fire()
 #=== Main Loop
 #
 running = True
+
 
 while running:
 
@@ -995,5 +999,5 @@ while running:
 
     update_canvas()
 
-    delay(0.015)
+    delay(0.01)
 
