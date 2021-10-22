@@ -1,6 +1,8 @@
 # 2DGP Term-Project
 from pico2d import *
 import random
+from enum import *
+from State import *
 
 #=== Game Object
 #
@@ -13,7 +15,7 @@ class BG:
         self.image.draw(400, 300)
 
 # 상태창
-class Status:
+class StatBar:
     def __init__(self): # 생성자
         self.image = load_image('status.png')
         self.w, self.h = 380, 50 # 이미지 크기가 바뀌면 수정
@@ -67,13 +69,14 @@ class Character:
         self.x, self.y = 500, 250
         self.frame = 0
         self.slowFrame = 0
-        self.condition = 0
-        # < Mario Condition >
+        self.status = c_state.S_Idle
+        # < Mario Status >
         # 0: Idle(1), 1: Walk(2), 2: Hit(1), 3: Jump(1), 4: Dash(4)
         # 5: Down(1), 6: Slide/GroundPound(1), 7: Stand(1), 8: Kick(4), 9: Climb(2)
         # 10: Action/Attack(standard:X,super:X,fire:2)
         self.isLeft = False         # 왼쪽을 보고 있는지
         self.isOnGround = 0         # 땅 위에 있는지 (0: 땅 위에 없음, 1 이상: 땅 위에 있음)
+        self.doubleInput = False
 
        # 걷기 관련 변수
         self.isWalk = False         # 걷는 중인지
@@ -102,14 +105,11 @@ class Character:
         self.act_Delay = 0          # 액션 후딜레이
 
     def update(self):
-        # # 상태 바뀔때마다 print (임시)
-        # print('Condition: ' + str(self.condition) + ', Pos(' + str(self.x,) + ',' + str(self.y) + ')')
-
         # Out of Window 체크
         if self.y < 0:
             # Life 업데이트 후 Life감소 추가 예정.
             self.x, self.y = 400, 300
-            print('Test가 끝나면 사망처리')
+            print('사망')
 
         # 이미지 체크
         if self.transform == 0:
@@ -135,7 +135,11 @@ class Character:
             self.frameX, self.frameY = 40, 60  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
 
         # 발판 체크
-        if self.condition == 0 or self.condition == 1 or self.condition == 4:
+        # a = []
+        # a.append(ground1)
+        # for i in a:
+        #     collipseCheck(a[i])
+        if self.status == c_state.S_Idle or self.status == c_state.S_Walk or self.status == c_state.S_Dash:
             # 1. 충돌하면 1을 더한다.
             if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  ground1.w, ground1.h, ground1.cx, ground1.cy, True):
@@ -151,7 +155,10 @@ class Character:
                 self.isOnGround += 1
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:
-                changeCondition(self, 3)
+                #test
+                self.status = c_state.S_Jump
+                self.frame = 0
+
                 self.isLeap = False
                 self.isFall = True
                 self.isOnGround = 0
@@ -160,22 +167,23 @@ class Character:
 
         # 상태 체크
         #=== Idle
-        if self.condition == 0:
+        if self.status == c_state.S_Idle:
             pass
         #=== Walk
-        elif self.condition == 1:
-            self.slowFrame += 1
-            self.frame = (self.slowFrame // 3) % 2
-            if self.isLeft:
-                self.x -= 5
-            else:
-                self.x += 5
+        elif self.status == c_state.S_Walk:
+            if self.isWalk:
+                self.slowFrame += 1
+                self.frame = (self.slowFrame // 3) % 2
+                if self.isLeft:
+                    self.x -= 5
+                else:
+                    self.x += 5
 
         #=== Hit
-        elif self.condition == 2:
+        elif self.status == c_state.S_Hit:
             pass
         #=== Jump
-        elif self.condition == 3:
+        elif self.status == c_state.S_Jump:
             if self.isLeap:
                 # 충돌체크 ( 이동 예정인 좌표와 오브젝트, 현재 좌표X )
                 # 1. 충돌하면 1을 더한다.
@@ -236,8 +244,17 @@ class Character:
                 else:
                     self.isFall = False
                     self.dashJump = False
-                    if self.move_in_air: changeCondition(self, 1)      # walk
-                    else:                changeCondition(self, 0)      # idle
+                    if self.move_in_air:
+                        self.status = c_state.S_Walk
+                        self.frame = 0
+
+                        self.isWalk = True
+                    else:
+                        self.status = c_state.S_Idle
+                        self.frame = 0
+
+                        self.isWalk = False
+
                     self.jumpHeight = 15
                     self.isOnGround = 0
 
@@ -252,17 +269,17 @@ class Character:
                     if self.dashJump: self.x += 10
                     else:             self.x += 5
         #=== Dash
-        elif self.condition == 4:
+        elif self.status == c_state.S_Dash:
             self.frame = (self.frame + 1) % 4
             if self.isLeft:
                 self.x -= 10
             else:
                 self.x += 10
         #=== Down
-        elif self.condition == 5:
+        elif self.status == c_state.S_Down:
             pass
         #=== GroundPound
-        elif self.condition == 6:
+        elif self.status == c_state.S_GP:
             gp_gapHeight = self.gp_StartHeight - self.gp_EndHeight
             self.gp_accel += 1
             # if self.gp_accel >= 10: self.gp_accel -= 1 # 최대 가속도 제한
@@ -295,15 +312,19 @@ class Character:
                 # 착지 후 딜레이 계산
                 self.gp_delay -= 1
                 if self.gp_delay == 0:
-                    changeCondition(self, 0)
+                    #test
+                    self.status = c_state.S_Idle
+                    self.frame = 0
+
                     self.gp = False
                     self.isLeap = False
                     self.isFall = False
+                    self.jumpHeight = 15
                     self.gp_delay = 5
                     gp_gapHeight = 0
                     self.gp_accel = 0
         #=== Action/Attack
-        elif self.condition == 10:
+        elif self.status == c_state.S_Action:
             self.act_Delay -= 1
             self.slowFrame += 1
             self.frame = (self.slowFrame // 2) % 2
@@ -314,16 +335,19 @@ class Character:
             else:           fire1.dir = 1
 
             if self.act_Delay == 0:
-                changeCondition(self, 0)
+                #test
+                self.status = c_state.S_Idle
+                self.frame = 0
+
                 self.slowFrame = 0
                 self.act = False
 
     def draw(self):
         if self.transform == 0 or self.transform == 1:
-            self.image.clip_draw(self.frame*self.frameX, (9-self.condition)*self.frameY
+            self.image.clip_draw(self.frame * self.frameX, (9 - (self.status.value - 1)) * self.frameY
                                  , self.frameX, self.frameY, self.x, self.y)
         elif self.transform == 2:
-            self.image.clip_draw(self.frame*self.frameX, (10-self.condition)*self.frameY
+            self.image.clip_draw(self.frame * self.frameX, (10 - (self.status.value - 1)) * self.frameY
                                  , self.frameX, self.frameY, self.x, self.y)
 
 
@@ -351,10 +375,10 @@ class Box_Question():
             # 1. 충돌하면 1을 더한다.
             if collipseCheck(mario.frameX, mario.frameY, mario.x, mario.y + 1,
                              self.frameX, self.frameY, self.x, self.y, True):
-                if mario.condition == 3 and mario.y < self.y:    # 마리오가 블록 아래에서 점프 중
+                if mario.status == c_state.S_Jump and mario.y < self.y:    # 마리오가 블록 아래에서 점프 중
                     self.isCollipse += 1
                     self.CollipseDir = 2
-                elif mario.condition == 6 and mario.y > self.y:
+                elif mario.status == c_state.S_GP and mario.y > self.y:  # 마리오가 그라운드 파운드로 위에서 아래로 찍음
                     self.isCollipse += 1
                     self.CollipseDir = 1
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
@@ -383,12 +407,15 @@ class Box_Question():
 
                 if self.itemValue == 2:
                     fireflower1.x, fireflower1.y = dropItemPosX, dropItemPosY
-                    fireflower1.image = load_image('item_fireflower.png')
+                    if self.CollipseDir == 1:
+                        fireflower1.image = load_image('item_fireflowerR.png')
+                    elif self.CollipseDir == 2:
+                        fireflower1.image = load_image('item_fireflower.png')
                     fireflower1.isRendered = True
 
     def draw(self):
         if self.isUsed:
-            self.image.draw(self.x, self.y)
+            self.image.clip_draw(self.frame * self.frameX, 0, self.frameX, self.frameY, self.x, self.y)
         else:
             self.slowFrame += 1
             self.frame = (self.slowFrame // 5) % 4
@@ -496,14 +523,12 @@ class Coin():
 
 #=== Function
 #
-# 상태 바꾸는 함수
-def changeCondition(target, num):
-    target.condition = num
-    target.frame = 0
-    target.jumpHeight = 15
-
 
 # 충돌 체크 함수
+def get_box():
+
+    return
+
 def collipseCheck(obj1_w, obj1_h, obj1_cx, obj1_cy, obj2_w, obj2_h, obj2_cx, obj2_cy, isPlayer):
     # 두 사각형의 상하좌우 변
     r1_L, r1_R = obj1_cx - obj1_w/2, obj1_cx + obj1_w/2
@@ -512,8 +537,12 @@ def collipseCheck(obj1_w, obj1_h, obj1_cx, obj1_cy, obj2_w, obj2_h, obj2_cx, obj
     r2_T, r2_B = obj2_cy + obj2_h/2, obj2_cy - obj2_h/2
 
     if isPlayer:    # Player의 리소스 파일 크기때문에 플레이어 발 아래에 발판이 없는 것 처럼 보이지만, 충돌처리가 되는 경우 방지.
-        r1_L += 10
-        r1_R -= 10
+        if mario.isLeft:
+            r1_L += 15
+            r1_R -= 12
+        else:
+            r1_L += 12
+            r1_R -= 15
 
     if r1_R > r2_L:                                     # r1의 오른쪽 변이 r2의 왼쪽 변보다 오른쪽에 있을 때
         if not r1_L > r2_R:                             # 단, r1의 왼쪽 변이 r2 보다 오른쪽에 있으면 안된다.
@@ -565,70 +594,135 @@ def handle_events():
                 running = False
             #=== 좌우 이동
             elif event.key == SDLK_LEFT:                              # 왼쪽 이동
-                if not mario.isLeft: mario.isLeft = True              # 왼쪽을 보고 있지 않았다면 왼쪽을 보게 만든다.
+                if mario.status == c_state.S_Idle:
+                    mario.status = c_state.S_Walk
+                    mario.frame = 0
 
-                if mario.condition == 0:
-                    changeCondition(mario, 1)                         # idle 상태에서만 상태 변경
                     mario.isWalk = True
+                elif mario.status == c_state.S_Walk:
+                    if mario.isWalk:
+                        if not mario.isLeft:
+                            mario.status = c_state.S_Idle
+                            mario.frame = 0
+
+                            mario.isWalk = False
+                            mario.doubleInput = True
 
                 if mario.isLeap or mario.isFall:                      # 도약 or 낙하 중
                     mario.move_in_air = True                          # 공중에서 좌우 움직임
+
+                if not mario.isLeft: mario.isLeft = True  # 왼쪽을 보고 있지 않았다면 왼쪽을 보게 만든다.
+
             elif event.key == SDLK_RIGHT:                             # 오른쪽 이동
-                if mario.isLeft: mario.isLeft = False                 # 왼쪽을 보고 있었다면 오른쪽을 보게 만든다.
+                if mario.status == c_state.S_Idle:
+                    mario.status = c_state.S_Walk
+                    mario.frame = 0
 
-                if mario.condition == 0:
-                    changeCondition(mario, 1)                         # idle 상태에서만 상태 변경
                     mario.isWalk = True
+                elif mario.status == c_state.S_Walk:
+                    if mario.isWalk:
+                        if mario.isLeft:
+                            mario.status = c_state.S_Idle
+                            mario.frame = 0
+
+                            mario.isWalk = False
+                            mario.doubleInput = True
 
                 if mario.isLeap or mario.isFall:                      # 도약 or 낙하 중
                     mario.move_in_air = True                          # 공중에서 좌우 움직임
+
+                if mario.isLeft: mario.isLeft = False  # 왼쪽을 보고 있었다면 오른쪽을 보게 만든다.
             #=== 점프
             elif event.key == SDLK_z:
-                if mario.condition == 0 or mario.condition == 1 or mario.condition == 4:
-                    if mario.condition == 4:
+                if mario.status == c_state.S_Idle or mario.status == c_state.S_Walk or mario.status == c_state.S_Dash:
+                    if mario.status == c_state.S_Dash:
                         mario.dashJump = True
 
-                    changeCondition(mario, 3)
+                    mario.status = c_state.S_Jump
+                    mario.frame = 0
+
                     mario.isWalk = False
                     mario.isLeap = True
             #=== 대쉬
             elif event.key == SDLK_x:
-                if mario.condition != 3 and mario.isWalk:        # 점프 중에는 대쉬 불가 / 걷는 중에만 대쉬 가능
-                    changeCondition(mario, 4)
+                if mario.status != c_state.S_Jump and mario.isWalk:        # 점프 중에는 대쉬 불가 / 걷는 중에만 대쉬 가능
+                    mario.status = c_state.S_Dash
+                    mario.frame = 0
+
                     mario.dash = True
             # === 웅크리기 & 그라운드파운드
             elif event.key == SDLK_DOWN:
                 # 웅크리기
-                if mario.condition == 0 or mario.condition == 1 or mario.condition == 4:
-                    if not mario.condition == 5:
-                        changeCondition(mario, 5)
+                if mario.status == c_state.S_Idle or mario.status == c_state.S_Walk or mario.status == c_state.S_Dash:
+                    if not mario.status == c_state.S_Down:
+                        mario.status = c_state.S_Down
+                        mario.frame = 0
+
 
                 # 그라운드파운드
                 if mario.isLeap or mario.isFall:
-                    if not mario.condition == 6:
-                        changeCondition(mario, 6)
+                    if not mario.status == c_state.S_GP:
+                        mario.status = c_state.S_GP
+                        mario.frame = 0
+
                         mario.gp = True
                         mario.gp_StartHeight = mario.y
             #=== 액션/공격
             elif event.key == SDLK_c:
                 if mario.transform == 2:
-                    if mario.condition == 0 or mario.condition == 1:
-                        changeCondition(mario, 10)
+                    if mario.status == c_state.S_Idle or mario.status == c_state.S_Walk:
+                        mario.status = c_state.S_Action
+                        mario.frame = 0
+
                         mario.act = True
                         mario.act_Delay = 4
 
         elif event.type == SDL_KEYUP:                                 # 키보드 입력 중지
-            # 좌or우 방향키 떼기
-            if event.key == SDLK_LEFT or event.key == SDLK_RIGHT:
-                if mario.condition == 1:
-                    changeCondition(mario, 0)                         # Idle로 전환
+            # 좌 방향키 떼기
+            if event.key == SDLK_LEFT:
+                if mario.status == c_state.S_Idle:
+                    if mario.doubleInput:
+                        mario.status = c_state.S_Walk
+                        mario.frame = 0
+
+                        mario.isWalk = True
+                        mario.isLeft = False
+                elif mario.status == c_state.S_Walk:
+                    mario.status = c_state.S_Idle
+                    mario.frame = 0
+
                     mario.isWalk = False
-                elif mario.condition == 3:
+                elif mario.status == c_state.S_Jump:
                     if mario.move_in_air: mario.move_in_air = False
-                elif mario.condition == 4:
+                elif mario.status == c_state.S_Dash:
                     mario.dash = False
                     mario.dashJump = False
-                    changeCondition(mario, 0)  # Idle로 전환
+                    mario.status = c_state.S_Idle
+                    mario.frame = 0
+
+
+            # 우 방향키 떼기
+            elif event.key == SDLK_RIGHT:
+                if mario.status == c_state.S_Idle:
+                    if mario.doubleInput:
+                        mario.status = c_state.S_Walk
+                        mario.frame = 0
+
+                        mario.isWalk = True
+                        mario.isLeft = True
+                elif mario.status == c_state.S_Walk:
+                    mario.status = c_state.S_Idle
+                    mario.frame = 0
+
+                    mario.isWalk = False
+                elif mario.status == c_state.S_Jump:
+                    if mario.move_in_air: mario.move_in_air = False
+                elif mario.status == c_state.S_Dash:
+                    mario.dash = False
+                    mario.dashJump = False
+                    mario.status = c_state.S_Idle
+                    mario.frame = 0
+
 
             # x 키 떼기
             elif event.key == SDLK_x:
@@ -636,15 +730,19 @@ def handle_events():
                     pass
                 elif mario.dash:
                     if mario.isWalk:
-                        changeCondition(mario, 1)
+                        mario.status = c_state.S_Walk
+                        mario.frame = 0
+
                 else:
-                    changeCondition(mario, 0)                         # walk
+                    mario.status = c_state.S_Idle
+                    mario.frame = 0
 
                 if mario.dash: mario.dash = False                     # 대쉬 중지
             # 아래 방향키 떼기
             elif event.key == SDLK_DOWN:
-                if mario.condition == 5:
-                    changeCondition(mario, 0)
+                if mario.status == c_state.S_Down:
+                    mario.status = c_state.S_Idle
+                    mario.frame = 0
 
 
 # Initialize
@@ -652,7 +750,7 @@ def handle_events():
 open_canvas()
 # 백그라운드
 background = BG()
-stat = Status()
+stat = StatBar()
 
 # 마리오 객체를 생성
 mario = Character()
@@ -718,5 +816,5 @@ while running:
 
     update_canvas()
 
-    delay(0.05)
+    delay(0.03)
 
