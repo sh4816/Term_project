@@ -64,7 +64,7 @@ class Character:
 
         # 기본
         self.image = load_image('Mario.png')
-        self.frameX, self.frameY = 40, 60       # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
+        self.frameX, self.frameY = 0, 0       # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
 
         self.x, self.y = 500, 250
         self.frame = 0
@@ -113,26 +113,23 @@ class Character:
 
         # 이미지 체크
         if self.transform == 0:
-            #임시
-            # 방향 체크
             if self.isLeft:
                 self.image = load_image('MarioL.png')  # 왼쪽을 보고 있는 리소스
             else:
-                self.image = load_image('Mario.png')  # 오른쪽을 보고 있는 리소스
-            self.frameX, self.frameY = 40, 60       # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
-            #
+                self.image = load_image('Mario.png')   # 오른쪽을 보고 있는 리소스
+            self.frameX, self.frameY = 30, 40          # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
         elif self.transform == 1:
             if self.isLeft:
-                self.image = load_image('MarioL.png')  # 왼쪽을 보고 있는 리소스
+                self.image = load_image('MarioL_super.png')  # 왼쪽을 보고 있는 리소스
             else:
-                self.image = load_image('Mario.png')  # 오른쪽을 보고 있는 리소스
-            self.frameX, self.frameY = 40, 60  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
+                self.image = load_image('Mario_super.png')   # 오른쪽을 보고 있는 리소스
+            self.frameX, self.frameY = 40, 60                # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
         elif self.transform == 2:
             if self.isLeft:
-                self.image = load_image('MarioL_fire.png')  # 왼쪽을 보고 있는 리소스
+                self.image = load_image('MarioL_fire.png')   # 왼쪽을 보고 있는 리소스
             else:
-                self.image = load_image('Mario_fire.png')  # 오른쪽을 보고 있는 리소스
-            self.frameX, self.frameY = 40, 60  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
+                self.image = load_image('Mario_fire.png')    # 오른쪽을 보고 있는 리소스
+            self.frameX, self.frameY = 40, 60                # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
 
         # 발판 체크
         if self.status == c_state.S_Idle or self.status == c_state.S_Walk or self.status == c_state.S_Dash:
@@ -277,24 +274,29 @@ class Character:
                              ground1.w, ground1.h, ground1.cx, ground1.cy, True):
                 self.isOnGround += 1
                 self.gp_EndHeight = ground1.cy + ground1.h - 20
+                if not self.y == self.gp_EndHeight:
+                    self.gp_delay = 4  # 그라운드파운드 후딜레이 3
             if collipseCheck(self.frameX, self.frameY, self.x, self.y - gp_gapHeight / 10 * self.gp_accel,
                                ground2.w, ground2.h, ground2.cx, ground2.cy, True):
                 self.isOnGround += 1
                 self.gp_EndHeight = ground2.cy + ground2.h + 10
+                if not self.y == self.gp_EndHeight:
+                    self.gp_delay = 4  # 그라운드파운드 후딜레이 3
             for box in boxes:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                    box.frameX, box.frameY, box.x, box.y, True):
                     self.isOnGround += 1
                     self.gp_EndHeight = box.y + box.frameY + 10
+                    if not self.y == self.gp_EndHeight:
+                        self.gp_delay = 4  # 그라운드파운드 후딜레이 3
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:
-                if self.y - (gp_gapHeight / 10 * self.gp_accel): self.gp_delay = 3  # 그라운드파운드 후딜레이 3
                 self.y -= gp_gapHeight / 10 * self.gp_accel
             else:
                 self.y = self.gp_EndHeight
-
                 # 착지 후 딜레이 계산
                 self.gp_delay -= 1
+                print('delay -1, delay: ' + str(self.gp_delay))
                 if self.gp_delay == 0:
                     #test
                     self.status = c_state.S_Idle
@@ -303,9 +305,10 @@ class Character:
                     self.gp = False
                     self.isLeap = False
                     self.isFall = False
-                    self.gp_delay = 5
+                    self.gp_delay = 3
                     gp_gapHeight = 0
                     self.gp_accel = 0
+                    self.jumpHeight = 15
         #=== Action/Attack
         elif self.status == c_state.S_Action:
             self.act_Delay -= 1
@@ -324,14 +327,26 @@ class Character:
 
                 self.slowFrame = 0
                 self.act = False
+        #=== TransForm
+        elif self.status == c_state.S_Transform:
+            self.slowFrame += 1
+            self.frame = (self.slowFrame // 2) % 5
+
+            if self.slowFrame > 10:
+                if self.isWalk:
+                    self.status = c_state.S_Walk
+                else:
+                    self.status = c_state.S_Idle
+                    self.isWalk = False
 
     def draw(self):
-        if self.transform == 0 or self.transform == 1:
-            self.image.clip_draw(self.frame * self.frameX, (9 - (self.status.value - 1)) * self.frameY
-                                 , self.frameX, self.frameY, self.x, self.y)
-        elif self.transform == 2:
+        if self.transform == 0:
             self.image.clip_draw(self.frame * self.frameX, (10 - (self.status.value - 1)) * self.frameY
                                  , self.frameX, self.frameY, self.x, self.y)
+        else:
+            self.image.clip_draw(self.frame * self.frameX, (11 - (self.status.value - 1)) * self.frameY
+                                 , self.frameX, self.frameY, self.x, self.y)
+
 
 
 # 랜덤박스, 부숴지는 박스 등등..
@@ -428,6 +443,9 @@ class Fireflower():
                 pass
             else:
                 mario.transform = 2
+                mario.status = c_state.S_Transform
+                mario.frame = 0
+                mario.slowFrame = 0
                 self.isCollipse = 0
                 self.isUsed = True
 
@@ -437,7 +455,7 @@ class Fireflower():
 
 class Fire():
     def __init__(self):  # 생성자
-        self.image = load_image('item_fireflower.png')
+        self.image = load_image('fireball.png')
         self.frameX, self.frameY = 10, 10  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
         self.frame = 0
         self.slowFrame = 0
@@ -454,12 +472,12 @@ class Fire():
             self.frame = (self.slowFrame // 2) % 4
             self.image.clip_draw(self.frame * self.frameX, 0, self.frameX, self.frameY, self.x, self.y)
         else:
-            self.x, self.y = -999, -999
+            # self.x, self.y = -999, -999
             self.isRendered = False
 
 class Coin():
     def __init__(self):  # 생성자
-        self.image = load_image('item_fireflower.png')
+        self.image = load_image('coin.png')
         self.frameX, self.frameY = 20, 20  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
         self.frame = 0
         self.slowFrame = 0
@@ -473,19 +491,7 @@ class Coin():
         self.isUsed = False
 
     def update(self):
-        if self.isRendered and not self.isUsed:
-            # 충돌체크
-            # 1. 충돌하면 1을 더한다.
-            if collipseCheck(mario.frameX, mario.frameY, mario.x, mario.y,
-                             self.frameX, self.frameY, self.x, self.y, True):
-                self.isCollipse += 1
-            # 2. 하나라도 충돌했다면 isCollipse는 0이 아니게 된다는 점 이용
-            if self.isCollipse == 0:
-                pass
-            else:
-                mario.transform = 2
-                self.isCollipse = 0
-                self.isUsed = True
+        pass
 
     def draw(self):
         if self.isRendered and not self.isUsed:
@@ -580,6 +586,7 @@ def handle_events():
                 if mario.status == c_state.S_Idle:
                     mario.status = c_state.S_Walk
                     mario.frame = 0
+                    mario.slowFrame = 0
 
                     mario.isWalk = True
                 elif mario.status == c_state.S_Walk:
@@ -587,6 +594,7 @@ def handle_events():
                         if not mario.isLeft:
                             mario.status = c_state.S_Idle
                             mario.frame = 0
+                            mario.slowFrame = 0
 
                             mario.isWalk = False
                             mario.doubleInput = True
@@ -600,6 +608,7 @@ def handle_events():
                 if mario.status == c_state.S_Idle:
                     mario.status = c_state.S_Walk
                     mario.frame = 0
+                    mario.slowFrame = 0
 
                     mario.isWalk = True
                 elif mario.status == c_state.S_Walk:
@@ -607,6 +616,7 @@ def handle_events():
                         if mario.isLeft:
                             mario.status = c_state.S_Idle
                             mario.frame = 0
+                            mario.slowFrame = 0
 
                             mario.isWalk = False
                             mario.doubleInput = True
@@ -615,7 +625,7 @@ def handle_events():
                     mario.move_in_air = True                          # 공중에서 좌우 움직임
 
                 if mario.isLeft: mario.isLeft = False  # 왼쪽을 보고 있었다면 오른쪽을 보게 만든다.
-            #=== 점프
+            #=== z - 점프
             elif event.key == SDLK_z:
                 if mario.status == c_state.S_Idle or mario.status == c_state.S_Walk or mario.status == c_state.S_Dash:
                     if mario.status == c_state.S_Dash:
@@ -623,23 +633,26 @@ def handle_events():
 
                     mario.status = c_state.S_Jump
                     mario.frame = 0
+                    mario.slowFrame = 0
 
                     mario.isWalk = False
                     mario.isLeap = True
-            #=== 대쉬
+            #=== x - 대쉬
             elif event.key == SDLK_x:
                 if mario.status != c_state.S_Jump and mario.isWalk:        # 점프 중에는 대쉬 불가 / 걷는 중에만 대쉬 가능
                     mario.status = c_state.S_Dash
                     mario.frame = 0
+                    mario.slowFrame = 0
 
                     mario.dash = True
-            # === 웅크리기 & 그라운드파운드
+            # === 아래 - 웅크리기 & 그라운드파운드
             elif event.key == SDLK_DOWN:
                 # 웅크리기
                 if mario.status == c_state.S_Idle or mario.status == c_state.S_Walk or mario.status == c_state.S_Dash:
                     if not mario.status == c_state.S_Down:
                         mario.status = c_state.S_Down
                         mario.frame = 0
+                        mario.slowFrame = 0
 
 
                 # 그라운드파운드
@@ -647,41 +660,46 @@ def handle_events():
                     if not mario.status == c_state.S_GP:
                         mario.status = c_state.S_GP
                         mario.frame = 0
+                        mario.slowFrame = 0
 
                         mario.gp = True
                         mario.gp_StartHeight = mario.y
-            #=== 액션/공격
+            #=== c - 액션/공격
             elif event.key == SDLK_c:
                 if mario.transform == 2:
                     if mario.status == c_state.S_Idle or mario.status == c_state.S_Walk:
                         mario.status = c_state.S_Action
                         mario.frame = 0
+                        mario.slowFrame = 0
 
                         mario.act = True
                         mario.act_Delay = 4
-
-        elif event.type == SDL_KEYUP:                                 # 키보드 입력 중지
+        # 키보드 입력 중지
+        elif event.type == SDL_KEYUP:
             # 좌 방향키 떼기
             if event.key == SDLK_LEFT:
                 if mario.status == c_state.S_Idle:
                     if mario.doubleInput:
                         mario.status = c_state.S_Walk
                         mario.frame = 0
+                        mario.slowFrame = 0
 
                         mario.isWalk = True
                         mario.isLeft = False
                 elif mario.status == c_state.S_Walk:
                     mario.status = c_state.S_Idle
                     mario.frame = 0
+                    mario.slowFrame = 0
 
                     mario.isWalk = False
                 elif mario.status == c_state.S_Jump:
-                    if mario.move_in_air: mario.move_in_air = False
+                    mario.move_in_air = False
                 elif mario.status == c_state.S_Dash:
                     mario.dash = False
                     mario.dashJump = False
                     mario.status = c_state.S_Idle
                     mario.frame = 0
+                    mario.slowFrame = 0
 
 
             # 우 방향키 떼기
@@ -690,21 +708,24 @@ def handle_events():
                     if mario.doubleInput:
                         mario.status = c_state.S_Walk
                         mario.frame = 0
+                        mario.slowFrame = 0
 
                         mario.isWalk = True
                         mario.isLeft = True
                 elif mario.status == c_state.S_Walk:
                     mario.status = c_state.S_Idle
                     mario.frame = 0
+                    mario.slowFrame = 0
 
                     mario.isWalk = False
                 elif mario.status == c_state.S_Jump:
-                    if mario.move_in_air: mario.move_in_air = False
+                    mario.move_in_air = False
                 elif mario.status == c_state.S_Dash:
                     mario.dash = False
                     mario.dashJump = False
                     mario.status = c_state.S_Idle
                     mario.frame = 0
+                    mario.slowFrame = 0
 
 
             # x 키 떼기
@@ -715,10 +736,12 @@ def handle_events():
                     if mario.isWalk:
                         mario.status = c_state.S_Walk
                         mario.frame = 0
+                        mario.slowFrame = 0
 
                 else:
                     mario.status = c_state.S_Idle
                     mario.frame = 0
+                    mario.slowFrame = 0
 
                 if mario.dash: mario.dash = False                     # 대쉬 중지
             # 아래 방향키 떼기
@@ -726,6 +749,7 @@ def handle_events():
                 if mario.status == c_state.S_Down:
                     mario.status = c_state.S_Idle
                     mario.frame = 0
+                    mario.slowFrame = 0
 
 
 # Initialize

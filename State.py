@@ -12,5 +12,6 @@ class C_state(Enum):
     S_Kick = auto()
     S_Climb = auto()
     S_Action = auto()
+    S_Transform = auto()
 
 c_state = C_state
