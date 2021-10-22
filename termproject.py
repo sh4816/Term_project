@@ -137,12 +137,13 @@ class Character:
             if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  ground1.w, ground1.h, ground1.cx, ground1.cy, True):
                 self.isOnGround += 1
-            if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 ground2.w, ground2.h, ground2.cx, ground2.cy, True):
-                self.isOnGround += 1
             for box in boxes:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                    box.frameX, box.frameY, box.x, box.y, True):
+                    self.isOnGround += 1
+            for brick in bricks:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 brick.frameX, brick.frameY, brick.x, brick.y, True):
                     self.isOnGround += 1
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:
@@ -180,12 +181,13 @@ class Character:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
                                  ground1.w, ground1.h, ground1.cx, ground1.cy, True):
                     self.isUnderBlock += 1
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
-                                   ground2.w, ground2.h, ground2.cx, ground2.cy, True):
-                    self.isUnderBlock += 1
                 for box in boxes:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
                                        box.frameX, box.frameY, box.x, box.y, True):
+                        self.isUnderBlock += 1
+                for brick in bricks:
+                    if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
+                                     brick.frameX, brick.frameY, brick.x, brick.y, True):
                         self.isUnderBlock += 1
                 # 2. 하나라도 충돌했다면 isUnderBlock는 0이 아니게 된다는 점 이용
                 if self.isUnderBlock == 0:
@@ -214,15 +216,16 @@ class Character:
                                  ground1.w, ground1.h, ground1.cx, ground1.cy, True):
                     self.isOnGround += 1
                     self.gp_EndHeight = ground1.cy + ground1.h - 20
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                   ground2.w, ground2.h, ground2.cx, ground2.cy, True):
-                    self.isOnGround += 1
-                    self.gp_EndHeight = ground2.cy + ground2.h + 10
                 for box in boxes:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                        box.frameX, box.frameY, box.x, box.y, True):
                         self.isOnGround += 1
                         self.gp_EndHeight = box.y + box.frameY + 10
+                for brick in bricks:
+                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                     brick.frameX, brick.frameY, brick.x, brick.y, True):
+                        self.isOnGround += 1
+                        self.gp_EndHeight = brick.y + brick.frameY + 10
                 # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
                 if self.isOnGround == 0:
                     self.isOnGround = 0
@@ -275,20 +278,21 @@ class Character:
                 self.isOnGround += 1
                 self.gp_EndHeight = ground1.cy + ground1.h - 20
                 if not self.y == self.gp_EndHeight:
-                    self.gp_delay = 4  # 그라운드파운드 후딜레이 3
-            if collipseCheck(self.frameX, self.frameY, self.x, self.y - gp_gapHeight / 10 * self.gp_accel,
-                               ground2.w, ground2.h, ground2.cx, ground2.cy, True):
-                self.isOnGround += 1
-                self.gp_EndHeight = ground2.cy + ground2.h + 10
-                if not self.y == self.gp_EndHeight:
-                    self.gp_delay = 4  # 그라운드파운드 후딜레이 3
+                    self.gp_delay = 4  # 그라운드파운드 후딜레이
             for box in boxes:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                    box.frameX, box.frameY, box.x, box.y, True):
                     self.isOnGround += 1
                     self.gp_EndHeight = box.y + box.frameY + 10
                     if not self.y == self.gp_EndHeight:
-                        self.gp_delay = 4  # 그라운드파운드 후딜레이 3
+                        self.gp_delay = 4  # 그라운드파운드 후딜레이
+            for brick in bricks:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 brick.frameX, brick.frameY, brick.x, brick.y, True):
+                    self.isOnGround += 1
+                    self.gp_EndHeight = box.y + box.frameY + 10
+                    if not self.y == self.gp_EndHeight:
+                        self.gp_delay = 4   # 그라운드파운드 후딜레이
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:
                 self.y -= gp_gapHeight / 10 * self.gp_accel
@@ -418,6 +422,37 @@ class Box_Question():
             self.slowFrame += 1
             self.frame = (self.slowFrame // 5) % 4
             self.image.clip_draw(self.frame * self.frameX, 0, self.frameX, self.frameY, self.x, self.y)
+
+class Brick():
+    def __init__(self):  # 생성자
+        self.image = load_image('block_brick.png')
+        self.frameX, self.frameY = 30, 30  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
+        self.x, self.y = 0, 0
+
+        # 충돌 관련
+        self.isCollipse = False
+        self.destroy = 0
+
+    def update(self):
+        # 충돌체크
+        # 1. 충돌하면 1을 더한다.
+        if collipseCheck(mario.frameX, mario.frameY, mario.x, mario.y + 1,
+                         self.frameX, self.frameY, self.x, self.y, True):
+            if mario.status == c_state.S_Jump and mario.y < self.y:  # 마리오가 블록 아래에서 점프 중
+                self.destroy += 1
+                self.isCollipse += 1
+                print('1')
+            elif mario.status == c_state.S_GP and mario.y > self.y:  # 마리오가 그라운드 파운드로 위에서 아래로 찍음
+                self.destroy += 1
+                self.isCollipse += 1
+                print('2')
+        # 2. 하나라도 충돌했다면 0이 아니게 됨
+        if not self.isCollipse == 0:
+            if not self.destroy == 0:
+                bricks.remove(self)
+
+    def draw(self):
+        self.image.draw(self.x, self.y)
 
 class Fireflower():
     def __init__(self):  # 생성자
@@ -767,10 +802,6 @@ ground1 = Ground_big() # 땅1
 ground1.w, ground1.h = 800, 90
 ground1.cx, ground1.cy = 400, 30
 
-ground2 = Ground() # 땅2
-ground2.w, ground2.h = 300, 30
-ground2.cx, ground2.cy = 600, 180
-
 # 박스
 boxes = []
 def make_box(xPos, yPos, box_type):
@@ -779,11 +810,21 @@ def make_box(xPos, yPos, box_type):
     newBox.itemValue = box_type
 
     boxes.append(newBox)
-
 make_box(200, 180, 2)
 make_box(500, 300, 0)
 make_box(530, 300, 0)
 make_box(600, 300, 0)
+
+# 벽돌
+bricks = []
+def make_brick(xPos, yPos):
+    newBrick = Brick()
+    newBrick.x, newBrick.y = xPos, yPos
+
+    bricks.append(newBrick)
+for i in range(10):
+    make_brick(450+i*30, 180)
+
 
 # 아이템
 fireflower1 = Fireflower() # 꽃
@@ -807,6 +848,9 @@ while running:
     for box in boxes:
         box.update()
 
+    for brick in bricks:
+        brick.update()
+
     fireflower1.update()
 
     #=== Render
@@ -817,10 +861,12 @@ while running:
     mario.draw()
 
     ground1.draw()
-    ground2.draw()
 
     for box in boxes:
         box.draw()
+
+    for brick in bricks:
+        brick.draw()
 
     fireflower1.draw()
 
