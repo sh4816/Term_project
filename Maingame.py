@@ -8,10 +8,9 @@ import Item_Coin
 import Item_TransForm
 
 
-# Initialize
-#
 open_canvas()
 
+#=== Initialize
 
 # 마리오 객체를 생성
 mario = Player.Character()
@@ -33,20 +32,20 @@ Map_Box.make_box(530, 320, 0)
 Map_Box.make_box(600, 320, 0)
 
 
+
 # 벽돌
 for i in range(10):
     Map_Brick.make_brick(450+i*30, 200)
 
 
+
 # 아이템
 
 
-# # 액션
-# fire1 = Fire()
+# 액션
 
 
 #=== Handle Events
-#
 def handle_events():
     global running
     events = get_events()
@@ -265,7 +264,8 @@ while running:
     for brick in Map_Brick.bricks:
         brick.update()
 
-    # fireflower1.update()
+    for t_item in Item_TransForm.t_items:
+        t_item.update()
 
 
     #=== Render
@@ -282,15 +282,12 @@ while running:
     for brick in Map_Brick.bricks:
         brick.draw()
 
-
-
-    # fire1.draw()
-
     for coin in Item_Coin.coins:
         coin.draw()
 
     for t_item in Item_TransForm.t_items:
         t_item.draw()
+
 
     update_canvas()
     delay(0.01)

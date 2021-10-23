@@ -1,17 +1,25 @@
 # Player
 from pico2d import *
 from State import *
+from Collide import collipseCheck
+import enum
 import Map_Tile
 import Map_Box
 import Map_Brick
 import Item_Coin
 import Item_TransForm
 
+
+class Transform(enum.IntEnum):
+    Standard = enum.auto()
+    Super = enum.auto()
+    Fire = enum.auto()
+
 # 캐릭터
 class Character:
     def __init__(self):
         # 변신 관련 변수
-        self.transform = 0          # 변신 상태 (0: 기본, 1: 슈퍼마리오, 2: 파이어마리오)
+        self.transform = Transform.Standard          # 변신 상태 (기본, 슈퍼마리오,파이어마리오)
 
         # 기본
         self.image = load_image('Mario.png')
@@ -69,8 +77,8 @@ class Character:
         for t_item in Item_TransForm.t_items:
             if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                              t_item.frameX, t_item.frameY, t_item.x, t_item.y, True):
-                if self.transform < t_item.itemValue:       # 변신 아이템보다 현재 상태가 하위 상태일때
-                    self.transform = t_item.itemValue
+                if self.transform < t_item.itemValue + 1:       # 변신 아이템보다 현재 상태가 하위 상태일때
+                    self.transform = t_item.itemValue + 1
                     self.status = c_state.S_Transform
                     self.slowFrame = 0
                     self.frame = 0
@@ -80,19 +88,19 @@ class Character:
                 Item_TransForm.t_items.remove(t_item)  # 객체 삭제
 
         # 이미지 체크
-        if self.transform == 0:
+        if self.transform == Transform.Standard:
             if self.isLeft:
                 self.image = load_image('MarioL.png')  # 왼쪽을 보고 있는 리소스
             else:
                 self.image = load_image('Mario.png')   # 오른쪽을 보고 있는 리소스
             self.frameX, self.frameY = 30, 40          # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
-        elif self.transform == 1:
+        elif self.transform == Transform.Super:
             if self.isLeft:
                 self.image = load_image('MarioL_super.png')  # 왼쪽을 보고 있는 리소스
             else:
                 self.image = load_image('Mario_super.png')   # 오른쪽을 보고 있는 리소스
             self.frameX, self.frameY = 40, 60                # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
-        elif self.transform == 2:
+        elif self.transform == Transform.Fire:
             if self.isLeft:
                 self.image = load_image('MarioL_fire.png')   # 왼쪽을 보고 있는 리소스
             else:
@@ -249,8 +257,9 @@ class Character:
                             if self.y <= brick.y - brick.frameX/2:
                                 self.isUnderBlock += 1
                                 self.jump_collipseYPos = brick.y - brick.frameY/2 - self.frameY/2
-                                # 충돌한 벽돌은 삭제됨
-                                Map_Brick.bricks.remove(brick)
+                                if not self.transform == Transform.Standard:     # 기본마리오는 벽돌을 부수지 못함
+                                    # 충돌한 벽돌은 삭제됨
+                                    Map_Brick.bricks.remove(brick)
                 # 2. 하나라도 충돌했다면 isUnderBlock는 0이 아니게 된다는 점 이용
                 if not self.isUnderBlock == 0:
                     self.y = self.jump_collipseYPos - 1
@@ -316,7 +325,7 @@ class Character:
         #=== Dash
         elif self.status == c_state.S_Dash:
             # 이동
-            if self.transform == 0:
+            if self.transform == Transform.Standard:
                 self.frame = (self.frame + 1) % 2
             else:
                 self.frame = (self.frame + 1) % 4
@@ -354,8 +363,6 @@ class Character:
             pass
         #=== GroundPound
         elif self.status == c_state.S_GP:
-            self.gp_accel += 0.98 * 3
-
             # 충돌체크
             # 1. 충돌하면 1을 더한다.
             for tile in Map_Tile.tiles:
@@ -381,20 +388,27 @@ class Character:
                         elif box.itemValue == 1 or box.itemValue == 2:
                             Item_TransForm.make_titem(box.x, box.y + box.frameY / 2 + 10, box.itemValue - 1)
 
-
                         box.isUsed = True
             for brick in Map_Brick.bricks:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  brick.frameX, brick.frameY, brick.x, brick.y, True):
-                    self.gp_accel /= 2
-                    # 충돌한 벽돌은 삭제됨
-                    Map_Brick.bricks.remove(brick)
+                    if self.transform == Transform.Standard:     # 기본마리오는 벽돌을 부수지 못한다
+                        self.isOnGround += 1
+                        self.gp_EndHeight = brick.y + brick.frameY / 2 + self.frameY / 2
+                        if self.gp:
+                            self.gp_delay = 4   # 그라운드파운드 후딜레이
+                            self.gp = False
+                    else:
+                        self.gp_accel /= 2
+                        # 충돌한 벽돌은 삭제됨
+                        Map_Brick.bricks.remove(brick)
 
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:
+                self.gp_accel += 0.98 * 3
                 self.y -= self.gp_accel
             else:
-                self.y = self.gp_EndHeight
+                self.y = self.gp_EndHeight - 5
                 # 착지 후 딜레이 계산
                 self.gp_delay -= 1
                 if self.gp_delay == 0:
@@ -432,6 +446,8 @@ class Character:
             self.frame = (self.slowFrame // 2) % 5
 
             if self.slowFrame > 10:
+                if self.transform == Transform.Super:
+                    self.y += 10
                 if self.isWalk:
                     self.status = c_state.S_Walk
                     self.isWalk = True
@@ -443,58 +459,9 @@ class Character:
                         = self.isFall = self.move_in_air = self.gp = False
 
     def draw(self):
-        if self.transform == 0:
+        if self.transform == Transform.Standard:
             self.image.clip_draw(self.frame * self.frameX, (10 - (self.status.value - 1)) * self.frameY
                                  , self.frameX, self.frameY, self.x, self.y)
         else:
             self.image.clip_draw(self.frame * self.frameX, (11 - (self.status.value - 1)) * self.frameY
                                  , self.frameX, self.frameY, self.x, self.y)
-
-
-
-def collipseCheck(obj1_w, obj1_h, obj1_cx, obj1_cy, obj2_w, obj2_h, obj2_cx, obj2_cy, isPlayer):
-    # 두 사각형의 상하좌우 변
-    r1_L, r1_R = obj1_cx - obj1_w/2, obj1_cx + obj1_w/2
-    r1_T, r1_B = obj1_cy + obj1_h/2, obj1_cy - obj1_h/2
-    r2_L, r2_R = obj2_cx - obj2_w/2, obj2_cx + obj2_w/2
-    r2_T, r2_B = obj2_cy + obj2_h/2, obj2_cy - obj2_h/2
-
-    if isPlayer:    # Player의 리소스 파일 크기때문에 플레이어 발 아래에 발판이 없는 것 처럼 보이지만, 충돌처리가 되는 경우 방지.
-        r1_L += 13
-        r1_R -= 13
-
-    if r1_R > r2_L:                                     # r1의 오른쪽 변이 r2의 왼쪽 변보다 오른쪽에 있을 때
-        if not r1_L > r2_R:                             # 단, r1의 왼쪽 변이 r2 보다 오른쪽에 있으면 안된다.
-            if r1_B > r2_B and r1_B < r2_T:             # r1의 아랫변이 r2 안에 있는 경우
-                return True
-            elif r1_T > r2_B and r1_T < r2_T:           # r1의 윗변이 r2 안에 있는 경우
-                return True
-            elif r1_L > r2_L and r1_L < r2_R:           # r1의 왼쪽 변이 r2 안에 있는 경우
-                if not (r1_B > r2_T or r1_T < r2_B):   # 단, r1의 아랫변이 r2 위에 있거나, r1의 윗변이 r2 아래에 있으면 안된다.
-                    return True
-            elif r1_T > r2_B and r1_B < r2_T:           # r1의 윗변은 r2의 아랫변보다 위에, r1의 아랫변은 r2의 윗변보다 아래에 있는 경우
-                if not (r1_L > r2_R or r1_R < r2_L):   # 단, r1의 왼쪽 변이 r2 오른쪽에 있거나, r1의 오른 변이 r2 왼쪽에 있으면 안된다.
-                    return True
-
-    if r1_L <= r2_R:                                    # r1의 왼쪽 변이 r2의 오른쪽 변보다 왼쪽에 있을 때
-        if not r1_R < r2_L:                             # 단, r1의 오른쪽 변이 r2 보다 왼쪽에 있으면 안된다.
-            if r1_B > r2_B and r1_B < r2_T:             # r1의 아랫변이 r2 안에 있는 경우
-                return True
-            elif r1_T > r2_B and r1_T < r2_T:           # r1의 윗변이 r2 안에 있는 경우
-                return True
-            elif r1_R > r2_L and r1_R < r2_R:           # r1의 오른쪽 변이 r2 안에 있는 경우
-                if not (r1_B > r2_T or r1_T < r2_B):  # 단, r1의 아랫변이 r2 위에 있거나, r1의 윗변이 r2 아래에 있으면 안된다.
-                    return True
-            elif r1_T > r2_B and r1_B < r2_T:           # r1의 윗변은 r2의 아랫변보다 위에, r1의 아랫변은 r2의 윗변보다 아래에 있는 경우
-                if not (r1_L > r2_R or r1_R < r2_L):  # 단, r1의 왼쪽 변이 r2 오른쪽에 있거나, r1의 오른 변이 r2 왼쪽에 있으면 안된다.
-                    return True
-
-    if (r1_L > r2_L and r1_L < r2_R) and (r1_R > r2_L and r1_R < r2_R): # r1의 왼쪽, 오른쪽 변 모두 r2 안에 있는 경우
-        if not (r1_B > r2_T or r1_T < r2_B):  # 단, r1의 아랫변이 r2 위에 있거나, r1의 윗변이 r2 아래에 있으면 안된다.
-            return True
-
-    if (r1_T > r2_B and r1_T < r2_T) and (r1_B > r2_B and r1_B < r2_T): # r1의 윗변, 아랫변 모두 r2 안에 있는 경우
-        if not (r1_L > r2_R or r1_R < r2_L):  # 단, r1의 왼쪽 변이 r2 오른쪽에 있거나, r1의 오른 변이 r2 왼쪽에 있으면 안된다.
-            return True
-
-    return False    # 위의 모든 경우에 해당하지 않는 경우 False 반환

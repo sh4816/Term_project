@@ -1,4 +1,13 @@
 from pico2d import *
+from Collide import collipseCheck
+from enum import *
+import Map_Tile
+import Map_Box
+import Map_Brick
+
+class Value(IntEnum):
+    Mushroom = auto()
+    Fireflower = auto()
 
 # 변신 아이템
 class TransformItem():
@@ -10,12 +19,42 @@ class TransformItem():
         self.itemValue = 0
 
         # 충돌 관련
-        self.isCollipse = False
+        self.isOnGround = 0
+        self.landYPos = 0
+
+    def update(self):
+        if self.itemValue == Value.Mushroom:
+            # 1. 충돌하면 1을 더한다.
+            for tile in Map_Tile.tiles:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 tile.frameX, tile.frameY, tile.x, tile.y, False):
+                    self.isOnGround += 1
+                    self.y = tile.y + tile.frameY/2 + self.frameY/2
+            for box in Map_Box.boxes:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 box.frameX, box.frameY, box.x, box.y, False):
+                    self.isOnGround += 1
+                    self.y = box.y + box.frameY / 2 + self.frameY / 2
+            for brick in Map_Brick.bricks:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 brick.frameX, brick.frameY, brick.x, brick.y, False):
+                    self.isOnGround += 1
+                    self.y = brick.y + brick.frameY / 2 + self.frameY / 2
+            # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
+            if self.isOnGround == 0:
+                self.y -= 4
+            else:
+                self.x += 2
+                self.isOnGround = 0
+
+            if self.y < 0:
+                t_items.remove(self)
+                print('removed')
 
     def draw(self):
-        if self.itemValue == 1:
+        if self.itemValue == Value.Mushroom:
             self.image = load_image('item_mushroom.png')
-        elif self.itemValue == 2:
+        elif self.itemValue == Value.Fireflower:
             self.image = load_image('item_fireflower.png')
 
         self.image.draw(self.x, self.y)
