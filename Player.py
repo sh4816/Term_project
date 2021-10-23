@@ -11,7 +11,7 @@ import Item_TransForm
 class Character:
     def __init__(self):
         # 변신 관련 변수
-        self.transform = 1          # 변신 상태 (0: 기본, 1: 슈퍼마리오, 2: 파이어마리오)
+        self.transform = 0          # 변신 상태 (0: 기본, 1: 슈퍼마리오, 2: 파이어마리오)
 
         # 기본
         self.image = load_image('Mario.png')
@@ -316,7 +316,10 @@ class Character:
         #=== Dash
         elif self.status == c_state.S_Dash:
             # 이동
-            self.frame = (self.frame + 1) % 4
+            if self.transform == 0:
+                self.frame = (self.frame + 1) % 2
+            else:
+                self.frame = (self.frame + 1) % 4
             if self.isLeft:
                 self.x -= 10
             else:

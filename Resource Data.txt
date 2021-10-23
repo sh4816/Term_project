@@ -3,11 +3,11 @@
 1 Walk (2)
 2 Hit (1)
 3 Jump (1)
-4 Dash (4)
+4 Dash (2)
 5 Down (1)
 6 Slide / Ground Pound (1)
 7 Stand (1)
-8 Kick (4)
+8 Kick (3)
 9 Climb (2)
 10 Gameover(1)
 11 X
