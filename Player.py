@@ -25,7 +25,7 @@ class Character:
         self.image = load_image('Mario.png')
         self.frameX, self.frameY = 0, 0       # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
 
-        self.x, self.y = 500, 250
+        self.x, self.y = 100, 100
         self.frame = 0
         self.slowFrame = 0
         self.status = c_state.S_Idle
@@ -43,7 +43,7 @@ class Character:
         self.rBlocked = False
 
         # 점프 관련 변수
-        self.jumpHeight = 15
+        self.jumpHeight = 16
         self.isUnderBlock = 0       # 상단이 블록으로 막혀있는지 (0: 막혀있지 않음, 1 이상: 막혀있음)
         self.jump_collipseYPos = 0
         self.isLeap = False         # 도약 중인지
@@ -179,32 +179,41 @@ class Character:
                 # 충돌체크 ( 이동 예정인 좌표와 오브젝트, 현재 좌표X )
                 # 1. 충돌하면 1을 더한다.
                 for tile in Map_Tile.tiles:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
+                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                      tile.frameX, tile.frameY, tile.x, tile.y, False):
+                        print('A')
                         if self.y - self.frameY / 2 < tile.y + tile.frameY / 2:
-                            if self.x + self.frameX/2 >= tile.x - tile.frameX/2:
+                            if tile.x - tile.frameX/2 < self.x + self.frameX/2 < tile.x + tile.frameX/2:
+                                print('B')
                                 self.rBlocked = True
-                            elif self.x - self.frameX/2 <= tile.x + tile.frameX/2:
+                            elif tile.x - tile.frameX/2 < self.x - self.frameX/2 < tile.x + tile.frameX/2:
+                                print('C')
                                 self.lBlocked = True
                         # else:
                         #     self.isBlocked = False
 
                 for box in Map_Box.boxes:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
+                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                        box.frameX, box.frameY, box.x, box.y, False):
+                        print('A')
                         if self.y - self.frameY/2 < box.y + box.frameY/2:
-                            if self.x + self.frameX / 2 >= box.x - box.frameX / 2:
+                            if box.x - box.frameX / 2 < self.x + self.frameX / 2 < box.x + box.frameX / 2:
+                                print('B')
                                 self.rBlocked = True
-                            elif self.x - self.frameX / 2 <= box.x + box.frameX / 2:
+                            elif box.x - box.frameX / 2 < self.x - self.frameX / 2 < box.x + box.frameX / 2:
+                                print('C')
                                 self.lBlocked = True
 
                 for brick in Map_Brick.bricks:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
+                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                      brick.frameX, brick.frameY, brick.x, brick.y, False):
+                        print('A')
                         if self.y - self.frameY / 2 < brick.y + brick.frameY / 2:
-                            if self.x + self.frameX / 2 >= brick.x - brick.frameX / 2:
+                            if brick.x - brick.frameX / 2 < self.x + self.frameX / 2 < brick.x + brick.frameX / 2:
+                                print('B')
                                 self.rBlocked = True
-                            elif self.x - self.frameX / 2 <= brick.x + brick.frameX / 2:
+                            elif brick.x - brick.frameX / 2 < self.x - self.frameX / 2 < brick.x + brick.frameX / 2:
+                                print('C')
                                 self.lBlocked = True
 
                 # 2. 하나라도 충돌했다면 isUnderBlock는 0이 아니게 된다는 점 이용
@@ -319,7 +328,7 @@ class Character:
                         self.move_in_air = False
                         self.frame = 0
 
-                    self.jumpHeight = 15
+                    self.jumpHeight = 16
                     self.isOnGround = 0
 
                     self.y = self.gp_EndHeight - 5
@@ -422,7 +431,7 @@ class Character:
                     gp_Collipse = True
                     gp_gapHeight = 0
                     self.gp_accel = 0
-                    self.jumpHeight = 15
+                    self.jumpHeight = 16
                     self.gp_delay = 3
         #=== Action/Attack
         elif self.status == c_state.S_Action:

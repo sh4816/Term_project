@@ -27,17 +27,17 @@ class TransformItem():
         if self.itemValue == Value.Mushroom:
             # 1. 충돌하면 1을 더한다.
             for tile in Map_Tile.tiles:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                if collipseCheck(self.frameX - 2, self.frameY, self.x, self.y,
                                  tile.frameX, tile.frameY, tile.x, tile.y, False):
                     self.isOnGround += 1
                     self.y = tile.y + tile.frameY/2 + self.frameY/2
             for box in Map_Box.boxes:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                if collipseCheck(self.frameX - 2, self.frameY, self.x, self.y,
                                  box.frameX, box.frameY, box.x, box.y, False):
                     self.isOnGround += 1
                     self.y = box.y + box.frameY / 2 + self.frameY / 2
             for brick in Map_Brick.bricks:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                if collipseCheck(self.frameX - 2, self.frameY, self.x, self.y,
                                  brick.frameX, brick.frameY, brick.x, brick.y, False):
                     self.isOnGround += 1
                     self.y = brick.y + brick.frameY / 2 + self.frameY / 2
