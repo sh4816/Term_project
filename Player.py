@@ -77,8 +77,8 @@ class Character:
         for t_item in Item_TransForm.t_items:
             if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                              t_item.frameX, t_item.frameY, t_item.x, t_item.y, True):
-                if self.transform < t_item.itemValue + 1:       # 변신 아이템보다 현재 상태가 하위 상태일때
-                    self.transform = t_item.itemValue + 1
+                if self.transform < t_item.itemValue:       # 변신 아이템보다 현재 상태가 하위 상태일때
+                    self.transform = t_item.itemValue
                     self.status = c_state.S_Transform
                     self.slowFrame = 0
                     self.frame = 0
@@ -243,9 +243,10 @@ class Character:
                                 self.jump_collipseYPos = box.y - box.frameY/2 - self.frameY/2
 
                             if not box.isUsed:
-                                if box.itemValue == 0:
+                                if box.itemValue == Map_Box.boxType.coin:
                                     Item_Coin.make_coins(box.x, box.y + box.frameY/2 + 20, True)
-                                elif box.itemValue == 1 or box.itemValue == 2:
+                                elif box.itemValue == Map_Box.boxType.mushroom\
+                                    or box.itemValue == Map_Box.boxType.flower:
                                     Item_TransForm.make_titem(box.x, box.y + box.frameY / 2 + 10, box.itemValue)
 
 
@@ -383,10 +384,11 @@ class Character:
                         self.gp = False
 
                     if not box.isUsed:
-                        if box.itemValue == 0:
+                        if box.itemValue == Map_Box.boxType.coin:
                             Item_Coin.make_coins(box.x, box.y + box.frameY / 2 + 20, True)
-                        elif box.itemValue == 1 or box.itemValue == 2:
-                            Item_TransForm.make_titem(box.x, box.y + box.frameY / 2 + 10, box.itemValue - 1)
+                        elif box.itemValue == Map_Box.boxType.mushroom\
+                            or box.itemValue == Map_Box.boxType.flower:
+                            Item_TransForm.make_titem(box.x, box.y + box.frameY / 2 + 10, box.itemValue)
 
                         box.isUsed = True
             for brick in Map_Brick.bricks:

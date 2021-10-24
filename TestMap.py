@@ -6,6 +6,7 @@ import Map_Box
 import Map_Brick
 import Item_Coin
 import Item_TransForm
+import MapEdit_Map1 as map1
 
 
 open_canvas()
@@ -15,34 +16,8 @@ open_canvas()
 # 마리오 객체를 생성
 mario = Player.Character()
 
-
-# 지형
-for i in range(100):
-    Map_Tile.make_tile(i*30, 90, "Grass")
-
-for i in range(100):
-    Map_Tile.make_tile(i*30, 60, "Dirt")
-
-
-# # 박스
-Map_Box.make_box(200, 200, "Mushroom")
-Map_Box.make_box(120, 200, "Flower")
-Map_Box.make_box(500, 320, "Coin")
-Map_Box.make_box(530, 320, "Coin")
-Map_Box.make_box(600, 320, "Coin")
-
-
-
-# 벽돌
-for i in range(10):
-    Map_Brick.make_brick(450+i*30, 200)
-
-
-
-# 아이템
-
-
-# 액션
+# 맵 불러오기
+map1.mapEdit()
 
 
 #=== Handle Events

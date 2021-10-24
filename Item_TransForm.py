@@ -6,6 +6,7 @@ import Map_Box
 import Map_Brick
 
 class Value(IntEnum):
+    NN = auto()#
     Mushroom = auto()
     Fireflower = auto()
 
