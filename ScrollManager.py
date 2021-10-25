@@ -4,26 +4,29 @@ import Player
 ScrollX = 0
 MapLen = 0
 
-def ScrollLock():
-    if 0 <= Player.mario.x < 300:
-        return True
+def ScrollLock(player):
+    global ScrollX, MapLen
 
-    if Player.mario.x - ScrollX < 300:
+    if 0 <= player.x < 300:
         return True
-
-    if ScrollX + 600 >= MapLen:
+    elif player.x - ScrollX < 300:
+        return True
+    elif ScrollX + 600 >= MapLen:
         return True
 
     return False
 
 
-def getScroll_X(Map):
+def getScrollX(Map, player):
+    global ScrollX, MapLen
 
-    if Map == "Map_1":
+
+    if Map == "Map1":
         MapLen = 2400
 
-    if not ScrollLock():
-        ScrollX = Player.mario.x - 300
+    if not ScrollLock(player):
+        print('Scroll Moving, Mario.X = ' + str(player.x))
+        ScrollX = player.x - 300
 
     return ScrollX
 

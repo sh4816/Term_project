@@ -6,6 +6,7 @@ import Map_Box
 import Map_Brick
 import Item_Coin
 import Item_TransForm
+import ScrollManager as scrollMgr
 import MapEdit_Map1 as map1
 
 
@@ -231,16 +232,26 @@ while running:
 
 
     #=== Update
+    mario.scrollX = scrollMgr.getScrollX("Map1", mario)
     mario.update()
+
+    for tile in Map_Tile.tiles:
+        tile.scrollX = scrollMgr.getScrollX("Map1", mario)
 
     for box in Map_Box.boxes:
         box.update()
+        box.scrollX = scrollMgr.getScrollX("Map1", mario)
 
     for brick in Map_Brick.bricks:
         brick.update()
+        brick.scrollX = scrollMgr.getScrollX("Map1", mario)
+
+    for coin in Item_Coin.coins:
+        coin.scrollX = scrollMgr.getScrollX("Map1", mario)
 
     for t_item in Item_TransForm.t_items:
         t_item.update()
+        t_item.scrollX = scrollMgr.getScrollX("Map1", mario)
 
 
     #=== Render

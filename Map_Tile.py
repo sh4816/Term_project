@@ -6,7 +6,11 @@ class Tile:
         self.image = load_image('tile_grass.png')
         self.frameX, self.frameY = 30, 30  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
         self.x, self.y = 0, 0
+        self.scrollX = 0
         self.type = "Grass"
+
+    def update(self):
+        pass
 
     def draw(self):
         if self.type == "Grass":
@@ -16,7 +20,7 @@ class Tile:
         elif self.type == "Dirt":
             self.image = load_image('tile_dirt.png')
 
-        self.image.draw(self.x, self.y)
+        self.image.draw(self.x - self.scrollX, self.y)
 
 tiles = []
 def make_tile(xPos, yPos, type):

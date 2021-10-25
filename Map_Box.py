@@ -12,6 +12,7 @@ class Box_Question():
         self.image = load_image('block_question.png')
         self.frameX, self.frameY = 30, 30  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
         self.x, self.y = 0, 0
+        self.scrollX = 0
         self.frame = 0
         self.slowFrame = 0
         self.itemValue = 0                 # 충돌하면 튀어나오는 아이템 종류 (1: 코인, 2: 버섯, 3: 파이어플라워)
@@ -27,11 +28,11 @@ class Box_Question():
 
     def draw(self):
         if self.isUsed:
-            self.image.draw(self.x, self.y)
+            self.image.draw(self.x - self.scrollX, self.y)
         else:
             self.slowFrame += 1
             self.frame = (self.slowFrame // 5) % 4
-            self.image.clip_draw(self.frame * self.frameX, 0, self.frameX, self.frameY, self.x, self.y)
+            self.image.clip_draw(self.frame * self.frameX, 0, self.frameX, self.frameY, self.x - self.scrollX, self.y)
 
 
 boxes = []

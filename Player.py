@@ -8,6 +8,7 @@ import Map_Box
 import Map_Brick
 import Item_Coin
 import Item_TransForm
+import ScrollManager as scrollMgr
 
 
 class Transform(enum.IntEnum):
@@ -19,13 +20,14 @@ class Transform(enum.IntEnum):
 class Character:
     def __init__(self):
         # 변신 관련 변수
-        self.transform = Transform.Standard          # 변신 상태 (기본, 슈퍼마리오,파이어마리오)
+        self.transform = Transform.Standard                      # 변신 상태 (기본, 슈퍼마리오,파이어마리오)
 
         # 기본
         self.image = load_image('Mario.png')
-        self.frameX, self.frameY = 0, 0       # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
+        self.frameX, self.frameY = 0, 0                          # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
 
-        self.x, self.y = 100, 100
+        self.x, self.y = 100, 100                                # 실제 위치
+        self.scrollX = 0                                        # 윈도우에 렌더링이 되는 시작위치
         self.frame = 0
         self.slowFrame = 0
         self.status = c_state.S_Idle
@@ -36,6 +38,8 @@ class Character:
         self.isLeft = False         # 왼쪽을 보고 있는지
         self.isOnGround = 0         # 땅 위에 있는지 (0: 땅 위에 없음, 1 이상: 땅 위에 있음)
         self.doubleInput = False
+
+        self.mapEnd = False         # 맵의 끝에 위치하고 있는지
 
        # 걷기 관련 변수
         self.isWalk = False         # 걷는 중인지
@@ -70,8 +74,24 @@ class Character:
         # Out of Window 체크
         if self.y < 0:
             # Life 업데이트 후 Life감소 추가 예정.
-            self.x, self.y = 400, 300
+            self.x, self.y = self.scrollX + 100, 200
             print('사망')
+
+        # Map의 끝에 있는지 체크
+        if self.x <= 0:
+            print('a')
+            self.MapEnd = True
+            self.x = 1
+        elif self.x - self.scrollX <= 0:
+            print('b')
+            self.MapEnd = True
+            self.x = self.scrollX + 1
+        elif self.x >= scrollMgr.MapLen:
+            print('c')
+            self.MapEnd = True
+            self.x = scrollMgr.MapLen - 1
+        else:
+            self.MapEnd = False
 
         # 변신 아이템 충돌체크
         for t_item in Item_TransForm.t_items:
@@ -139,10 +159,11 @@ class Character:
             if self.isWalk:
                 self.slowFrame += 1
                 self.frame = (self.slowFrame // 3) % 2
-                if self.isLeft:
-                    self.x -= 5
-                else:
-                    self.x += 5
+                if not self.MapEnd:
+                    if self.isLeft:
+                        self.x -= 5
+                    else:
+                        self.x += 5
 
 
             # 1. 충돌하면 1을 더한다.
@@ -181,13 +202,10 @@ class Character:
                 for tile in Map_Tile.tiles:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                      tile.frameX, tile.frameY, tile.x, tile.y, False):
-                        print('A')
                         if self.y - self.frameY / 2 < tile.y + tile.frameY / 2:
                             if tile.x - tile.frameX/2 < self.x + self.frameX/2 < tile.x + tile.frameX/2:
-                                print('B')
                                 self.rBlocked = True
                             elif tile.x - tile.frameX/2 < self.x - self.frameX/2 < tile.x + tile.frameX/2:
-                                print('C')
                                 self.lBlocked = True
                         # else:
                         #     self.isBlocked = False
@@ -195,37 +213,31 @@ class Character:
                 for box in Map_Box.boxes:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                        box.frameX, box.frameY, box.x, box.y, False):
-                        print('A')
                         if self.y - self.frameY/2 < box.y + box.frameY/2:
                             if box.x - box.frameX / 2 < self.x + self.frameX / 2 < box.x + box.frameX / 2:
-                                print('B')
                                 self.rBlocked = True
                             elif box.x - box.frameX / 2 < self.x - self.frameX / 2 < box.x + box.frameX / 2:
-                                print('C')
                                 self.lBlocked = True
 
                 for brick in Map_Brick.bricks:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                      brick.frameX, brick.frameY, brick.x, brick.y, False):
-                        print('A')
                         if self.y - self.frameY / 2 < brick.y + brick.frameY / 2:
                             if brick.x - brick.frameX / 2 < self.x + self.frameX / 2 < brick.x + brick.frameX / 2:
-                                print('B')
                                 self.rBlocked = True
                             elif brick.x - brick.frameX / 2 < self.x - self.frameX / 2 < brick.x + brick.frameX / 2:
-                                print('C')
                                 self.lBlocked = True
 
                 # 2. 하나라도 충돌했다면 isUnderBlock는 0이 아니게 된다는 점 이용
                 # 충돌한게 없을 때만 이동 가능
                 if self.isLeft:
-                    if not self.lBlocked:
+                    if not self.lBlocked and not self.MapEnd:
                         if self.dashJump:
                             self.x -= 8
                         else:
                             self.x -= 5
                 else:
-                    if not self.rBlocked:
+                    if not self.rBlocked and not self.MapEnd:
                         if self.dashJump:
                             self.x += 8
                         else:
@@ -339,10 +351,12 @@ class Character:
                 self.frame = (self.frame + 1) % 2
             else:
                 self.frame = (self.frame + 1) % 4
-            if self.isLeft:
-                self.x -= 10
-            else:
-                self.x += 10
+
+            if not self.MapEnd:
+                if self.isLeft:
+                    self.x -= 10
+                else:
+                    self.x += 10
 
 
             # 1. 충돌하면 1을 더한다.
@@ -472,7 +486,7 @@ class Character:
     def draw(self):
         if self.transform == Transform.Standard:
             self.image.clip_draw(self.frame * self.frameX, (10 - (self.status.value - 1)) * self.frameY
-                                 , self.frameX, self.frameY, self.x, self.y)
+                                 , self.frameX, self.frameY, self.x - self.scrollX, self.y)
         else:
             self.image.clip_draw(self.frame * self.frameX, (11 - (self.status.value - 1)) * self.frameY
-                                 , self.frameX, self.frameY, self.x, self.y)
+                                 , self.frameX, self.frameY, self.x - self.scrollX, self.y)

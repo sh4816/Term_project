@@ -6,6 +6,7 @@ class Brick():
         self.image = load_image('block_brick.png')
         self.frameX, self.frameY = 30, 30  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
         self.x, self.y = 0, 0
+        self.scrollX = 0
 
         # 충돌 관련
         self.isCollipse = False
@@ -29,7 +30,7 @@ class Brick():
         #         bricks.remove(self)
 
     def draw(self):
-        self.image.draw(self.x, self.y)
+        self.image.draw(self.x - self.scrollX, self.y)
 
 
 

@@ -16,6 +16,7 @@ class TransformItem():
         self.image = load_image('item_fireflower.png')
         self.frameX, self.frameY = 30, 30  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
         self.x, self.y = 0, 0
+        self.scrollX = 0
 
         self.itemValue = 0
 
@@ -58,7 +59,7 @@ class TransformItem():
         elif self.itemValue == Value.Fireflower:
             self.image = load_image('item_fireflower.png')
 
-        self.image.draw(self.x, self.y)
+        self.image.draw(self.x - self.scrollX, self.y)
 
 
 

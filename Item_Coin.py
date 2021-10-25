@@ -8,6 +8,7 @@ class Coin():
         self.frame = 0
         self.slowFrame = 0
         self.x, self.y = 0, 0
+        self.scrollX = 0
 
         self.isEffect = False
 
@@ -19,20 +20,13 @@ class Coin():
         pass
 
     def draw(self):
-        if not self.isUsed:
-            self.slowFrame += 1
-            self.frame = (self.slowFrame // 4) % 4
-            self.image.clip_draw(self.frame * self.frameX, 0, self.frameX, self.frameY, self.x, self.y)
+        self.slowFrame += 1
+        self.frame = (self.slowFrame // 4) % 4
+        self.image.clip_draw(self.frame * self.frameX, 0, self.frameX, self.frameY, self.x - self.scrollX, self.y)
 
-            if self.isEffect:
-                if self.slowFrame >= 16:
-                    coins.remove(self)
-        else:
-            self.slowFrame = 0
-            self.frame = 0
-            self.isEffect = False
-            self.isCollipse = False
-            self.isUsed = False
+        if self.isEffect:
+            if self.slowFrame >= 16:
+                coins.remove(self)
 
 
 coins = []
