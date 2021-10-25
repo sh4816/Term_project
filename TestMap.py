@@ -7,7 +7,8 @@ import Map_Brick
 import Item_Coin
 import Item_TransForm
 import ScrollManager as scrollMgr
-import MapEdit_Map1 as map1
+# import MapEdit_Map1 as map1
+import MapEditor
 
 
 open_canvas()
@@ -18,8 +19,8 @@ open_canvas()
 mario = Player.Character()
 
 # 맵 불러오기
-map1.mapEdit()
-
+# map1.mapEdit()
+MapEditor.editMap("map1")
 
 #=== Handle Events
 def handle_events():
@@ -141,6 +142,7 @@ def handle_events():
             #=== t - "테스트 전용" 좌표값 출력
             elif event.key == SDLK_t:
                 print('Pos: ' + str((mario.x, mario.y)) + ', Status: ' + str(mario.status))
+                print('ScrollX: ' + str(mario.scrollX))
                 if mario.isWalk: print('IsWalk: O')
                 if mario.dash: print('IsDash: O')
                 if mario.isLeap: print('IsLeap: O')

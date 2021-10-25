@@ -79,15 +79,12 @@ class Character:
 
         # Map의 끝에 있는지 체크
         if self.x <= 0:
-            print('a')
             self.MapEnd = True
             self.x = 1
         elif self.x - self.scrollX <= 0:
-            print('b')
             self.MapEnd = True
             self.x = self.scrollX + 1
         elif self.x >= scrollMgr.MapLen:
-            print('c')
             self.MapEnd = True
             self.x = scrollMgr.MapLen - 1
         else:

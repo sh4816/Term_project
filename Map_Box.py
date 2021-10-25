@@ -36,14 +36,14 @@ class Box_Question():
 
 
 boxes = []
-def make_box(xPos, yPos, box_type):
+def makeBox(xPos, yPos, box_type):
     newBox = Box_Question()
     newBox.x, newBox.y = xPos, yPos
-    if box_type == "Coin":
+    if box_type == "box_Coin":
         newBox.itemValue = boxType.coin
-    elif box_type == "Mushroom":
+    elif box_type == "box_Mushroom":
         newBox.itemValue = boxType.mushroom
-    elif box_type == "Flower":
+    elif box_type == "box_Flower":
         newBox.itemValue = boxType.flower
     # newBox.itemValue += 1
 

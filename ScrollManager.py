@@ -25,7 +25,6 @@ def getScrollX(Map, player):
         MapLen = 2400
 
     if not ScrollLock(player):
-        print('Scroll Moving, Mario.X = ' + str(player.x))
         ScrollX = player.x - 300
 
     return ScrollX

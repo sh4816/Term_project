@@ -13,17 +13,17 @@ class Tile:
         pass
 
     def draw(self):
-        if self.type == "Grass":
+        if self.type == "tile_Grass":
             self.image = load_image('tile_grass.png')
-        elif self.type == "SnowField":
+        elif self.type == "tile_SnowField":
             self.image = load_image('tile_snowfield.png')
-        elif self.type == "Dirt":
+        elif self.type == "tile_Dirt":
             self.image = load_image('tile_dirt.png')
 
         self.image.draw(self.x - self.scrollX, self.y)
 
 tiles = []
-def make_tile(xPos, yPos, type):
+def makeTile(xPos, yPos, type):
     newTile = Tile()
     newTile.x, newTile.y = xPos, yPos
     newTile.type = type

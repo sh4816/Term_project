@@ -1,0 +1,2 @@
+20 6 box box_Mushroom
+21 6 brick Default
