@@ -289,4 +289,4 @@ while running:
 
 
     update_canvas()
-    delay(0.01)
+    # delay(0.001)

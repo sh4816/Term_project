@@ -19,6 +19,8 @@ class Tile:
             self.image = load_image('tile_snowfield.png')
         elif self.type == "tile_Dirt":
             self.image = load_image('tile_dirt.png')
+        elif self.type == "tile_Steel":
+            self.image = load_image('block_steel.png')
 
         self.image.draw(self.x - self.scrollX, self.y)
 

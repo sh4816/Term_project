@@ -6,6 +6,7 @@ import enum
 import Map_Tile
 import Map_Box
 import Map_Brick
+import Map_Pipe
 import Item_Coin
 import Item_TransForm
 import ScrollManager as scrollMgr
@@ -141,6 +142,10 @@ class Character:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  brick.frameX, brick.frameY, brick.x, brick.y, True):
                     self.isOnGround += 1
+            for pipe in Map_Pipe.pipes:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 pipe.frameX, pipe.frameY, pipe.x, pipe.y, True):
+                    self.isOnGround += 1
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:
                 self.status = c_state.S_Jump
@@ -175,6 +180,10 @@ class Character:
             for brick in Map_Brick.bricks:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  brick.frameX, brick.frameY, brick.x, brick.y, True):
+                    self.isOnGround += 1
+            for pipe in Map_Pipe.pipes:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 pipe.frameX, pipe.frameY, pipe.x, pipe.y, True):
                     self.isOnGround += 1
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:
@@ -223,6 +232,15 @@ class Character:
                             if brick.x - brick.frameX / 2 < self.x + self.frameX / 2 < brick.x + brick.frameX / 2:
                                 self.rBlocked = True
                             elif brick.x - brick.frameX / 2 < self.x - self.frameX / 2 < brick.x + brick.frameX / 2:
+                                self.lBlocked = True
+
+                for pipe in Map_Pipe.pipes:
+                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                     pipe.frameX, pipe.frameY, pipe.x, pipe.y, False):
+                        if self.y - self.frameY / 2 < pipe.y + pipe.frameY / 2:
+                            if pipe.x - pipe.frameX / 2 < self.x + self.frameX / 2 < pipe.x + pipe.frameX / 2:
+                                self.rBlocked = True
+                            elif pipe.x - pipe.frameX / 2 < self.x - self.frameX / 2 < pipe.x + pipe.frameX / 2:
                                 self.lBlocked = True
 
                 # 2. 하나라도 충돌했다면 isUnderBlock는 0이 아니게 된다는 점 이용
@@ -279,6 +297,15 @@ class Character:
                                 if not self.transform == Transform.Standard:     # 기본마리오는 벽돌을 부수지 못함
                                     # 충돌한 벽돌은 삭제됨
                                     Map_Brick.bricks.remove(brick)
+
+                for pipe in Map_Pipe.pipes:
+                    if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
+                                     pipe.frameX, pipe.frameY, pipe.x, pipe.y, False):
+                        if pipe.x - pipe.frameX/2 <= self.x <= pipe.x + pipe.frameX/2:
+                            if self.y <= pipe.y - pipe.frameX/2:
+                                self.isUnderBlock += 1
+                                self.jump_collipseYPos = pipe.y - pipe.frameY/2 - self.frameY/2
+
                 # 2. 하나라도 충돌했다면 isUnderBlock는 0이 아니게 된다는 점 이용
                 if not self.isUnderBlock == 0:
                     self.y = self.jump_collipseYPos - 1
@@ -315,6 +342,11 @@ class Character:
                                      brick.frameX, brick.frameY, brick.x, brick.y, True):
                         self.isOnGround += 1
                         self.gp_EndHeight = brick.y + brick.frameY/2 + self.frameY/2
+                for pipe in Map_Pipe.pipes:
+                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                     pipe.frameX, pipe.frameY, pipe.x, pipe.y, True):
+                        self.isOnGround += 1
+                        self.gp_EndHeight = pipe.y + pipe.frameY/2 + self.frameY/2
                 # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
                 if self.isOnGround == 0:
                     self.isOnGround = 0
@@ -368,6 +400,10 @@ class Character:
             for brick in Map_Brick.bricks:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  brick.frameX, brick.frameY, brick.x, brick.y, True):
+                    self.isOnGround += 1
+            for pipe in Map_Pipe.pipes:
+                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                 pipe.frameX, pipe.frameY, pipe.x, pipe.y, True):
                     self.isOnGround += 1
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:
@@ -424,6 +460,15 @@ class Character:
                         self.gp_accel /= 2
                         # 충돌한 벽돌은 삭제됨
                         Map_Brick.bricks.remove(brick)
+            for pipe in Map_Pipe.pipes:
+               if collipseCheck(self.frameX, self.frameY, self.x, self.y,
+                                pipe.frameX, pipe.frameY, pipe.x, pipe.y, True):
+                    self.isOnGround += 1
+                    self.gp_EndHeight = pipe.y + pipe.frameY/2 + self.frameY/2
+                    if self.gp:
+                        self.gp_delay = 4  # 그라운드파운드 후딜레이
+                        self.gp = False
+
 
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:

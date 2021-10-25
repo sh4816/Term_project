@@ -3,6 +3,7 @@ import Map_Background
 import Map_Tile
 import Map_Box
 import Map_Brick
+import Map_Pipe
 
 
 def editMap(mapName):
@@ -26,12 +27,7 @@ def editMap(mapName):
     while True:
         try:
             data_ground_line = ground_data_file.readline()
-            print(data_ground_line)
             data_map_ground = data_ground_line.split()
-            print('0: ' + data_map_ground[0])
-            print('1: ' + data_map_ground[1])
-            print('2: ' + data_map_ground[2])
-            print('3: ' + data_map_ground[3])
 
             ground_repeat = int(data_map_ground[0])
             ground_xPos = float(data_map_ground[1])
@@ -39,8 +35,7 @@ def editMap(mapName):
             ground_type = data_map_ground[3]
 
             for i in range(ground_repeat):
-                print('A')
-                Map_Tile.makeTile(ground_xPos + i*size, ground_yPos*size, ground_type)
+                Map_Tile.makeTile((ground_xPos + i)*size, ground_yPos*size, ground_type)
 
         except:
             break
@@ -71,6 +66,8 @@ def editMap(mapName):
                 Map_Box.makeBox(obj_xPos*size, obj_yPos*size, obj_name)
             elif obj_type == "brick":
                 Map_Brick.makeBrick(obj_xPos*size, obj_yPos*size)
+            elif obj_type == "pipe":
+                Map_Pipe.makePipe(obj_xPos*size, obj_yPos*size, obj_name)
 
         except:
             break
