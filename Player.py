@@ -157,34 +157,59 @@ class Character:
                 self.isOnGround = 0
         #=== Walk
         elif self.status == c_state.S_Walk:
-            # 이동
-            if self.isWalk:
-                self.slowFrame += 1
-                self.frame = (self.slowFrame // 3) % 2
-                if not self.MapEnd:
-                    if self.isLeft:
-                        self.x -= 5
-                    else:
-                        self.x += 5
-
-
             # 1. 충돌하면 1을 더한다.
             for tile in Map_Tile.tiles:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  tile.frameX, tile.frameY, tile.x, tile.y, True):
                     self.isOnGround += 1
+
+                    if tile.y - tile.frameY / 2 < self.y < tile.y + tile.frameY / 2:
+                        if self.isLeft:
+                            if tile.x - tile.frameX / 2 <= self.x - self.frameX / 2 <= tile.x + tile.frameX / 2:
+                                self.lBlocked = True
+                        else:
+                            if tile.x - tile.frameX / 2 - 5 <= self.x + self.frameX / 2 <= tile.x + tile.frameX / 2 + 5:
+                                self.rBlocked = True
+
             for box in Map_Box.boxes:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  box.frameX, box.frameY, box.x, box.y, True):
                     self.isOnGround += 1
+
+                if box.y - box.frameY / 2 < self.y < box.y + box.frameY / 2:
+                    if self.isLeft:
+                        if box.x - box.frameX / 2 <= self.x - self.frameX / 2 <= box.x + box.frameX / 2:
+                            self.lBlocked = True
+                    else:
+                        if box.x - box.frameX / 2 - 5 <= self.x + self.frameX / 2 <= box.x + box.frameX / 2 + 5:
+                            self.rBlocked = True
+
             for brick in Map_Brick.bricks:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  brick.frameX, brick.frameY, brick.x, brick.y, True):
                     self.isOnGround += 1
+
+                if brick.y - brick.frameY / 2 < self.y < brick.y + brick.frameY / 2:
+                    if self.isLeft:
+                        if brick.x - brick.frameX / 2 <= self.x - self.frameX / 2 <= brick.x + brick.frameX / 2:
+                            self.lBlocked = True
+                    else:
+                        if brick.x - brick.frameX / 2 - 5 <= self.x + self.frameX / 2 <= brick.x + brick.frameX / 2 + 5:
+                            self.rBlocked = True
+
             for pipe in Map_Pipe.pipes:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  pipe.frameX, pipe.frameY, pipe.x, pipe.y, True):
                     self.isOnGround += 1
+
+                    if pipe.y - pipe.frameY / 2 < self.y < pipe.y + pipe.frameY / 2:
+                        if self.isLeft:
+                            if pipe.x - pipe.frameX / 2 <= self.x - self.frameX / 2 <= pipe.x + pipe.frameX / 2:
+                                self.lBlocked = True
+                        else:
+                            if pipe.x - pipe.frameX / 2 - 5 <= self.x + self.frameX / 2 <= pipe.x + pipe.frameX / 2 + 5:
+                                self.rBlocked = True
+
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:
                 self.status = c_state.S_Jump
@@ -195,6 +220,18 @@ class Character:
                 self.move_in_air = True
             else:
                 self.isOnGround = 0
+
+            # 이동
+            if self.isWalk:
+                self.slowFrame += 1
+                self.frame = (self.slowFrame // 3) % 2
+                if not self.MapEnd:
+                    if self.isLeft and not self.lBlocked:
+                        self.x -= 5
+                    elif not self.isLeft and not self.rBlocked:
+                        self.x += 5
+
+            self.lBlocked = self.rBlocked = False
 
         #=== Hit
         elif self.status == c_state.S_Hit:
@@ -213,8 +250,6 @@ class Character:
                                 self.rBlocked = True
                             elif tile.x - tile.frameX/2 < self.x - self.frameX/2 < tile.x + tile.frameX/2:
                                 self.lBlocked = True
-                        # else:
-                        #     self.isBlocked = False
 
                 for box in Map_Box.boxes:
                     if collipseCheck(self.frameX, self.frameY, self.x, self.y,
@@ -375,36 +410,59 @@ class Character:
                     self.y = self.gp_EndHeight - 5
         #=== Dash
         elif self.status == c_state.S_Dash:
-            # 이동
-            if self.transform == Transform.Standard:
-                self.frame = (self.frame + 1) % 2
-            else:
-                self.frame = (self.frame + 1) % 4
-
-            if not self.MapEnd:
-                if self.isLeft:
-                    self.x -= 10
-                else:
-                    self.x += 10
-
-
             # 1. 충돌하면 1을 더한다.
             for tile in Map_Tile.tiles:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  tile.frameX, tile.frameY, tile.x, tile.y, True):
                     self.isOnGround += 1
+
+                    if tile.y - tile.frameY / 2 < self.y < tile.y + tile.frameY / 2:
+                        if self.isLeft:
+                            if tile.x - tile.frameX / 2 <= self.x - self.frameX / 2 <= tile.x + tile.frameX / 2:
+                                self.lBlocked = True
+                        else:
+                            if tile.x - tile.frameX / 2 - 5 <= self.x + self.frameX / 2 <= tile.x + tile.frameX / 2 + 5:
+                                self.rBlocked = True
+
             for box in Map_Box.boxes:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  box.frameX, box.frameY, box.x, box.y, True):
                     self.isOnGround += 1
+
+                    if box.y - box.frameY / 2 < self.y < box.y + box.frameY / 2:
+                        if self.isLeft:
+                            if box.x - box.frameX / 2 <= self.x - self.frameX / 2 <= box.x + box.frameX / 2:
+                                self.lBlocked = True
+                        else:
+                            if box.x - box.frameX / 2 - 5 <= self.x + self.frameX / 2 <= box.x + box.frameX / 2 + 5:
+                                self.rBlocked = True
+
             for brick in Map_Brick.bricks:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  brick.frameX, brick.frameY, brick.x, brick.y, True):
                     self.isOnGround += 1
+
+                    if brick.y - brick.frameY / 2 < self.y < brick.y + brick.frameY / 2:
+                        if self.isLeft:
+                            if brick.x - brick.frameX / 2 <= self.x - self.frameX / 2 <= brick.x + brick.frameX / 2:
+                                self.lBlocked = True
+                        else:
+                            if brick.x - brick.frameX / 2 - 5 <= self.x + self.frameX / 2 <= brick.x + brick.frameX / 2 + 5:
+                                self.rBlocked = True
+
             for pipe in Map_Pipe.pipes:
                 if collipseCheck(self.frameX, self.frameY, self.x, self.y,
                                  pipe.frameX, pipe.frameY, pipe.x, pipe.y, True):
                     self.isOnGround += 1
+
+                    if pipe.y - pipe.frameY / 2 < self.y < pipe.y + pipe.frameY / 2:
+                        if self.isLeft:
+                            if pipe.x - pipe.frameX / 2 <= self.x - self.frameX / 2 <= pipe.x + pipe.frameX / 2:
+                                self.lBlocked = True
+                        else:
+                            if pipe.x - pipe.frameX / 2 - 5 <= self.x + self.frameX / 2 <= pipe.x + pipe.frameX / 2 + 5:
+                                self.rBlocked = True
+
             # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
             if self.isOnGround == 0:
                 self.status = c_state.S_Jump
@@ -415,6 +473,21 @@ class Character:
                 self.move_in_air = True
             else:
                 self.isOnGround = 0
+
+            # 이동
+            if self.transform == Transform.Standard:
+                self.frame = (self.frame + 1) % 2
+            else:
+                self.frame = (self.frame + 1) % 4
+
+            if not self.MapEnd:
+                if self.isLeft and not self.lBlocked:
+                    self.x -= 10
+                elif not self.isLeft and not self.rBlocked:
+                    self.x += 10
+
+            self.lBlocked = self.rBlocked = False
+
         #=== Down
         elif self.status == c_state.S_Down:
             pass
