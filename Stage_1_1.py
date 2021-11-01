@@ -239,6 +239,8 @@ while running:
     mario.scrollX = scrollMgr.getScrollX("Map1", mario)
     mario.update()
 
+    bg.scrollX = scrollMgr.getScrollX("Map1", mario)#
+
     for tile in Map_Tile.tiles:
         tile.scrollX = scrollMgr.getScrollX("Map1", mario)
 

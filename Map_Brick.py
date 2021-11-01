@@ -13,21 +13,7 @@ class Brick():
         self.destroy = 0
 
     def update(self):
-        pass#
-        # # 충돌체크
-        # # 1. 충돌하면 1을 더한다.
-        # if collipseCheck(mario.frameX, mario.frameY, mario.x, mario.y + 1,
-        #                  self.frameX, self.frameY, self.x, self.y, True):
-        #     if mario.status == c_state.S_Jump and mario.y < self.y:  # 마리오가 블록 아래에서 점프 중
-        #         self.destroy += 1
-        #         self.isCollipse += 1
-        #     elif mario.status == c_state.S_GP and mario.y > self.y:  # 마리오가 그라운드 파운드로 위에서 아래로 찍음
-        #         self.destroy += 1
-        #         self.isCollipse += 1
-        # # 2. 하나라도 충돌했다면 0이 아니게 됨
-        # if not self.isCollipse == 0:
-        #     if not self.destroy == 0:
-        #         bricks.remove(self)
+        pass
 
     def draw(self):
         self.image.draw(self.x - self.scrollX, self.y)
