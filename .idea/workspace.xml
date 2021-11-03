@@ -3,11 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="d9f91d67-a6a3-4490-9839-e92304aab93c" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Map_Background.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Background.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Data_Map_1_ground.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Data_Map_1_ground.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_Box.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Box.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Map_Brick.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Brick.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_Tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Tile.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Stage_1_1.py" beforeDir="false" afterPath="$PROJECT_DIR$/Stage_1_1.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/개발범위.PNG" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/계획표.PNG" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -153,8 +153,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.Stage_1_1" />
-        <item itemvalue="Python.Map_Background" />
         <item itemvalue="Python.Maingame" />
+        <item itemvalue="Python.Map_Background" />
         <item itemvalue="Python.TestMap" />
         <item itemvalue="Python.ScrollManager" />
       </list>
