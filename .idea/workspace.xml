@@ -3,11 +3,13 @@
   <component name="ChangeListManager">
     <list default="true" id="d9f91d67-a6a3-4490-9839-e92304aab93c" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Data_Map_1_ground.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Data_Map_1_ground.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Map_Box.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Box.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Map_Brick.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Brick.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/2차발표.pptx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Background_1.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Map_Tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Tile.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Stage_1_1.py" beforeDir="false" afterPath="$PROJECT_DIR$/Stage_1_1.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Mario.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resource Data.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ground.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ground_big.png" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -87,27 +89,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="ScrollManager" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ScrollManager.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="Stage_1_1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -150,13 +131,34 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="termproject" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/termproject.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Python.Stage_1_1" />
+        <item itemvalue="Python.termproject" />
         <item itemvalue="Python.Maingame" />
         <item itemvalue="Python.Map_Background" />
         <item itemvalue="Python.TestMap" />
-        <item itemvalue="Python.ScrollManager" />
       </list>
     </recent_temporary>
   </component>

@@ -1,4 +1,4 @@
-#Mario: 30x40
+#Mario: 30x40  -> 40x30
 0 Idle (1)
 1 Walk (2)
 2 Hit (1)
@@ -39,5 +39,12 @@
 9 Climb (2)
 10 Attack (2)
 11 Transform(5)
+
+#mob
+# goomba: 40x40
+0 Idle (9)
+1 Walk (8)
+2 Dead
+
 
 #status: 380x50
