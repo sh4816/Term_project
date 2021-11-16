@@ -386,6 +386,16 @@ class JumpState:
         if event == SHIFT_UP:
             player.isDash = False
 
+        if event == FALLING_EVENT:
+            collipse = False
+            vel_jump = 0
+            player.timer_jump = 0
+
+        if event == DOWN_DOWN:
+            collipse = False
+            vel_jump = 0
+            player.timer_jump = 0
+
     def do(player):
         #=== 이동
         player.timer_jump += game_framework.frame_time
@@ -438,13 +448,10 @@ class JumpState:
 
         # 점프 도중 player의 윗부분이 충돌했을 때
         if collipse:
-            player.timer_jump = 0
-            collipse = False
             player.add_event(FALLING_EVENT)
         else:
             #===변곡점을 지나면 도약 상태에서 낙하 상태로 변경
             if vel_jump <= 0:
-                player.timer_jump = 0
                 player.add_event(FALLING_EVENT)
 
     def draw(player):
@@ -462,12 +469,6 @@ class FallingState:
             player.pos_startFalling = player.y
             player.isSave_startFallingPos = True
 
-        # 속도
-        if player.isDash:
-            player.velocity = player.dir * DASH_SPEED_PPS
-        else:
-            player.velocity = player.dir * RUN_SPEED_PPS
-
         # 방향
         if event == RIGHT_DOWN:
             player.isMovingInAir = True
@@ -476,6 +477,17 @@ class FallingState:
             player.isMovingInAir = True
             player.dir = -1
 
+        # 속도
+        if player.isDash:
+            player.velocity = player.dir * DASH_SPEED_PPS
+        else:
+            player.velocity = player.dir * RUN_SPEED_PPS
+
+        # 이미지
+        if player.dir == 1:
+            player.image = load_image('Mario.png')
+        elif player.dir == -1:
+            player.image = load_image('MarioL.png')
 
     def exit(player, event):
         if event == SPACE:
@@ -486,6 +498,22 @@ class FallingState:
 
         if event == SHIFT_UP:
             player.isDash = False
+
+        if event == LANDING_EVENT or event == LANDING_RUN_EVENT or event == LANDING_DASH_EVENT:
+            # 초기화
+            player.timer_jump = 0
+            player.isJumping = False
+            player.pos_startFalling = 0
+            player.isSave_startFallingPos = False
+            collipse = False
+
+        if event == DOWN_DOWN:
+            # 초기화
+            player.timer_jump = 0
+            player.isJumping = False
+            player.pos_startFalling = 0
+            player.isSave_startFallingPos = False
+            collipse = False
 
     def do(player):
         # === 발판이 없을 때 낙하 운동
@@ -535,11 +563,6 @@ class FallingState:
             player.y = (1/2) * GRAVITY_ACCEL_PPS2 * (player.timer_jump ** 2) + player.pos_startFalling
 
         else:
-            # 초기화
-            player.timer_jump = 0
-            player.isJumping = False
-            player.isSave_startFallingPos = False
-
             # 다음 상태 지정
             if player.isMovingInAir:
                 if player.isDash:
@@ -548,7 +571,6 @@ class FallingState:
                     player.add_event(LANDING_RUN_EVENT)
             else:
                 player.add_event(LANDING_EVENT)
-            collipse = False
 
     def draw(player):
         player.image.clip_draw(int(player.frame) * player.frameX, 300 - player.frameY * P_State.S_Jump,
@@ -568,9 +590,6 @@ class GroundpoundState:
         # 기타 변수들 초기화
         if player.isDash: player.isDash = False
 
-        # 속도
-        player.velocity = 0
-
         # 이미지
         if player.dir == 1:
             player.image = load_image('Mario.png')
@@ -578,7 +597,10 @@ class GroundpoundState:
             player.image = load_image('MarioL.png')
 
     def exit(player, event):
-        pass
+        if event == LANDING_EVENT:
+            player.isJumping = False
+            player.timer_jump = 0
+            collipse = False
 
     def do(player):
         # 아래로 빠르게 낙하
@@ -625,11 +647,7 @@ class GroundpoundState:
             checkCount += 1
 
         if collipse:
-            player.isJumping = False
-            player.timer_jump = 0
-
             player.add_event(LANDING_EVENT)
-            collipse = False
 
 
     def draw(player):
