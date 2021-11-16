@@ -35,7 +35,7 @@ SHOOT_SPEED_KMPH = 100.0        # km/h
 SHOOT_SPEED_PPS = (KMPH2MPS(SHOOT_SPEED_KMPH) * PIXEL_PER_METER)
 
 # Player Jump Speed
-JUMP_V0_PPS = 400.0 # px/s
+JUMP_V0_PPS = 330.0 # px/s
 GRAVITY_ACCEL_PPS2 = -400.0 # px/s^2
 
 
@@ -194,19 +194,47 @@ class RunState:
             player.isMovingInAir = True
 
     def do(player):
-        #=== x 이동
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 2
 
-        player.x += player.velocity * game_framework.frame_time
+        #=== x 이동
+        # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
+        collipse = False
+        checkCount = 0
+        while (not collipse and checkCount < 4):
+            if checkCount == 0:
+                for box in Map_Box.boxes:
+                    if collideCheck(player, box) == "left" or collideCheck(player, box) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 1:
+                for brick in Map_Brick.bricks:
+                    if collideCheck(player, brick) == "left" or collideCheck(player, brick) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 2:
+                for pipe in Map_Pipe.pipes:
+                    if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
+                        player.x = pipe.x - pipe.frameX/2
+                        collipse = True
+                        break
+            elif checkCount == 3:
+                for tile in Map_Tile.tiles:
+                    if collideCheck(player, tile) == "left" or collideCheck(player, tile) == "right":
+                        collipse = True
+                        break
 
-        player.x = clamp(25, player.x, 6600 - 25)
+            checkCount += 1
+
+        # 충돌하지 않았을 때에만 이동
+        if not collipse:
+            player.x += player.velocity * game_framework.frame_time
+            player.x = clamp(25, player.x, 6600 - 25)
 
 
         #=== 발판이 없을 때 낙하 시작
         # 충돌 체크 (아래에 발판이 없는지 확인)
         collipse = False
         checkCount = 0
-
         while (not collipse and checkCount < 4):
             if checkCount == 0:
                 for box in Map_Box.boxes:
@@ -741,6 +769,8 @@ class Player:
         self.cur_state = IdleState
         self.cur_state.enter(self, None)
 
+        self.show_bb = False    # 바운딩박스 출력
+
 
     def fire_ball(self):
         ball = Ball(self.x, self.y, self.dir*SHOOT_SPEED_PPS)
@@ -758,8 +788,16 @@ class Player:
             self.cur_state = next_state_table[self.cur_state][event]
             self.cur_state.enter(self, event)
 
+    def get_boundingbox(self):  # 바운딩박스
+        return self.x - self.frameX/2, self.y + self.frameY/2, self.x + self.frameX/2, self.y - self.frameY/2
+
     def draw(self):
         self.cur_state.draw(self)
+
+        # bounding box
+        if self.show_bb:
+            draw_rectangle(self.x - self.frameX/2 - self.scrollX, self.y + self.frameY/2
+                           , self.x + self.frameX/2 - self.scrollX, self.y - self.frameY/2)
 
         # Debug #
         self.font.draw(self.x - 60 - self.scrollX, self.y + 70, 'State' + str(self.cur_state), (255, 255, 0))
@@ -771,3 +809,16 @@ class Player:
             key_event = key_event_table[(event.type, event.key)]
             self.add_event(key_event)
 
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_b):
+            if self.show_bb:
+                self.show_bb = False
+                Map_Box.show_bb = False
+                Map_Brick.show_bb = False
+                Map_Pipe.show_bb = False
+                Map_Tile.show_bb = False
+            else:
+                self.show_bb = True
+                Map_Box.show_bb = True
+                Map_Brick.show_bb = True
+                Map_Pipe.show_bb = True
+                Map_Tile.show_bb = True

@@ -1,6 +1,8 @@
 from pico2d import *
 import enum
 
+show_bb = False
+
 class boxType(enum.IntEnum):
     coin = enum.auto()
     mushroom = enum.auto()
@@ -39,6 +41,12 @@ class Box_Question():
             self.slowFrame += 1
             self.frame = (self.slowFrame // 5) % 4
             self.image.clip_draw(self.frame * self.frameX, 0, self.frameX, self.frameY, self.x - self.scrollX, self.y)
+
+        # bounding box
+        global show_bb
+        if show_bb:
+            draw_rectangle(self.x - self.frameX / 2 - self.scrollX, self.y + self.frameY / 2
+                           , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
 
 
 boxes = []

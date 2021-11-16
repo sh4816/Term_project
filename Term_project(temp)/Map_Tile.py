@@ -1,5 +1,7 @@
 from pico2d import *
 
+show_bb = False
+
 # 지형 종류별 클래스
 class TileGrass:
     image = None
@@ -18,6 +20,12 @@ class TileGrass:
 
     def draw(self):
         self.image.draw(self.x - self.scrollX, self.y)
+
+        # bounding box
+        global show_bb
+        if show_bb:
+            draw_rectangle(self.x - self.frameX / 2 - self.scrollX, self.y + self.frameY / 2
+                           , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
 
 
 class TileDirt:
@@ -38,6 +46,12 @@ class TileDirt:
     def draw(self):
         self.image.draw(self.x - self.scrollX, self.y)
 
+        # bounding box
+        global show_bb
+        if show_bb:
+            draw_rectangle(self.x - self.frameX / 2 - self.scrollX, self.y + self.frameY / 2
+                           , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
+
 class TileSteel:
     image = None
 
@@ -56,6 +70,12 @@ class TileSteel:
     def draw(self):
         self.image.draw(self.x - self.scrollX, self.y)
 
+        # bounding box
+        global show_bb
+        if show_bb:
+            draw_rectangle(self.x - self.frameX / 2 - self.scrollX, self.y + self.frameY / 2
+                           , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
+
 class TileSnowfield:
     image = None
 
@@ -73,6 +93,12 @@ class TileSnowfield:
 
     def draw(self):
         self.image.draw(self.x - self.scrollX, self.y)
+
+        # bounding box
+        global show_bb
+        if show_bb:
+            draw_rectangle(self.x - self.frameX / 2 - self.scrollX, self.y + self.frameY / 2
+                           , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
 
 
 # 객체 생성 함수

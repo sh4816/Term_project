@@ -1,5 +1,7 @@
 from pico2d import *
 
+show_bb = False
+
 # 벽돌
 class Brick():
     image = None
@@ -22,6 +24,12 @@ class Brick():
 
     def draw(self):
         self.image.draw(self.x - self.scrollX, self.y)
+
+        # bounding box
+        global show_bb
+        if show_bb:
+            draw_rectangle(self.x - self.frameX / 2 - self.scrollX, self.y + self.frameY / 2
+                           , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
 
 
 
