@@ -50,6 +50,12 @@ def enter():
     for pipe in Map_Pipe.pipes:
         game_world.add_object(pipe, 0)
 
+    for coin in Item_Coin.coins:
+        game_world.add_object(coin, 0)
+
+    for transItem in Item_TransForm.transItems:
+        game_world.add_object(transItem, 0)
+
 
     game_world.add_object(player, 1)
 
@@ -97,14 +103,11 @@ def update():
     for coin in Item_Coin.coins:
         coin.scrollX = scrollMgr.getScrollX("Map1", player)
 
-    for t_item in Item_TransForm.t_items:
+    for t_item in Item_TransForm.transItems:
         t_item.scrollX = scrollMgr.getScrollX("Map1", player)
 
     for game_object in game_world.all_objects():
         game_object.update()
-
-    #=== delay
-    delay(0.01)
 
 
 def draw():

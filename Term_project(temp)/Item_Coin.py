@@ -1,4 +1,5 @@
 from pico2d import *
+import game_world
 
 # 동전
 class Coin():
@@ -21,14 +22,16 @@ class Coin():
 
     def draw(self):
         self.slowFrame += 1
-        self.frame = (self.slowFrame // 4) % 4
+        self.frame = (self.slowFrame // 10) % 4
         self.image.clip_draw(self.frame * self.frameX, 0, self.frameX, self.frameY, self.x - self.scrollX, self.y)
 
         if self.isEffect:
-            if self.slowFrame >= 16:
+            if self.slowFrame >= 40:
                 coins.remove(self)
+                game_world.remove_object(self)
 
 
+# 코인 여러 개를 한번에 생성 (맵에 배치될 코인)
 coins = []
 def make_coins(xPos, yPos, effect):
     newcoin = Coin()

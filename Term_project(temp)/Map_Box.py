@@ -39,7 +39,7 @@ class Box_Question():
             self.image.draw(self.x - self.scrollX, self.y)
         else:
             self.slowFrame += 1
-            self.frame = (self.slowFrame // 5) % 4
+            self.frame = (self.slowFrame // 10) % 4
             self.image.clip_draw(self.frame * self.frameX, 0, self.frameX, self.frameY, self.x - self.scrollX, self.y)
 
         # bounding box

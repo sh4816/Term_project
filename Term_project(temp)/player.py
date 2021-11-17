@@ -66,6 +66,11 @@ class P_State(enum.IntEnum):
     S_Gameover = enum.auto()
     S_Transform = enum.auto()
 
+# 박스 종류
+class boxType(enum.IntEnum):
+    coin = enum.auto()
+    mushroom = enum.auto()
+    flower = enum.auto()
 
 # Player Event
 RIGHT_DOWN, LEFT_DOWN, RIGHT_UP, LEFT_UP\
@@ -302,9 +307,39 @@ class DashState:
     def do(player):
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 2
 
-        player.x += player.velocity * game_framework.frame_time
+        #=== x 이동
+        # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
+        collipse = False
+        checkCount = 0
+        while (not collipse and checkCount < 4):
+            if checkCount == 0:
+                for box in Map_Box.boxes:
+                    if collideCheck(player, box) == "left" or collideCheck(player, box) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 1:
+                for brick in Map_Brick.bricks:
+                    if collideCheck(player, brick) == "left" or collideCheck(player, brick) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 2:
+                for pipe in Map_Pipe.pipes:
+                    if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 3:
+                for tile in Map_Tile.tiles:
+                    if collideCheck(player, tile) == "left" or collideCheck(player, tile) == "right":
+                        collipse = True
+                        break
 
-        player.x = clamp(25, player.x, 6600 - 25)
+            checkCount += 1
+
+        # 충돌하지 않았을 때에만 이동
+        if not collipse:
+            player.x += player.velocity * game_framework.frame_time
+            player.x = clamp(25, player.x, 6600 - 25)
+
 
         #=== 발판이 없을 때 낙하 운동
         # 충돌 체크 (아래에 발판이 없는지 확인)
@@ -379,7 +414,6 @@ class JumpState:
 
         if not player.isJumping:
             player.timer_jump = 0
-            player.Variable_V0_PPS = JUMP_V0_PPS
             player.jump_startY = player.y
             player.isJumping = True
 
@@ -424,14 +458,44 @@ class JumpState:
             player.timer_jump = 0
 
     def do(player):
-        #=== 이동
+        #=== 점프 중 이동
         player.timer_jump += game_framework.frame_time
 
-        # x축 이동
+        #== x축 이동
         if player.isMovingInAir:
-            player.x += player.velocity * game_framework.frame_time
+            # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
+            collipse = False
+            checkCount = 0
+            while (not collipse and checkCount < 4):
+                if checkCount == 0:
+                    for box in Map_Box.boxes:
+                        if collideCheck(player, box) == "left" or collideCheck(player, box) == "right":
+                            collipse = True
+                            break
+                elif checkCount == 1:
+                    for brick in Map_Brick.bricks:
+                        if collideCheck(player, brick) == "left" or collideCheck(player, brick) == "right":
+                            collipse = True
+                            break
+                elif checkCount == 2:
+                    for pipe in Map_Pipe.pipes:
+                        if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
+                            collipse = True
+                            break
+                elif checkCount == 3:
+                    for tile in Map_Tile.tiles:
+                        if collideCheck(player, tile) == "left" or collideCheck(player, tile) == "right":
+                            collipse = True
+                            break
 
-        # y축 이동
+                checkCount += 1
+
+            # 충돌하지 않았을 때에만 이동
+            if not collipse:
+                player.x += player.velocity * game_framework.frame_time
+                player.x = clamp(25, player.x, 6600 - 25)
+
+        #== y축 이동
         vel_jump = JUMP_V0_PPS + GRAVITY_ACCEL_PPS2 * player.timer_jump   # v = v0 + at
 
         # 위치
@@ -449,25 +513,36 @@ class JumpState:
             if checkCount == 0:
                 for box in Map_Box.boxes:
                     if collideCheck(player, box) == "top":
-                        # print("'Player top & Box' Collide!")  #
+                        # 충돌한 박스가 충돌하면 아이템이 나오는 question box 인 경우.
+                        if box.itemValue == boxType.coin:
+                            print('코인')#
+                            newCoin = Item_Coin.Coin()
+                            newCoin.x, newCoin.y = box.x, box.y + box.frameY/2 + 10
+                            newCoin.isEffect = True
+                            Item_Coin.coins.append(newCoin)
+                            # newCoin = Item_Coin.make_coins(box.x, box.y + box.frameY/2 + 10, True)
+                            game_world.add_object(newCoin, 0)
+                        elif box.itemValue == boxType.mushroom:
+                            print('버섯')#
+                        elif box.itemValue == boxType.flower:
+                            print('꽃')#
+
+                        # 충돌 상태 True
                         collipse = True
                         break
             elif checkCount == 1:
                 for brick in Map_Brick.bricks:
                     if collideCheck(player, brick) == "top":
-                        # print("'Player top & Brick' Collide!")  #
                         collipse = True
                         break
             elif checkCount == 2:
                 for pipe in Map_Pipe.pipes:
                     if collideCheck(player, pipe) == "top":
-                        # print("'Player top & Pipe' Collide!")  #
                         collipse = True
                         break
             elif checkCount == 3:
                 for tile in Map_Tile.tiles:
                     if collideCheck(player, tile) == "top":
-                        # print("'Player top & Tile' Collide!")  #
                         collipse = True
                         break
 
@@ -582,7 +657,39 @@ class FallingState:
 
             # x축 이동
             if player.isMovingInAir:
-                player.x += player.velocity * game_framework.frame_time
+                # x축 이동
+                if player.isMovingInAir:
+                    # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
+                    collipse = False
+                    checkCount = 0
+                    while (not collipse and checkCount < 4):
+                        if checkCount == 0:
+                            for box in Map_Box.boxes:
+                                if collideCheck(player, box) == "left" or collideCheck(player, box) == "right":
+                                    collipse = True
+                                    break
+                        elif checkCount == 1:
+                            for brick in Map_Brick.bricks:
+                                if collideCheck(player, brick) == "left" or collideCheck(player, brick) == "right":
+                                    collipse = True
+                                    break
+                        elif checkCount == 2:
+                            for pipe in Map_Pipe.pipes:
+                                if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
+                                    collipse = True
+                                    break
+                        elif checkCount == 3:
+                            for tile in Map_Tile.tiles:
+                                if collideCheck(player, tile) == "left" or collideCheck(player, tile) == "right":
+                                    collipse = True
+                                    break
+
+                        checkCount += 1
+
+                    # 충돌하지 않았을 때에만 이동
+                    if not collipse:
+                        player.x += player.velocity * game_framework.frame_time
+                        player.x = clamp(25, player.x, 6600 - 25)
 
             # 낙하 (수직낙하운동)
             # v = v0 + gt, v0 = 0 -> v = gt 에서
@@ -750,7 +857,6 @@ class Player:
         self.frame = 0
         self.timer_jump = 0         # 점프 타이머
         self.jump_startY = 0        # 점프를 시작한 y좌표
-        self.Variable_V0_PPS = 0    # V0가 변할 때(ex. 점프 중 충돌) V0를 변경시켜주기 위한 변수
         self.isJumping = False      # 점프
 
         self.isSave_startFallingPos = False # pos_startFalling를 저장했는 지 #test
