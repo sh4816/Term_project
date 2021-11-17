@@ -1,5 +1,5 @@
 # 오브젝트 스크롤
-import Player
+import player
 
 ScrollX = 0
 MapLen = 0
@@ -19,7 +19,6 @@ def ScrollLock(player):
 
 def getScrollX(Map, player):
     global ScrollX, MapLen
-
 
     if Map == "Map1":
         MapLen = 6600

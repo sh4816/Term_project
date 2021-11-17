@@ -1,607 +1,1065 @@
-# Player
-from pico2d import *
-from State import *
-from Collide import collipseCheck
+import game_framework
 import enum
+import math
+from collide import *
+from pico2d import *
+
+import game_data
 import Map_Tile
 import Map_Box
 import Map_Brick
 import Map_Pipe
 import Item_Coin
 import Item_TransForm
-import ScrollManager as scrollMgr
+import ball
+
+import game_world
+
+# Physics Variables...
+#
+# 마리오의 키는 2M, 몸무게는 70kg 이라 가정,
+PIXEL_PER_METER = (30.0 / 1.0)  # 30 pixel == 1m
+
+# Player Run Speed
+def KMPH2MPS(KMPH): # km/h -> m/sec
+    MPM = KMPH * 1000.0 / 60.0
+    MPS = MPM / 60.0
+    return MPS      #return m/sec
+
+RUN_SPEED_KMPH = 10.0           # km/h
+RUN_SPEED_PPS = (KMPH2MPS(RUN_SPEED_KMPH) * PIXEL_PER_METER)
+
+DASH_SPEED_KMPH = 30.0          # km/h
+DASH_SPEED_PPS = (KMPH2MPS(DASH_SPEED_KMPH) * PIXEL_PER_METER)
+
+SHOOT_SPEED_KMPH = 100.0        # km/h
+SHOOT_SPEED_PPS = (KMPH2MPS(SHOOT_SPEED_KMPH) * PIXEL_PER_METER)
+
+# Player Jump Speed
+JUMP_V0_PPS = 330.0 # px/s
+GRAVITY_ACCEL_PPS2 = -400.0 # px/s^2
 
 
-class Transform(enum.IntEnum):
-    Standard = enum.auto()
-    Super = enum.auto()
-    Fire = enum.auto()
+# Player Action Speed
+TIME_PER_ACTION = 0.5
+ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
+FRAMES_PER_ACTION = 4
 
-# 캐릭터
-class Character:
+# State
+# 변신 상태
+class P_Transform(enum.IntEnum):
+    T_Basic = 0
+    T_Super = enum.auto()
+    T_Fire = enum.auto()
+
+# 동작 상태
+class P_State(enum.IntEnum):
+    S_Idle = 0
+    S_Run = enum.auto()
+    S_Hit = enum.auto()
+    S_Jump = enum.auto()
+    S_Dash = enum.auto()
+    S_Down = enum.auto()
+    S_Slide = enum.auto()
+    S_Stand = enum.auto()
+    S_Kick = enum.auto()
+    S_Climb = enum.auto()
+    S_Gameover = enum.auto()
+    S_Transform = enum.auto()
+
+# 박스 종류
+class boxType(enum.IntEnum):
+    coin = 0
+    mushroom = enum.auto()
+    flower = enum.auto()
+
+class transitem_Value(enum.IntEnum):
+    Mushroom = 1
+    Fireflower = enum.auto()
+
+# Player Event
+RIGHT_DOWN, LEFT_DOWN, RIGHT_UP, LEFT_UP\
+    ,UP_DOWN, DOWN_DOWN, UP_UP, DOWN_UP\
+    ,SHIFT_DOWN, SHIFT_UP\
+    ,SPACE\
+    ,FALLING_EVENT, LANDING_EVENT, LANDING_RUN_EVENT, LANDING_DASH_EVENT\
+    ,TRANSLATE_EVENT, TRANS2IDLE_EVENT, TRANS2RUN_EVENT, TRANS2DASH_EVENT, TRANS2JUMP = range(20)
+
+key_event_table = {
+    (SDL_KEYDOWN, SDLK_RIGHT): RIGHT_DOWN,
+    (SDL_KEYDOWN, SDLK_LEFT): LEFT_DOWN,
+    (SDL_KEYUP, SDLK_RIGHT): RIGHT_UP,
+    (SDL_KEYUP, SDLK_LEFT): LEFT_UP,
+
+    (SDL_KEYDOWN, SDLK_UP): UP_DOWN,
+    (SDL_KEYDOWN, SDLK_DOWN): DOWN_DOWN,
+    (SDL_KEYUP, SDLK_UP): UP_UP,
+    (SDL_KEYUP, SDLK_DOWN): DOWN_UP,
+
+    (SDL_KEYDOWN, SDLK_LSHIFT): SHIFT_DOWN,
+    (SDL_KEYUP, SDLK_LSHIFT): SHIFT_UP,
+
+    (SDL_KEYDOWN, SDLK_SPACE): SPACE
+}
+
+
+# Player States
+
+class IdleState:
+
+    def enter(player, event):
+        player.velocity = 0
+        player.frame = 0  # IdleState는 애니메이션이 없음.
+        # player.timer = 1000 # 오랫동안 입력이 없을 때
+
+    def exit(player, event):
+        if event == SPACE:
+            player.fire_ball()
+
+        if player.isDoubleInput:
+            player.isDoubleInput = False
+            if event == LEFT_UP:
+                player.add_event(RIGHT_DOWN)
+            elif event == RIGHT_UP:
+                player.add_event(LEFT_DOWN)
+
+    def do(player):
+        # 오랫동안 입력이 없을 때
+        # player.timer -= 1
+        # if player.timer == 0:
+        #     player.add_event(SLEEP_TIMER)
+
+        # === 발판이 없을 때 낙하 시작
+        # 충돌 체크 (아래에 발판이 없는지 확인)
+        collipse = False
+        checkCount = 0
+
+        while (not collipse and checkCount < 4):
+            if checkCount == 0:
+                for box in Map_Box.boxes:
+                    if collideCheck(player, box) == "bottom":
+                        collipse = True
+                        break
+            elif checkCount == 1:
+                for brick in Map_Brick.bricks:
+                    if collideCheck(player, brick) == "bottom":
+                        collipse = True
+                        break
+            elif checkCount == 2:
+                for pipe in Map_Pipe.pipes:
+                    if collideCheck(player, pipe) == "bottom":
+                        collipse = True
+                        break
+            elif checkCount == 3:
+                for tile in Map_Tile.tiles:
+                    if collideCheck(player, tile) == "bottom":
+                        collipse = True
+                        break
+
+            checkCount += 1
+
+        if not collipse:
+            player.add_event(FALLING_EVENT)
+
+    def draw(player):
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH, player.frameX, player.frameY
+                               , player.x - player.scrollX, player.y)
+
+
+class RunState:
+
+    def enter(player, event):
+        player.velocity = 0
+
+        if event == RIGHT_DOWN:
+            player.dir = 1
+        elif event == LEFT_DOWN:
+            player.dir = -1
+        elif event == RIGHT_UP:
+            player.dir = -1
+        elif event == LEFT_UP:
+            player.dir = 1
+
+        player.velocity += player.dir * RUN_SPEED_PPS
+
+
+    def exit(player, event):
+        if event == SPACE:
+            player.fire_ball()
+
+        if event == RIGHT_DOWN or event == LEFT_DOWN:
+            player.isDoubleInput = True
+
+        if event == UP_DOWN or event == FALLING_EVENT:
+            player.isMovingInAir = True
+
+    def do(player):
+        player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 2
+
+        #=== x 이동
+        # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
+        collipse = False
+        checkCount = 0
+        while (not collipse and checkCount < 4):
+            if checkCount == 0:
+                for box in Map_Box.boxes:
+                    if collideCheck(player, box) == "left" or collideCheck(player, box) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 1:
+                for brick in Map_Brick.bricks:
+                    if collideCheck(player, brick) == "left" or collideCheck(player, brick) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 2:
+                for pipe in Map_Pipe.pipes:
+                    if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 3:
+                for tile in Map_Tile.tiles:
+                    if collideCheck(player, tile) == "left" or collideCheck(player, tile) == "right":
+                        collipse = True
+                        break
+
+            checkCount += 1
+
+        # 충돌하지 않았을 때에만 이동
+        if not collipse:
+            player.x += player.velocity * game_framework.frame_time
+            player.x = clamp(25, player.x, 6600 - 25)
+
+
+        #=== 발판이 없을 때 낙하 시작
+        # 충돌 체크 (아래에 발판이 없는지 확인)
+        collipse = False
+        checkCount = 0
+        while (not collipse and checkCount < 4):
+            if checkCount == 0:
+                for box in Map_Box.boxes:
+                    if collideCheck(player, box) == "bottom":
+                        collipse = True
+                        break
+            elif checkCount == 1:
+                for brick in Map_Brick.bricks:
+                    if collideCheck(player, brick) == "bottom":
+                        collipse = True
+                        break
+            elif checkCount == 2:
+                for pipe in Map_Pipe.pipes:
+                    if collideCheck(player, pipe) == "bottom":
+                        collipse = True
+                        break
+            elif checkCount == 3:
+                for tile in Map_Tile.tiles:
+                    if collideCheck(player, tile) == "bottom":
+                        collipse = True
+                        break
+
+            checkCount += 1
+
+        if not collipse:
+            player.add_event(FALLING_EVENT)
+
+    def draw(player):
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Run,
+                               player.frameX, player.frameY, player.x - player.scrollX, player.y)
+
+
+class DashState:
+
+    def enter(player, event):
+        player.velocity = 0
+
+        if not player.isDash:
+            player.isDash = True
+
+        if event == RIGHT_DOWN:
+            player.dir = 1
+        elif event == LEFT_DOWN:
+            player.dir = -1
+        elif event == RIGHT_UP:
+            player.dir = -1
+        elif event == LEFT_UP:
+            player.dir = 1
+
+        player.velocity += player.dir * DASH_SPEED_PPS
+
+    def exit(player, event):
+        if event == SPACE:
+            player.fire_ball()
+
+        if event == UP_DOWN or event == FALLING_EVENT:
+            player.isMovingInAir = True
+
+        if event == SHIFT_UP:
+            player.isDash = False
+
+    def do(player):
+        player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 2
+
+        #=== x 이동
+        # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
+        collipse = False
+        checkCount = 0
+        while (not collipse and checkCount < 4):
+            if checkCount == 0:
+                for box in Map_Box.boxes:
+                    if collideCheck(player, box) == "left" or collideCheck(player, box) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 1:
+                for brick in Map_Brick.bricks:
+                    if collideCheck(player, brick) == "left" or collideCheck(player, brick) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 2:
+                for pipe in Map_Pipe.pipes:
+                    if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 3:
+                for tile in Map_Tile.tiles:
+                    if collideCheck(player, tile) == "left" or collideCheck(player, tile) == "right":
+                        collipse = True
+                        break
+
+            checkCount += 1
+
+        # 충돌하지 않았을 때에만 이동
+        if not collipse:
+            player.x += player.velocity * game_framework.frame_time
+            player.x = clamp(25, player.x, 6600 - 25)
+
+
+        #=== 발판이 없을 때 낙하 운동
+        # 충돌 체크 (아래에 발판이 없는지 확인)
+        collipse = False
+        checkCount = 0
+
+        while (not collipse and checkCount < 4):
+            if checkCount == 0:
+                for box in Map_Box.boxes:
+                    if collideCheck(player, box) == "bottom":
+                        player.y = box.y + box.frameY/2 + player.frameY/2  # 발판 위로 올림
+                        collipse = True
+                        break
+            elif checkCount == 1:
+                for brick in Map_Brick.bricks:
+                    if collideCheck(player, brick) == "bottom":
+                        player.y = brick.y + brick.frameY/2 + player.frameY/2  # 발판 위로 올림
+                        collipse = True
+                        break
+            elif checkCount == 2:
+                for pipe in Map_Pipe.pipes:
+                    if collideCheck(player, pipe) == "bottom":
+                        player.y = pipe.y + pipe.frameY/2 + player.frameY/2  # 발판 위로 올림
+                        collipse = True
+                        break
+            elif checkCount == 3:
+                for tile in Map_Tile.tiles:
+                    if collideCheck(player, tile) == "bottom":
+                        player.y = tile.y + tile.frameY/2 + player.frameY/2  # 발판 위로 올림
+                        collipse = True
+                        break
+
+            checkCount += 1
+
+        if not collipse:
+            if not player.isSave_startFallingPos:
+                player.pos_startFalling = player.y
+                player.isSave_startFallingPos = True
+
+            # 낙하 (수직낙하운동)
+            player.timer_jump += game_framework.frame_time
+            # v = v0 + gt, v0 = 0 -> v = gt 에서
+            # v = gt --(적분)--> S = 1/2 g t^2 + C (C = S0)  (*Game Design 폴더 참고)
+            player.y = (1/2) * GRAVITY_ACCEL_PPS2 * (player.timer_jump ** 2) + player.pos_startFalling
+
+    def draw(player):
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Dash,
+                               player.frameX, player.frameY, player.x - player.scrollX, player.y)
+
+
+class DownState:
+
+    def enter(player, event):
+        player.velocity = 0
+        player.frame = 0
+
+    def exit(player, event):
+        pass
+
+    def do(player):
+        pass
+
+    def draw(player):
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Down,
+                               player.frameX, player.frameY, player.x - player.scrollX, player.y)
+
+
+class JumpState:
+    def enter(player, event):
+        player.frame = 0
+        player.velocity = 0
+
+        if not player.isJumping:
+            player.timer_jump = 0
+            player.jump_startY = player.y
+            print(player.y)
+            player.isJumping = True
+
+        # 방향
+        if event == RIGHT_DOWN:
+            player.isMovingInAir = True
+            player.dir = 1
+        elif event == LEFT_DOWN:
+            player.isMovingInAir = True
+            player.dir = -1
+
+        # 속도
+        if player.isDash:
+            player.velocity += player.dir * DASH_SPEED_PPS
+        else:
+            player.velocity += player.dir * RUN_SPEED_PPS
+
+    def exit(player, event):
+        if event == SPACE:
+            player.fire_ball()
+
+        if event == RIGHT_UP or event == LEFT_UP:
+            player.isMovingInAir = False
+
+        if event == SHIFT_UP:
+            player.isDash = False
+
+        if event == FALLING_EVENT:
+            collipse = False
+            vel_jump = 0
+            player.timer_jump = 0
+
+        if event == DOWN_DOWN:
+            collipse = False
+            vel_jump = 0
+            player.timer_jump = 0
+
+    def do(player):
+        #=== 점프 중 이동
+        player.timer_jump += game_framework.frame_time
+
+        #== x축 이동
+        if player.isMovingInAir:
+            # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
+            collipse = False
+            checkCount = 0
+            while (not collipse and checkCount < 4):
+                if checkCount == 0:
+                    for box in Map_Box.boxes:
+                        if collideCheck(player, box) == "left" or collideCheck(player, box) == "right":
+                            collipse = True
+                            break
+                elif checkCount == 1:
+                    for brick in Map_Brick.bricks:
+                        if collideCheck(player, brick) == "left" or collideCheck(player, brick) == "right":
+                            collipse = True
+                            break
+                elif checkCount == 2:
+                    for pipe in Map_Pipe.pipes:
+                        if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
+                            collipse = True
+                            break
+                elif checkCount == 3:
+                    for tile in Map_Tile.tiles:
+                        if collideCheck(player, tile) == "left" or collideCheck(player, tile) == "right":
+                            collipse = True
+                            break
+
+                checkCount += 1
+
+            # 충돌하지 않았을 때에만 이동
+            if not collipse:
+                player.x += player.velocity * game_framework.frame_time
+                player.x = clamp(25, player.x, 6600 - 25)
+
+        #== y축 이동
+        vel_jump = JUMP_V0_PPS + GRAVITY_ACCEL_PPS2 * player.timer_jump   # v = v0 + at
+
+        # 위치
+        # v(속도) = v0 + at --(적분)--> s(위치) = (1/2 at + v)t + s0
+        player.y = ((1/2) * GRAVITY_ACCEL_PPS2 * player.timer_jump + JUMP_V0_PPS) * player.timer_jump + player.jump_startY
+
+        # print('V = ' + str(vel_jump) + ', yPos = ' + str(player.y) + ', time = ' + str(player.timer_jump))
+
+        # 상태 별 행동
+        #=== 충돌 체크
+        collipse = False
+        checkCount = 0
+        # 점프 중 player의 윗부분 충돌
+        while (not collipse and checkCount < 4):
+            if checkCount == 0:
+                for box in Map_Box.boxes:
+                    if collideCheck(player, box) == "top":
+                        # 충돌한 박스가 충돌하면 아이템이 나오는 question box 인 경우.
+                        if not box.isUsed:
+                            if box.itemValue == boxType.coin:
+                                # 코인(이펙트) 생성
+                                newCoin = Item_Coin.Coin()
+                                newCoin.x, newCoin.y = box.x, box.y + box.frameY/2 + 15
+                                newCoin.isEffect = True
+                                Item_Coin.coins.append(newCoin)
+                                game_world.add_object(newCoin, 0)
+
+                                game_data.gameData.coin += 1
+                            elif box.itemValue == boxType.mushroom:
+                                print('버섯')#
+                                newMush = Item_TransForm.TransformItem()
+                                newMush.x, newMush.y = box.x, box.y + box.frameY
+                                newMush.itemValue = transitem_Value.Mushroom
+                                Item_TransForm.transItems.append(newMush)
+                                game_world.add_object(newMush, 1)
+                            elif box.itemValue == boxType.flower:
+                                print('꽃')#
+                                newFlower = Item_TransForm.TransformItem()
+                                newFlower.x, newFlower.y = box.x, box.y + box.frameY
+                                newFlower.isReverse = False
+                                newFlower.itemValue = transitem_Value.Fireflower
+                                Item_TransForm.transItems.append(newFlower)
+                                game_world.add_object(newFlower, 1)
+                            # Box를 사용한 상태로 변경
+                            box.isUsed = True
+
+                        # 충돌 상태 True
+                        box.slowFrame = 0
+                        box.frame = 0
+                        collipse = True
+                        break
+            elif checkCount == 1:
+                for brick in Map_Brick.bricks:
+                    if collideCheck(player, brick) == "top":
+                        collipse = True
+                        break
+            elif checkCount == 2:
+                for pipe in Map_Pipe.pipes:
+                    if collideCheck(player, pipe) == "top":
+                        collipse = True
+                        break
+            elif checkCount == 3:
+                for tile in Map_Tile.tiles:
+                    if collideCheck(player, tile) == "top":
+                        collipse = True
+                        break
+
+            checkCount += 1
+
+        # 점프 도중 player의 윗부분이 충돌했을 때
+        if collipse:
+            player.add_event(FALLING_EVENT)
+        else:
+            #===변곡점을 지나면 도약 상태에서 낙하 상태로 변경
+            if vel_jump <= 0:
+                player.add_event(FALLING_EVENT)
+
+    def draw(player):
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Jump,
+                               player.frameX, player.frameY, player.x - player.scrollX, player.y)
+
+
+class FallingState:
+
+    def enter(player, event):
+        player.frame = 0
+
+        if not player.isSave_startFallingPos:
+            player.timer_jump = 0
+            player.pos_startFalling = player.y
+            player.isSave_startFallingPos = True
+
+        # 방향
+        if event == RIGHT_DOWN:
+            player.isMovingInAir = True
+            player.dir = 1
+        elif event == LEFT_DOWN:
+            player.isMovingInAir = True
+            player.dir = -1
+
+        # 속도
+        if player.isDash:
+            player.velocity = player.dir * DASH_SPEED_PPS
+        else:
+            player.velocity = player.dir * RUN_SPEED_PPS
+
+
+    def exit(player, event):
+        if event == SPACE:
+            player.fire_ball()
+
+        if event == RIGHT_UP or event == LEFT_UP:
+            player.isMovingInAir = False
+
+        if event == SHIFT_UP:
+            player.isDash = False
+
+        if event == LANDING_EVENT or event == LANDING_RUN_EVENT or event == LANDING_DASH_EVENT:
+            # 초기화
+            player.timer_jump = 0
+            player.isJumping = False
+            player.isDash = False
+            player.pos_startFalling = 0
+            player.isSave_startFallingPos = False
+            collipse = False
+
+        if event == DOWN_DOWN:
+            # 초기화
+            player.timer_jump = 0
+            player.isJumping = False
+            player.pos_startFalling = 0
+            player.isSave_startFallingPos = False
+            collipse = False
+
+    def do(player):
+        # === 발판이 없을 때 낙하 운동
+        # 충돌 체크 (아래에 발판이 없는지 확인)
+        collipse = False
+        checkCount = 0
+
+        while (not collipse and checkCount < 4):
+            if checkCount == 0:
+                for box in Map_Box.boxes:
+                    if collideCheck(player, box) == "bottom":
+                        player.y = box.y + box.frameY/2 + player.frameY/2
+                        collipse = True
+                        break
+            elif checkCount == 1:
+                for brick in Map_Brick.bricks:
+                    if collideCheck(player, brick) == "bottom":
+                        player.y = brick.y + brick.frameY/2 + player.frameY/2
+                        collipse = True
+                        break
+            elif checkCount == 2:
+                for pipe in Map_Pipe.pipes:
+                    if collideCheck(player, pipe) == "bottom":
+                        player.y = pipe.y + pipe.frameY/2 + player.frameY/2
+                        collipse = True
+                        break
+            elif checkCount == 3:
+                for tile in Map_Tile.tiles:
+                    if collideCheck(player, tile) == "bottom":
+                        player.y = tile.y + tile.frameY/2 + player.frameY/2
+                        collipse = True
+                        break
+
+            checkCount += 1
+
+        if not collipse:
+            #=== 이동
+            player.timer_jump += game_framework.frame_time
+
+            # x축 이동
+            if player.isMovingInAir:
+                # x축 이동
+                if player.isMovingInAir:
+                    # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
+                    collipse = False
+                    checkCount = 0
+                    while (not collipse and checkCount < 4):
+                        if checkCount == 0:
+                            for box in Map_Box.boxes:
+                                if collideCheck(player, box) == "left" or collideCheck(player, box) == "right":
+                                    collipse = True
+                                    break
+                        elif checkCount == 1:
+                            for brick in Map_Brick.bricks:
+                                if collideCheck(player, brick) == "left" or collideCheck(player, brick) == "right":
+                                    collipse = True
+                                    break
+                        elif checkCount == 2:
+                            for pipe in Map_Pipe.pipes:
+                                if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
+                                    collipse = True
+                                    break
+                        elif checkCount == 3:
+                            for tile in Map_Tile.tiles:
+                                if collideCheck(player, tile) == "left" or collideCheck(player, tile) == "right":
+                                    collipse = True
+                                    break
+
+                        checkCount += 1
+
+                    # 충돌하지 않았을 때에만 이동
+                    if not collipse:
+                        player.x += player.velocity * game_framework.frame_time
+                        player.x = clamp(25, player.x, 6600 - 25)
+
+            # 낙하 (수직낙하운동)
+            # v = v0 + gt, v0 = 0 -> v = gt 에서
+            # v = gt --(적분)--> S = 1/2 g t^2 + C (C = S0)  (*Game Design 폴더 참고)
+            player.y = (1/2) * GRAVITY_ACCEL_PPS2 * (player.timer_jump ** 2) + player.pos_startFalling
+
+        else:
+            # 다음 상태 지정
+            if player.isMovingInAir:
+                if player.isDash:
+                    player.add_event(LANDING_DASH_EVENT)
+                else:
+                    player.add_event(LANDING_RUN_EVENT)
+            else:
+                player.add_event(LANDING_EVENT)
+
+    def draw(player):
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Jump,
+                               player.frameX, player.frameY, player.x - player.scrollX, player.y)
+
+
+class GroundpoundState:
+    def enter(player, event):
+        player.frame = 0
+        player.velocity = 0
+
+        # 점프에 필요했던 변수들 초기화
+        if player.isJumping: player.isJumping = False
+        if player.isMovingInAir: player.isMovingInAir = False
+        player.timer_jump = 0
+
+        # 기타 변수들 초기화
+        if player.isDash: player.isDash = False
+
+
+    def exit(player, event):
+        if event == LANDING_EVENT:
+            player.isJumping = False
+            player.timer_jump = 0
+            collipse = False
+
+    def do(player):
+        # 아래로 빠르게 낙하
+        player.timer_jump += game_framework.frame_time
+        player.timer_jump = clamp(0, player.timer_jump, 0.3)
+
+        player.y += (1/2) * GRAVITY_ACCEL_PPS2 * (player.timer_jump ** 2)
+
+        # print('V = ' + str(vel_jump) + ', yPos = ' + str(player.y) + ', time = ' + str(player.timer_jump))
+
+        collipse = False
+        checkCount = 0
+        # 충돌해서 착지를 할 때
+        while (not collipse and checkCount < 4):
+            if checkCount == 0:
+                for box in Map_Box.boxes:
+                    if collideCheck(player, box) == "bottom":
+                        player.y = box.y + box.frameY / 2 + player.frameY / 2
+                        collipse = True
+
+                        # 충돌한 박스가 충돌하면 아이템이 나오는 question box 인 경우.
+                        if not box.isUsed:
+                            if box.itemValue == boxType.coin:
+                                # 코인(이펙트) 생성
+                                newCoin = Item_Coin.Coin()
+                                newCoin.x, newCoin.y = box.x, box.y - box.frameY/2 - 15
+                                newCoin.isEffect = True
+                                Item_Coin.coins.append(newCoin)
+                                game_world.add_object(newCoin, 0)
+
+                                game_data.gameData.coin += 1
+                            elif box.itemValue == boxType.mushroom:
+                                print('버섯')  #
+                                newMush = Item_TransForm.TransformItem()
+                                newMush.x, newMush.y = box.x, box.y - box.frameY
+                                newMush.itemValue = transitem_Value.Mushroom
+                                Item_TransForm.transItems.append(newMush)
+                                game_world.add_object(newMush, 1)
+                            elif box.itemValue == boxType.flower:
+                                print('꽃')  #
+                                newFlower = Item_TransForm.TransformItem()
+                                newFlower.x, newFlower.y = box.x, box.y - box.frameY
+                                newFlower.isReverse = True
+                                newFlower.itemValue = transitem_Value.Fireflower
+                                Item_TransForm.transItems.append(newFlower)
+                                game_world.add_object(newFlower, 1)
+                            # Box를 사용한 상태로 변경
+                            box.isUsed = True
+                        break
+            elif checkCount == 1:
+                for brick in Map_Brick.bricks:
+                    if collideCheck(player, brick) == "bottom":
+                        player.y = brick.y + brick.frameY/2 + player.frameY/2  # 발판 위로 올림
+                        collipse = True
+                        break
+            elif checkCount == 2:
+                for pipe in Map_Pipe.pipes:
+                    if collideCheck(player, pipe) == "bottom":
+                        player.y = pipe.y + pipe.frameY/2 + player.frameY/2  # 발판 위로 올림
+                        collipse = True
+                        break
+            elif checkCount == 3:
+                for tile in Map_Tile.tiles:
+                    if collideCheck(player, tile) == "bottom":
+                        player.y = tile.y + tile.frameY/2 + player.frameY/2  # 발판 위로 올림
+                        collipse = True
+                        break
+
+            checkCount += 1
+
+        if collipse:
+            player.add_event(LANDING_EVENT)
+
+
+    def draw(player):
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Slide,
+                               player.frameX, player.frameY, player.x - player.scrollX, player.y)
+
+
+class TranslateState:
+    def enter(player, event):
+        if player.isTrans:                          # 한 번만 수행되도록
+            player.frame = 0
+            player.isTrans = False
+
+        if event == SHIFT_UP:                       # 변신 도중 SHIFT키를 떼었을 때
+            player.isDash = False
+            player.prevState = "RunState"
+
+        if event == LEFT_UP or event == RIGHT_UP:   # 변신 도중 왼쪽or오른쪽 키를 떼었을 때
+            player.isMovingInAir = False
+            player.prevState = "IdleState"
+
+
+    def exit(player, event):
+        if event == TRANS2IDLE_EVENT or event == TRANS2RUN_EVENT or event == TRANS2DASH_EVENT:
+            player.prevState = None
+            player.isTrans = True
+
+    def do(player):
+        player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 6
+        if player.frame >= 5:
+            if player.prevState == "RunState":
+                player.add_event(TRANS2RUN_EVENT)
+            elif player.prevState == "DashState":
+                player.add_event(TRANS2DASH_EVENT)
+            else:
+                player.add_event(TRANS2IDLE_EVENT)
+
+
+    def draw(player):
+        player.image.clip_draw(int(player.frame) * player.frameX, 0, player.frameX, player.frameY
+                               , player.x - player.scrollX, player.y)
+
+
+next_state_table = {
+    IdleState: {RIGHT_DOWN: RunState, LEFT_DOWN: RunState, RIGHT_UP: IdleState, LEFT_UP: IdleState
+        , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: DownState, DOWN_UP: IdleState
+        , SHIFT_DOWN: IdleState, SHIFT_UP: IdleState
+        , SPACE: IdleState
+        , FALLING_EVENT: FallingState
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
+    RunState: {RIGHT_DOWN: IdleState, LEFT_DOWN: IdleState, RIGHT_UP: IdleState, LEFT_UP: IdleState
+        , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: DownState, DOWN_UP: IdleState
+        , SHIFT_DOWN: DashState, SHIFT_UP: RunState
+        , SPACE: RunState
+        , FALLING_EVENT: FallingState
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
+    DashState: {RIGHT_DOWN: IdleState, LEFT_DOWN: IdleState, RIGHT_UP: IdleState, LEFT_UP: IdleState
+        , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: DownState, DOWN_UP: IdleState
+        , SHIFT_DOWN: RunState, SHIFT_UP: RunState
+        , SPACE: DashState
+        , FALLING_EVENT: FallingState
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
+    DownState: {RIGHT_DOWN: DownState, LEFT_DOWN: DownState, RIGHT_UP: DownState, LEFT_UP: DownState
+        , UP_DOWN: DownState, UP_UP: DownState, DOWN_DOWN: DownState, DOWN_UP: IdleState
+        , SHIFT_DOWN: DownState, SHIFT_UP: DownState
+        , SPACE: DownState
+        , FALLING_EVENT: FallingState
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
+    JumpState: {RIGHT_DOWN: JumpState, LEFT_DOWN: JumpState, RIGHT_UP: JumpState, LEFT_UP: JumpState
+        , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: GroundpoundState, DOWN_UP: JumpState
+        , SHIFT_DOWN: JumpState, SHIFT_UP: JumpState
+        , SPACE: DownState
+        , FALLING_EVENT: FallingState
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
+    FallingState: {RIGHT_DOWN: FallingState, LEFT_DOWN: FallingState, RIGHT_UP: FallingState, LEFT_UP: FallingState
+        , UP_DOWN: FallingState, UP_UP: FallingState, DOWN_DOWN: GroundpoundState, DOWN_UP: FallingState
+        , SHIFT_DOWN: FallingState, SHIFT_UP: FallingState
+        , SPACE: FallingState
+        , FALLING_EVENT: FallingState
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
+    GroundpoundState: {RIGHT_DOWN: GroundpoundState, LEFT_DOWN: GroundpoundState, RIGHT_UP: GroundpoundState, LEFT_UP: GroundpoundState
+        , UP_DOWN: GroundpoundState, UP_UP: GroundpoundState, DOWN_DOWN: GroundpoundState, DOWN_UP: GroundpoundState
+        , SHIFT_DOWN: GroundpoundState, SHIFT_UP: GroundpoundState
+        , SPACE: GroundpoundState
+        , FALLING_EVENT: FallingState
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
+    TranslateState: {RIGHT_DOWN: TranslateState, LEFT_DOWN: TranslateState, RIGHT_UP: TranslateState, LEFT_UP: TranslateState
+        , UP_DOWN: TranslateState, UP_UP: TranslateState, DOWN_DOWN: TranslateState, DOWN_UP: TranslateState
+        , SHIFT_DOWN: TranslateState, SHIFT_UP: TranslateState
+        , SPACE: TranslateState
+        , FALLING_EVENT: TranslateState
+        , LANDING_EVENT: TranslateState, LANDING_RUN_EVENT: TranslateState, LANDING_DASH_EVENT: TranslateState
+        , TRANSLATE_EVENT: IdleState, TRANS2IDLE_EVENT: IdleState, TRANS2RUN_EVENT: RunState, TRANS2DASH_EVENT: DashState, TRANS2JUMP: JumpState}
+}
+
+
+class Player:
+    image_StandardL = None
     def __init__(self):
-        # 변신 관련 변수
-        self.transform = Transform.Standard                      # 변신 상태 (기본, 슈퍼마리오,파이어마리오)
+        # position
+        self.x, self.y = 100, 60
+        self.frameX, self.frameY = 40, 30
+        self.imageH = 300
 
-        # 기본
-        self.image = load_image('Mario.png')
-        self.frameX, self.frameY = 0, 0                          # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
+        # Scroll
+        self.scrollX = 0
 
-        self.x, self.y = 100, 100                                # 실제 위치
-        self.scrollX = 0                                        # 윈도우에 렌더링이 되는 시작위치
+        # Image Loading
+        if self.image_StandardL == None:
+            self.image_StandardL = load_image('MarioL.png')
+            self.image_StandardR = load_image('Mario.png')
+            self.image_SuperL = load_image('MarioL_super.png')
+            self.image_SuperR = load_image('Mario_super.png')
+            self.image_FireL = load_image('MarioL_fire.png')
+            self.image_FireR = load_image('Mario_fire.png')
+
+        self.transform = P_Transform.T_Basic
+        self.prevState = None  # 이전상태의 이름
+        self.isTrans = False   # 변신 중 인지
+
+        self.dir = 1
+        self.velocity = 0
         self.frame = 0
-        self.slowFrame = 0
-        self.status = c_state.S_Idle
-        # < Mario Status >
-        # 0: Idle(1), 1: Walk(2), 2: Hit(1), 3: Jump(1), 4: Dash(4)
-        # 5: Down(1), 6: Slide/GroundPound(1), 7: Stand(1), 8: Kick(4), 9: Climb(2)
-        # 10: Action/Attack(standard:X,super:X,fire:2)
-        self.isLeft = False         # 왼쪽을 보고 있는지
-        self.isOnGround = 0         # 땅 위에 있는지 (0: 땅 위에 없음, 1 이상: 땅 위에 있음)
-        self.doubleInput = False
+        self.timer_jump = 0         # 점프 타이머
+        self.jump_startY = 0        # 점프를 시작한 y좌표
+        self.isJumping = False      # 점프
 
-        self.mapEnd = False         # 맵의 끝에 위치하고 있는지
+        self.isSave_startFallingPos = False # pos_startFalling를 저장했는 지 #test
+        self.pos_startFalling = 0           # 발판이 없을 때 낙하를 시작하는 좌표 #test
 
-       # 걷기 관련 변수
-        self.isWalk = False         # 걷는 중인지
-        self.lBlocked = False       # 막혀 있는지
-        self.rBlocked = False
+        self.isCollideJumping = False       # 점프 중에 충돌했는 지
+        self.pos_collideJumping = 0         # 점프 중에 충돌한 시점의 좌표
+        self.time_collideJumping = 0        # 점프 중에 충돌한 시점의 시점
 
-        # 점프 관련 변수
-        self.jumpHeight = 16
-        self.isUnderBlock = 0       # 상단이 블록으로 막혀있는지 (0: 막혀있지 않음, 1 이상: 막혀있음)
-        self.jump_collipseYPos = 0
-        self.isLeap = False         # 도약 중인지
-        self.isFall = False         # 낙하 중인지
-        self.move_in_air = False    # 공중에서 좌우로 움직이는 지
+        self.isMovingInAir = False  # 공중에서 움직이는지
+        self.isDoubleInput = False  # 키입력이 두 개 동시에 되었는지
+        self.isDash = False         # 대쉬 중인지
 
-        # 대쉬 관련 변수
-        self.dash = False           # 대쉬 중인지
-        self.dashJump = False       # 대쉬 중 점프를 하였는 지
+        self.event_que = []
+        self.cur_state = IdleState
+        self.cur_state.enter(self, None)
 
-        # 그라운드파운드 관련 변수
-        self.gp = False             # 그라운드파운드 중인지
-        self.gp_StartHeight = 0     # 그라운드파운드를 시작한 높이
-        self.gp_EndHeight = 0       # 그라운드파운드를 끝낼 높이(도약 할 때 y값 측정)
-        gp_gapHeight = 0
-        self.gp_accel = 0           # 그라운드파운드 가속도
-        self.gp_delay = 0           # 그라운드파운드 후딜레이
+        self.show_bb = False    # 바운딩박스 출력
 
-        # 액션/공격 관련 변수
-        self.act = False            # 액션 중인지
-        self.act_Delay = 0          # 액션 후딜레이
+        # Debug #
+        self.font = load_font('ENCR10B.TTF', 16)
+        ###
+
+
+    def fire_ball(self):
+        # print(self.transform)
+        # if self.transform == P_Transform.T_Fire:
+        newFireball = ball.Fireball()
+        newFireball.x, newFireball.y = self.x, self.y
+        ball.fireballs.append(newFireball)
+        game_world.add_object(newFireball, 1)
+
+
+    def add_event(self, event):
+        self.event_que.insert(0, event)
 
     def update(self):
-        # Out of Window 체크
-        if self.y < 0:
-            # Life 업데이트 후 Life감소 추가 예정.
-            self.x, self.y = self.scrollX + 100, 200
-            print('사망')
+        self.cur_state.do(self)
+        if len(self.event_que) > 0:
+            event = self.event_que.pop()
+            self.cur_state.exit(self, event)
+            self.cur_state = next_state_table[self.cur_state][event]
+            self.cur_state.enter(self, event)
 
-        # Map의 끝에 있는지 체크
-        if self.x <= 0:
-            self.MapEnd = True
-            self.x = 1
-        elif self.x - self.scrollX <= 0:
-            self.MapEnd = True
-            self.x = self.scrollX + 1
-        elif self.x >= scrollMgr.MapLen:
-            self.MapEnd = True
-            self.x = scrollMgr.MapLen - 1
-        else:
-            self.MapEnd = False
-
-        # 변신 아이템 충돌체크
-        for t_item in Item_TransForm.t_items:
-            if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                             t_item.frameX, t_item.frameY, t_item.x, t_item.y, True):
-                if self.transform < t_item.itemValue:       # 변신 아이템보다 현재 상태가 하위 상태일때
-                    self.transform = t_item.itemValue
-                    self.status = c_state.S_Transform
-                    self.slowFrame = 0
-                    self.frame = 0
-
-                # 점수추가 (추가예정)
-                print('Score up')
-                Item_TransForm.t_items.remove(t_item)  # 객체 삭제
-
-        # 이미지 체크
-        if self.transform == Transform.Standard:
-            if self.isLeft:
-                self.image = load_image('MarioL.png')  # 왼쪽을 보고 있는 리소스
+        # 이미지 업데이트
+        if self.transform == P_Transform.T_Basic:
+            if self.dir == 1:
+                self.image = self.image_StandardR
             else:
-                self.image = load_image('Mario.png')   # 오른쪽을 보고 있는 리소스
-            self.frameX, self.frameY = 30, 40          # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
-        elif self.transform == Transform.Super:
-            if self.isLeft:
-                self.image = load_image('MarioL_super.png')  # 왼쪽을 보고 있는 리소스
+                self.image = self.image_StandardL
+        elif self.transform == P_Transform.T_Super:
+            if self.dir == 1:
+                self.image = self.image_SuperR
             else:
-                self.image = load_image('Mario_super.png')   # 오른쪽을 보고 있는 리소스
-            self.frameX, self.frameY = 40, 60                # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
-        elif self.transform == Transform.Fire:
-            if self.isLeft:
-                self.image = load_image('MarioL_fire.png')   # 왼쪽을 보고 있는 리소스
+                self.image = self.image_SuperL
+        elif self.transform == P_Transform.T_Fire:
+            if self.dir == 1:
+                self.image = self.image_FireR
             else:
-                self.image = load_image('Mario_fire.png')    # 오른쪽을 보고 있는 리소스
-            self.frameX, self.frameY = 40, 60                # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
+                self.image = self.image_FireL
+
+        # 변신 아이템 충돌
+        for transItem in Item_TransForm.transItems:
+            if not collideCheck(self, transItem) == None:
+                if self.transform < transItem.itemValue:
+                    self.prevState = self.cur_state.__name__  # 이전상태의 이름을 저장해둔다.
+                    if not self.cur_state == JumpState or self.cur_state == FallingState or self.cur_state == GroundpoundState: #버그방지용
+                        self.y += 15
+
+                    if transItem.itemValue == Item_TransForm.Value.Mushroom:
+                        self.transform = P_Transform.T_Super
+                    elif transItem.itemValue == Item_TransForm.Value.Fireflower:
+                        self.transform = P_Transform.T_Fire
+                    game_data.gameData.transform = self.transform   # 게임데이터 최신화
+                    # Frame Image Update
+                    self.frameX, self.frameY = 40, 60
+                    self.imageH = 660
+                    self.add_event(TRANSLATE_EVENT)
+
+                # 해당 충돌 아이템 삭제
+                Item_TransForm.transItems.remove(transItem)
+                game_world.remove_object(transItem)
+                break
 
 
-        # 상태 체크
-        #=== Idle
-        if self.status == c_state.S_Idle:
-            # 1. 충돌하면 1을 더한다.
-            for tile in Map_Tile.tiles:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 tile.frameX, tile.frameY, tile.x, tile.y, True):
-                    self.isOnGround += 1
-            for box in Map_Box.boxes:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 box.frameX, box.frameY, box.x, box.y, True):
-                    self.isOnGround += 1
-            for brick in Map_Brick.bricks:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 brick.frameX, brick.frameY, brick.x, brick.y, True):
-                    self.isOnGround += 1
-            for pipe in Map_Pipe.pipes:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 pipe.frameX, pipe.frameY, pipe.x, pipe.y, True):
-                    self.isOnGround += 1
-            # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
-            if self.isOnGround == 0:
-                self.status = c_state.S_Jump
-                self.frame = 0
 
-                self.isLeap = False
-                self.isFall = True
-            else:
-                self.isOnGround = 0
-        #=== Walk
-        elif self.status == c_state.S_Walk:
-            # 1. 충돌하면 1을 더한다.
-            for tile in Map_Tile.tiles:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 tile.frameX, tile.frameY, tile.x, tile.y, True):
-                    self.isOnGround += 1
-
-                    if tile.y - tile.frameY / 2 < self.y < tile.y + tile.frameY / 2:
-                        if self.isLeft:
-                            if tile.x - tile.frameX / 2 <= self.x - self.frameX / 2 <= tile.x + tile.frameX / 2:
-                                self.lBlocked = True
-                        else:
-                            if tile.x - tile.frameX / 2 - 5 <= self.x + self.frameX / 2 <= tile.x + tile.frameX / 2 + 5:
-                                self.rBlocked = True
-
-            for box in Map_Box.boxes:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 box.frameX, box.frameY, box.x, box.y, True):
-                    self.isOnGround += 1
-
-                if box.y - box.frameY / 2 < self.y < box.y + box.frameY / 2:
-                    if self.isLeft:
-                        if box.x - box.frameX / 2 <= self.x - self.frameX / 2 <= box.x + box.frameX / 2:
-                            self.lBlocked = True
-                    else:
-                        if box.x - box.frameX / 2 - 5 <= self.x + self.frameX / 2 <= box.x + box.frameX / 2 + 5:
-                            self.rBlocked = True
-
-            for brick in Map_Brick.bricks:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 brick.frameX, brick.frameY, brick.x, brick.y, True):
-                    self.isOnGround += 1
-
-                if brick.y - brick.frameY / 2 < self.y < brick.y + brick.frameY / 2:
-                    if self.isLeft:
-                        if brick.x - brick.frameX / 2 <= self.x - self.frameX / 2 <= brick.x + brick.frameX / 2:
-                            self.lBlocked = True
-                    else:
-                        if brick.x - brick.frameX / 2 - 5 <= self.x + self.frameX / 2 <= brick.x + brick.frameX / 2 + 5:
-                            self.rBlocked = True
-
-            for pipe in Map_Pipe.pipes:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 pipe.frameX, pipe.frameY, pipe.x, pipe.y, True):
-                    self.isOnGround += 1
-
-                    if pipe.y - pipe.frameY / 2 < self.y < pipe.y + pipe.frameY / 2:
-                        if self.isLeft:
-                            if pipe.x - pipe.frameX / 2 <= self.x - self.frameX / 2 <= pipe.x + pipe.frameX / 2:
-                                self.lBlocked = True
-                        else:
-                            if pipe.x - pipe.frameX / 2 - 5 <= self.x + self.frameX / 2 <= pipe.x + pipe.frameX / 2 + 5:
-                                self.rBlocked = True
-
-            # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
-            if self.isOnGround == 0:
-                self.status = c_state.S_Jump
-                self.frame = 0
-
-                self.isLeap = False
-                self.isFall = True
-                self.move_in_air = True
-            else:
-                self.isOnGround = 0
-
-            # 이동
-            if self.isWalk:
-                self.slowFrame += 1
-                self.frame = (self.slowFrame // 3) % 2
-                if not self.MapEnd:
-                    if self.isLeft and not self.lBlocked:
-                        self.x -= 5
-                    elif not self.isLeft and not self.rBlocked:
-                        self.x += 5
-
-            self.lBlocked = self.rBlocked = False
-
-        #=== Hit
-        elif self.status == c_state.S_Hit:
-            pass#미구현
-        #=== Jump
-        elif self.status == c_state.S_Jump:
-            # 공중에서 좌우로 움직이는 거
-            if self.move_in_air:
-                # 충돌체크 ( 이동 예정인 좌표와 오브젝트, 현재 좌표X )
-                # 1. 충돌하면 1을 더한다.
-                for tile in Map_Tile.tiles:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                     tile.frameX, tile.frameY, tile.x, tile.y, False):
-                        if self.y - self.frameY / 2 < tile.y + tile.frameY / 2:
-                            if tile.x - tile.frameX/2 < self.x + self.frameX/2 < tile.x + tile.frameX/2:
-                                self.rBlocked = True
-                            elif tile.x - tile.frameX/2 < self.x - self.frameX/2 < tile.x + tile.frameX/2:
-                                self.lBlocked = True
-
-                for box in Map_Box.boxes:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                       box.frameX, box.frameY, box.x, box.y, False):
-                        if self.y - self.frameY/2 < box.y + box.frameY/2:
-                            if box.x - box.frameX / 2 < self.x + self.frameX / 2 < box.x + box.frameX / 2:
-                                self.rBlocked = True
-                            elif box.x - box.frameX / 2 < self.x - self.frameX / 2 < box.x + box.frameX / 2:
-                                self.lBlocked = True
-
-                for brick in Map_Brick.bricks:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                     brick.frameX, brick.frameY, brick.x, brick.y, False):
-                        if self.y - self.frameY / 2 < brick.y + brick.frameY / 2:
-                            if brick.x - brick.frameX / 2 < self.x + self.frameX / 2 < brick.x + brick.frameX / 2:
-                                self.rBlocked = True
-                            elif brick.x - brick.frameX / 2 < self.x - self.frameX / 2 < brick.x + brick.frameX / 2:
-                                self.lBlocked = True
-
-                for pipe in Map_Pipe.pipes:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                     pipe.frameX, pipe.frameY, pipe.x, pipe.y, False):
-                        if self.y - self.frameY / 2 < pipe.y + pipe.frameY / 2:
-                            if pipe.x - pipe.frameX / 2 < self.x + self.frameX / 2 < pipe.x + pipe.frameX / 2:
-                                self.rBlocked = True
-                            elif pipe.x - pipe.frameX / 2 < self.x - self.frameX / 2 < pipe.x + pipe.frameX / 2:
-                                self.lBlocked = True
-
-                # 2. 하나라도 충돌했다면 isUnderBlock는 0이 아니게 된다는 점 이용
-                # 충돌한게 없을 때만 이동 가능
-                if self.isLeft:
-                    if not self.lBlocked and not self.MapEnd:
-                        if self.dashJump:
-                            self.x -= 8
-                        else:
-                            self.x -= 5
-                else:
-                    if not self.rBlocked and not self.MapEnd:
-                        if self.dashJump:
-                            self.x += 8
-                        else:
-                            self.x += 5
-
-                self.lBlocked = self.rBlocked = False
-
-            if self.isLeap:
-                # 충돌체크 ( 이동 예정인 좌표와 오브젝트, 현재 좌표X )
-                # 1. 충돌하면 1을 더한다.
-                for tile in Map_Tile.tiles:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
-                                     tile.frameX, tile.frameY, tile.x, tile.y, False):
-                        if tile.x - tile.frameX/2 <= self.x <= tile.x + tile.frameX/2:
-                            if self.y <= tile.y - tile.frameX/2:
-                                self.isUnderBlock += 1
-                                self.jump_collipseYPos = tile.y - tile.frameY/2 - self.frameY/2
-                for box in Map_Box.boxes:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
-                                       box.frameX, box.frameY, box.x, box.y, False):
-                        if box.x - box.frameX/2 <= self.x <= box.x + box.frameX/2:
-                            if self.y <= box.y - box.frameX/2:
-                                self.isUnderBlock += 1
-                                self.jump_collipseYPos = box.y - box.frameY/2 - self.frameY/2
-
-                            if not box.isUsed:
-                                if box.itemValue == Map_Box.boxType.coin:
-                                    Item_Coin.make_coins(box.x, box.y + box.frameY/2 + 20, True)
-                                elif box.itemValue == Map_Box.boxType.mushroom\
-                                    or box.itemValue == Map_Box.boxType.flower:
-                                    Item_TransForm.make_titem(box.x, box.y + box.frameY / 2 + 10, box.itemValue)
-
-
-                                box.isUsed = True
-                for brick in Map_Brick.bricks:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
-                                     brick.frameX, brick.frameY, brick.x, brick.y, False):
-                        if brick.x - brick.frameX/2 <= self.x <= brick.x + brick.frameX/2:
-                            if self.y <= brick.y - brick.frameX/2:
-                                self.isUnderBlock += 1
-                                self.jump_collipseYPos = brick.y - brick.frameY/2 - self.frameY/2
-                                if not self.transform == Transform.Standard:     # 기본마리오는 벽돌을 부수지 못함
-                                    # 충돌한 벽돌은 삭제됨
-                                    Map_Brick.bricks.remove(brick)
-
-                for pipe in Map_Pipe.pipes:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y + self.jumpHeight,
-                                     pipe.frameX, pipe.frameY, pipe.x, pipe.y, False):
-                        if pipe.x - pipe.frameX/2 <= self.x <= pipe.x + pipe.frameX/2:
-                            if self.y <= pipe.y - pipe.frameX/2:
-                                self.isUnderBlock += 1
-                                self.jump_collipseYPos = pipe.y - pipe.frameY/2 - self.frameY/2
-
-                # 2. 하나라도 충돌했다면 isUnderBlock는 0이 아니게 된다는 점 이용
-                if not self.isUnderBlock == 0:
-                    self.y = self.jump_collipseYPos - 1
-                    self.jumpHeight = 0
-                    self.isUnderBlock = 0
-
-                # 최대 높이에 도달했거나, 상단이 물체로 가로막힌 경우 낙하를 시작한다.
-                if self.jumpHeight <= 0:
-                    self.isLeap = False
-                    self.isFall = True
-                    self.jumpHeight = 0
-                else:
-                    self.y += self.jumpHeight
-                    self.jumpHeight -= 1
-
-            elif self.isFall:
-                self.y -= self.jumpHeight
-                self.jumpHeight += 1
-
-                # 충돌체크
-                # 1. 충돌하면 1을 더한다.
-                for tile in Map_Tile.tiles:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                     tile.frameX, tile.frameY, tile.x, tile.y, True):
-                        self.isOnGround += 1
-                        self.gp_EndHeight = tile.y + tile.frameY/2 + self.frameY/2
-                for box in Map_Box.boxes:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                       box.frameX, box.frameY, box.x, box.y, True):
-                        self.isOnGround += 1
-                        self.gp_EndHeight = box.y + box.frameY/2 + self.frameY/2
-                for brick in Map_Brick.bricks:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                     brick.frameX, brick.frameY, brick.x, brick.y, True):
-                        self.isOnGround += 1
-                        self.gp_EndHeight = brick.y + brick.frameY/2 + self.frameY/2
-                for pipe in Map_Pipe.pipes:
-                    if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                     pipe.frameX, pipe.frameY, pipe.x, pipe.y, True):
-                        self.isOnGround += 1
-                        self.gp_EndHeight = pipe.y + pipe.frameY/2 + self.frameY/2
-                # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
-                if self.isOnGround == 0:
-                    self.isOnGround = 0
-                else:
-                    self.isFall = False
-                    self.dashJump = False
-                    if self.move_in_air:
-                        if self.dashJump:
-                            self.status = c_state.S_Dash
-                            self.dash = True
-                            self.dashJump = False
-                        else:
-                            self.status = c_state.S_Walk
-                        self.isWalk = True
-                        self.move_in_air = False
-                        self.frame = 0
-                    else:
-                        self.status = c_state.S_Idle
-                        self.isWalk = False
-                        self.move_in_air = False
-                        self.frame = 0
-
-                    self.jumpHeight = 16
-                    self.isOnGround = 0
-
-                    self.y = self.gp_EndHeight - 5
-        #=== Dash
-        elif self.status == c_state.S_Dash:
-            # 1. 충돌하면 1을 더한다.
-            for tile in Map_Tile.tiles:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 tile.frameX, tile.frameY, tile.x, tile.y, True):
-                    self.isOnGround += 1
-
-                    if tile.y - tile.frameY / 2 < self.y < tile.y + tile.frameY / 2:
-                        if self.isLeft:
-                            if tile.x - tile.frameX / 2 <= self.x - self.frameX / 2 <= tile.x + tile.frameX / 2:
-                                self.lBlocked = True
-                        else:
-                            if tile.x - tile.frameX / 2 - 5 <= self.x + self.frameX / 2 <= tile.x + tile.frameX / 2 + 5:
-                                self.rBlocked = True
-
-            for box in Map_Box.boxes:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 box.frameX, box.frameY, box.x, box.y, True):
-                    self.isOnGround += 1
-
-                    if box.y - box.frameY / 2 < self.y < box.y + box.frameY / 2:
-                        if self.isLeft:
-                            if box.x - box.frameX / 2 <= self.x - self.frameX / 2 <= box.x + box.frameX / 2:
-                                self.lBlocked = True
-                        else:
-                            if box.x - box.frameX / 2 - 5 <= self.x + self.frameX / 2 <= box.x + box.frameX / 2 + 5:
-                                self.rBlocked = True
-
-            for brick in Map_Brick.bricks:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 brick.frameX, brick.frameY, brick.x, brick.y, True):
-                    self.isOnGround += 1
-
-                    if brick.y - brick.frameY / 2 < self.y < brick.y + brick.frameY / 2:
-                        if self.isLeft:
-                            if brick.x - brick.frameX / 2 <= self.x - self.frameX / 2 <= brick.x + brick.frameX / 2:
-                                self.lBlocked = True
-                        else:
-                            if brick.x - brick.frameX / 2 - 5 <= self.x + self.frameX / 2 <= brick.x + brick.frameX / 2 + 5:
-                                self.rBlocked = True
-
-            for pipe in Map_Pipe.pipes:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 pipe.frameX, pipe.frameY, pipe.x, pipe.y, True):
-                    self.isOnGround += 1
-
-                    if pipe.y - pipe.frameY / 2 < self.y < pipe.y + pipe.frameY / 2:
-                        if self.isLeft:
-                            if pipe.x - pipe.frameX / 2 <= self.x - self.frameX / 2 <= pipe.x + pipe.frameX / 2:
-                                self.lBlocked = True
-                        else:
-                            if pipe.x - pipe.frameX / 2 - 5 <= self.x + self.frameX / 2 <= pipe.x + pipe.frameX / 2 + 5:
-                                self.rBlocked = True
-
-            # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
-            if self.isOnGround == 0:
-                self.status = c_state.S_Jump
-                self.frame = 0
-
-                self.isLeap = False
-                self.isFall = True
-                self.move_in_air = True
-            else:
-                self.isOnGround = 0
-
-            # 이동
-            if self.transform == Transform.Standard:
-                self.frame = (self.frame + 1) % 2
-            else:
-                self.frame = (self.frame + 1) % 4
-
-            if not self.MapEnd:
-                if self.isLeft and not self.lBlocked:
-                    self.x -= 10
-                elif not self.isLeft and not self.rBlocked:
-                    self.x += 10
-
-            self.lBlocked = self.rBlocked = False
-
-        #=== Down
-        elif self.status == c_state.S_Down:
-            pass
-        #=== GroundPound
-        elif self.status == c_state.S_GP:
-            # 충돌체크
-            # 1. 충돌하면 1을 더한다.
-            for tile in Map_Tile.tiles:
-               if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                tile.frameX, tile.frameY, tile.x, tile.y, True):
-                    self.isOnGround += 1
-                    self.gp_EndHeight = tile.y + tile.frameY/2 + self.frameY/2
-                    if self.gp:
-                        self.gp_delay = 4  # 그라운드파운드 후딜레이
-                        self.gp = False
-            for box in Map_Box.boxes:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                   box.frameX, box.frameY, box.x, box.y, True):
-                    self.isOnGround += 1
-                    self.gp_EndHeight = box.y + box.frameY/2 + self.frameY/2
-                    if self.gp:
-                        self.gp_delay = 4  # 그라운드파운드 후딜레이
-                        self.gp = False
-
-                    if not box.isUsed:
-                        if box.itemValue == Map_Box.boxType.coin:
-                            Item_Coin.make_coins(box.x, box.y + box.frameY / 2 + 20, True)
-                        elif box.itemValue == Map_Box.boxType.mushroom\
-                            or box.itemValue == Map_Box.boxType.flower:
-                            Item_TransForm.make_titem(box.x, box.y + box.frameY / 2 + 10, box.itemValue)
-
-                        box.isUsed = True
-            for brick in Map_Brick.bricks:
-                if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                 brick.frameX, brick.frameY, brick.x, brick.y, True):
-                    if self.transform == Transform.Standard:     # 기본마리오는 벽돌을 부수지 못한다
-                        self.isOnGround += 1
-                        self.gp_EndHeight = brick.y + brick.frameY / 2 + self.frameY / 2
-                        if self.gp:
-                            self.gp_delay = 4   # 그라운드파운드 후딜레이
-                            self.gp = False
-                    else:
-                        self.gp_accel /= 2
-                        # 충돌한 벽돌은 삭제됨
-                        Map_Brick.bricks.remove(brick)
-            for pipe in Map_Pipe.pipes:
-               if collipseCheck(self.frameX, self.frameY, self.x, self.y,
-                                pipe.frameX, pipe.frameY, pipe.x, pipe.y, True):
-                    self.isOnGround += 1
-                    self.gp_EndHeight = pipe.y + pipe.frameY/2 + self.frameY/2
-                    if self.gp:
-                        self.gp_delay = 4  # 그라운드파운드 후딜레이
-                        self.gp = False
-
-
-            # 2. 하나라도 충돌했다면 isOnGround는 0이 아니게 된다는 점 이용
-            if self.isOnGround == 0:
-                self.gp_accel += 0.98 * 3
-                self.y -= self.gp_accel
-            else:
-                self.y = self.gp_EndHeight - 5
-                # 착지 후 딜레이 계산
-                self.gp_delay -= 1
-                if self.gp_delay == 0:
-                    self.status = c_state.S_Idle
-                    self.frame = 0
-
-                    self.isLeap = False
-                    self.isFall = False
-                    gp_Collipse = True
-                    gp_gapHeight = 0
-                    self.gp_accel = 0
-                    self.jumpHeight = 16
-                    self.gp_delay = 3
-        #=== Action/Attack
-        elif self.status == c_state.S_Action:
-            self.act_Delay -= 1
-            self.slowFrame += 1
-            self.frame = (self.slowFrame // 2) % 2
-
-            fire1.isRendered = True
-            fire1.x, fire1.y = self.x, self.y
-            if self.isLeft: fire1.dir = 0
-            else:           fire1.dir = 1
-
-            if self.act_Delay == 0:
-                #test
-                self.status = c_state.S_Idle
-                self.frame = 0
-
-                self.slowFrame = 0
-                self.act = False
-        #=== TransForm
-        elif self.status == c_state.S_Transform:
-            self.slowFrame += 1
-            self.frame = (self.slowFrame // 2) % 5
-
-            if self.slowFrame > 10:
-                if self.transform == Transform.Super:
-                    self.y += 10
-                if self.isWalk:
-                    self.status = c_state.S_Walk
-                    self.isWalk = True
-                    self.dash = self.dashJump = self.isLeap \
-                        = self.isFall = self.move_in_air = self.gp = False
-                else:
-                    self.status = c_state.S_Idle
-                    self.isWalk = self.dash = self.dashJump = self.isLeap\
-                        = self.isFall = self.move_in_air = self.gp = False
+    def get_boundingbox(self):  # 바운딩박스
+        return self.x - self.frameX/2, self.y + self.frameY/2, self.x + self.frameX/2, self.y - self.frameY/2
 
     def draw(self):
-        if self.transform == Transform.Standard:
-            self.image.clip_draw(self.frame * self.frameX, (10 - (self.status.value - 1)) * self.frameY
-                                 , self.frameX, self.frameY, self.x - self.scrollX, self.y)
-        else:
-            self.image.clip_draw(self.frame * self.frameX, (11 - (self.status.value - 1)) * self.frameY
-                                 , self.frameX, self.frameY, self.x - self.scrollX, self.y)
+        self.cur_state.draw(self)
+
+        # bounding box
+        if self.show_bb:
+            draw_rectangle(self.x - self.frameX/2 - self.scrollX, self.y + self.frameY/2
+                           , self.x + self.frameX/2 - self.scrollX, self.y - self.frameY/2)
+
+        # Debug #
+        self.font.draw(self.x - 60 - self.scrollX, self.y + 70, 'State' + str(self.cur_state), (255, 255, 0))
+        self.font.draw(self.x - 60 - self.scrollX, self.y + 50, 'Dir ' + str(self.dir), (255, 255, 0))
+        ###
+
+    def handle_event(self, event):
+        if (event.type, event.key) in key_event_table:
+            key_event = key_event_table[(event.type, event.key)]
+            self.add_event(key_event)
+
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_b):
+            if self.show_bb:
+                self.show_bb = False
+                Map_Box.show_bb = False
+                Map_Brick.show_bb = False
+                Map_Pipe.show_bb = False
+                Map_Tile.show_bb = False
+                Item_TransForm.show_bb = False
+            else:
+                self.show_bb = True
+                Map_Box.show_bb = True
+                Map_Brick.show_bb = True
+                Map_Pipe.show_bb = True
+                Map_Tile.show_bb = True
+                Item_TransForm.show_bb = True
+
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):#test
+            score = game_data.gameData.score
+            coin = game_data.gameData.coin
+            life = game_data.gameData.life
+            transform = game_data.gameData.transform
+            print('Life: ' + str(life), ' | Score: ' + str(score)
+                  + ' | Coin: ' + str(coin) + ' | Transform: ' + str(transform))

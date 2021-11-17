@@ -1,5 +1,7 @@
 from pico2d import *
 
+show_bb = False
+
 # 배관
 class Pipe:
     def __init__(self):  # 생성자
@@ -33,6 +35,12 @@ class Pipe:
             self.image = load_image('pipe_greenRB.png')
 
         self.image.draw(self.x - self.scrollX, self.y)
+
+        # bounding box
+        global show_bb
+        if show_bb:
+            draw_rectangle(self.x - self.frameX / 2 - self.scrollX, self.y + self.frameY / 2
+                           , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
 
 pipes = []
 def makePipe(xPos, yPos, type):
