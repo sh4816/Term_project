@@ -69,12 +69,12 @@ class P_State(enum.IntEnum):
 
 # 박스 종류
 class boxType(enum.IntEnum):
-    coin = enum.auto()
+    coin = 0
     mushroom = enum.auto()
     flower = enum.auto()
 
 class transitem_Value(enum.IntEnum):
-    Mushroom = 0
+    Mushroom = 1
     Fireflower = enum.auto()
 
 # Player Event
@@ -521,6 +521,7 @@ class JumpState:
                                 print('꽃')#
                                 newFlower = Item_TransForm.TransformItem()
                                 newFlower.x, newFlower.y = box.x, box.y + box.frameY
+                                newFlower.isReverse = False
                                 newFlower.itemValue = transitem_Value.Fireflower
                                 Item_TransForm.transItems.append(newFlower)
                                 game_world.add_object(newFlower, 1)
@@ -747,6 +748,35 @@ class GroundpoundState:
                     if collideCheck(player, box) == "bottom":
                         player.y = box.y + box.frameY / 2 + player.frameY / 2
                         collipse = True
+
+                        # 충돌한 박스가 충돌하면 아이템이 나오는 question box 인 경우.
+                        if not box.isUsed:
+                            if box.itemValue == boxType.coin:
+                                # 코인(이펙트) 생성
+                                newCoin = Item_Coin.Coin()
+                                newCoin.x, newCoin.y = box.x, box.y - box.frameY/2 - 15
+                                newCoin.isEffect = True
+                                Item_Coin.coins.append(newCoin)
+                                game_world.add_object(newCoin, 0)
+
+                                game_data.gameData.coin += 1
+                            elif box.itemValue == boxType.mushroom:
+                                print('버섯')  #
+                                newMush = Item_TransForm.TransformItem()
+                                newMush.x, newMush.y = box.x, box.y - box.frameY
+                                newMush.itemValue = transitem_Value.Mushroom
+                                Item_TransForm.transItems.append(newMush)
+                                game_world.add_object(newMush, 1)
+                            elif box.itemValue == boxType.flower:
+                                print('꽃')  #
+                                newFlower = Item_TransForm.TransformItem()
+                                newFlower.x, newFlower.y = box.x, box.y - box.frameY
+                                newFlower.isReverse = True
+                                newFlower.itemValue = transitem_Value.Fireflower
+                                Item_TransForm.transItems.append(newFlower)
+                                game_world.add_object(newFlower, 1)
+                            # Box를 사용한 상태로 변경
+                            box.isUsed = True
                         break
             elif checkCount == 1:
                 for brick in Map_Brick.bricks:
@@ -780,7 +810,9 @@ class GroundpoundState:
 
 class TranslateState:
     def enter(player, event):
-        player.frame = 0  # IdleState는 애니메이션이 없음.
+        if player.isTrans:                          # 한 번만 수행되도록
+            player.frame = 0
+            player.isTrans = False
 
         if event == SHIFT_UP:                       # 변신 도중 SHIFT키를 떼었을 때
             player.isDash = False
@@ -794,6 +826,7 @@ class TranslateState:
     def exit(player, event):
         if event == TRANS2IDLE_EVENT or event == TRANS2RUN_EVENT or event == TRANS2DASH_EVENT:
             player.prevState = None
+            player.isTrans = True
 
     def do(player):
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 6
@@ -892,8 +925,8 @@ class Player:
             self.image_FireR = load_image('Mario_fire.png')
 
         self.transform = P_Transform.T_Basic
-
         self.prevState = None  # 이전상태의 이름
+        self.isTrans = False   # 변신 중 인지
 
         self.dir = 1
         self.velocity = 0
@@ -960,28 +993,17 @@ class Player:
         # 변신 아이템 충돌
         for transItem in Item_TransForm.transItems:
             if not collideCheck(self, transItem) == None:
-                self.prevState = self.cur_state.__name__  # 이전상태의 이름을 저장해둔다.
-                if not self.cur_state == JumpState or self.cur_state == FallingState or self.cur_state == GroundpoundState: #버그방지용
-                    self.y += 15
-                # 충돌하면 캐릭터 상태변경
-                if transItem.itemValue == Item_TransForm.Value.Mushroom:
-                    if self.transform < P_Transform.T_Super:
-                        self.transform = P_Transform.T_Super
-                        game_data.gameData.transform = P_Transform.T_Super
+                if self.transform < transItem.itemValue:
+                    self.prevState = self.cur_state.__name__  # 이전상태의 이름을 저장해둔다.
+                    if not self.cur_state == JumpState or self.cur_state == FallingState or self.cur_state == GroundpoundState: #버그방지용
+                        self.y += 15
 
-                        # Frame Image Update
-                        self.frameX, self.frameY = 40, 60
-                        self.imageH = 660
-                        self.add_event(TRANSLATE_EVENT)
-                elif transItem.itemValue == Item_TransForm.Value.Fireflower:
-                    if game_data.gameData.transform < P_Transform.T_Fire:
-                        self.transform = P_Transform.T_Fire
-                        game_data.gameData.transform = P_Transform.T_Fire
-
-                        # Frame Image Update
-                        self.frameX, self.frameY = 40, 60
-                        self.imageH = 660
-                        self.add_event(TRANSLATE_EVENT)
+                    self.transform = transItem.itemValue
+                    game_data.gameData.transform = self.transform   # 데이터 최신화
+                    # Frame Image Update
+                    self.frameX, self.frameY = 40, 60
+                    self.imageH = 660
+                    self.add_event(TRANSLATE_EVENT)
 
                 # 해당 충돌 아이템 삭제
                 Item_TransForm.transItems.remove(transItem)
@@ -1032,5 +1054,5 @@ class Player:
             coin = game_data.gameData.coin
             life = game_data.gameData.life
             transform = game_data.gameData.transform
-            print('xy: '+ str(((self.x, self.y)))+ 'Life: ' + str(life), ' | Score: ' + str(score)
+            print('Life: ' + str(life), ' | Score: ' + str(score)
                   + ' | Coin: ' + str(coin) + ' | Transform: ' + str(transform))

@@ -4,7 +4,7 @@ import enum
 show_bb = False
 
 class boxType(enum.IntEnum):
-    coin = enum.auto()
+    coin = 0
     mushroom = enum.auto()
     flower = enum.auto()
 

@@ -26,7 +26,7 @@ GRAVITY_ACCEL_PPS2 = -400.0 # px/s^2
 
 # enum
 class Value(enum.IntEnum):
-    Mushroom = 0
+    Mushroom = 1
     Fireflower = enum.auto()
 
 show_bb = False
@@ -45,6 +45,7 @@ class TransformItem():
         self.timerFall = 0
 
         self.itemValue = 0
+        self.isReverse = False  # 거꾸로 되어있는지
 
         # 충돌 관련
         self.isOnGround = 0
@@ -54,26 +55,9 @@ class TransformItem():
         if self.image_mush == None:
             self.image_mush = load_image('item_mushroom.png')
             self.image_flower = load_image('item_fireflower.png')
+            self.image_flowerR = load_image('item_fireflowerR.png')
 
     def update(self):
-        #=== 플레이어와 충돌하면 플레이어의 변신상태 변경
-        # 충돌 체크
-        # collipse = False
-        # if collideCheck(self, player) == None:
-        #     collipse = True
-        #
-        # # 충돌하면 캐릭터 상태변경
-        # if collipse:
-        #     if self.itemValue == Value.Mushroom:
-        #         if game_data.gameData.transform < player.P_Transform.T_Super:
-        #             game_data.gameData.transform = player.P_Transform.T_Super
-        #     elif self.itemValue == Value.Fireflower:
-        #         if game_data.gameData.transform < player.P_Transform.T_Fire:
-        #             game_data.gameData.transform = player.P_Transform.T_Fire
-        #
-        #     # transItems.remove(self)
-        #     # game_world.remove_object(self)
-
         if self.itemValue == Value.Mushroom:
             #=== 왼쪽 오른쪽으로 이동
             # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
@@ -158,7 +142,10 @@ class TransformItem():
         if self.itemValue == Value.Mushroom:
             self.image_mush.draw(self.x - self.scrollX, self.y)
         elif self.itemValue == Value.Fireflower:
-            self.image_flower.draw(self.x - self.scrollX, self.y)
+            if not self.isReverse:
+                self.image_flower.draw(self.x - self.scrollX, self.y)
+            else:
+                self.image_flowerR.draw(self.x - self.scrollX, self.y)
 
         # self.image.draw(self.x - self.scrollX, self.y)
 
