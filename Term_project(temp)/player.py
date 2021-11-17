@@ -214,7 +214,6 @@ class RunState:
             elif checkCount == 2:
                 for pipe in Map_Pipe.pipes:
                     if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
-                        player.x = pipe.x - pipe.frameX/2
                         collipse = True
                         break
             elif checkCount == 3:
