@@ -17,6 +17,7 @@ import Map_Brick
 import Map_Pipe
 import Item_Coin
 import Item_TransForm
+import ball
 
 
 name = "Map1"
@@ -110,6 +111,9 @@ def update():
 
     for t_item in Item_TransForm.transItems:
         t_item.scrollX = scrollMgr.getScrollX("Map1", player)
+
+    for fireball in ball.fireballs:
+        fireball.scrollX = scrollMgr.getScrollX("Map1", player)
 
     for game_object in game_world.all_objects():
         game_object.update()

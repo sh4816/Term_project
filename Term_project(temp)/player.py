@@ -3,7 +3,6 @@ import enum
 import math
 from collide import *
 from pico2d import *
-from ball import Ball
 
 import game_data
 import Map_Tile
@@ -12,6 +11,7 @@ import Map_Brick
 import Map_Pipe
 import Item_Coin
 import Item_TransForm
+import ball
 
 import game_world
 
@@ -958,8 +958,12 @@ class Player:
 
 
     def fire_ball(self):
-        ball = Ball(self.x, self.y, self.dir*SHOOT_SPEED_PPS)
-        game_world.add_object(ball, 1)
+        # print(self.transform)
+        # if self.transform == P_Transform.T_Fire:
+        newFireball = ball.Fireball()
+        newFireball.x, newFireball.y = self.x, self.y
+        ball.fireballs.append(newFireball)
+        game_world.add_object(newFireball, 1)
 
 
     def add_event(self, event):
@@ -998,8 +1002,11 @@ class Player:
                     if not self.cur_state == JumpState or self.cur_state == FallingState or self.cur_state == GroundpoundState: #버그방지용
                         self.y += 15
 
-                    self.transform = transItem.itemValue
-                    game_data.gameData.transform = self.transform   # 데이터 최신화
+                    if transItem.itemValue == Item_TransForm.Value.Mushroom:
+                        self.transform = P_Transform.T_Super
+                    elif transItem.itemValue == Item_TransForm.Value.Fireflower:
+                        self.transform = P_Transform.T_Fire
+                    game_data.gameData.transform = self.transform   # 게임데이터 최신화
                     # Frame Image Update
                     self.frameX, self.frameY = 40, 60
                     self.imageH = 660
