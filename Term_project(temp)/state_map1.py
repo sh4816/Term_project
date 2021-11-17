@@ -8,7 +8,7 @@ import game_world
 import ScrollManager as scrollMgr
 
 from player import Player
-
+import game_data
 import MapEditor
 import Map_Background
 import Map_Tile
@@ -83,6 +83,11 @@ def handle_events():
 
 
 def update():
+    #=== player State Update
+    if not player.transform == game_data.gameData.transform:
+        player.transform = game_data.gameData.transform
+        print('Player 변신')#
+
     #=== Scroll Update
     player.scrollX = scrollMgr.getScrollX("Map1", player)
 

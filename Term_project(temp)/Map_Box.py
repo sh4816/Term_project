@@ -11,6 +11,7 @@ class boxType(enum.IntEnum):
 # 물음표 박스
 class Box_Question():
     image = None
+    image_used = None
 
     def __init__(self):  # 생성자
         self.frameX, self.frameY = 30, 30  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
@@ -28,15 +29,15 @@ class Box_Question():
         # 이미지
         if self.image == None:
             self.image = load_image('block_question.png')
+            self.image_used = load_image('block_used.png')
 
 
     def update(self):
-        # 충돌했던 블럭의 이미지
-        if self.isUsed: self.image = load_image('block_used.png')
+        pass
 
     def draw(self):
         if self.isUsed:
-            self.image.draw(self.x - self.scrollX, self.y)
+            self.image_used.draw(self.x - self.scrollX, self.y)
         else:
             self.slowFrame += 1
             self.frame = (self.slowFrame // 10) % 4

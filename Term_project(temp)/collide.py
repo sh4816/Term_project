@@ -4,7 +4,7 @@ import enum
 def collideCheck(player, obj):
     # 충돌Rect
     p_left, p_right = player.x - player.frameX/2, player.x + player.frameX/2
-    p_top, p_bottom = player.y + player.frameY, player.y - player.frameY/2
+    p_top, p_bottom = player.y + player.frameY/2, player.y - player.frameY/2
 
     o_left, o_right = obj.x - obj.frameX / 2, obj.x + obj.frameX / 2
     o_top, o_bottom = obj.y + obj.frameY / 2, obj.y - obj.frameY / 2

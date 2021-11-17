@@ -5,6 +5,7 @@ from collide import *
 from pico2d import *
 from ball import Ball
 
+import game_data
 import Map_Tile
 import Map_Box
 import Map_Brick
@@ -47,7 +48,7 @@ FRAMES_PER_ACTION = 4
 # State
 # 변신 상태
 class P_Transform(enum.IntEnum):
-    T_Basic = enum.auto()
+    T_Basic = 0
     T_Super = enum.auto()
     T_Fire = enum.auto()
 
@@ -71,6 +72,10 @@ class boxType(enum.IntEnum):
     coin = enum.auto()
     mushroom = enum.auto()
     flower = enum.auto()
+
+class transitem_Value(enum.IntEnum):
+    Mushroom = 0
+    Fireflower = enum.auto()
 
 # Player Event
 RIGHT_DOWN, LEFT_DOWN, RIGHT_UP, LEFT_UP\
@@ -105,12 +110,6 @@ class IdleState:
         player.velocity = 0
         player.frame = 0  # IdleState는 애니메이션이 없음.
         # player.timer = 1000 # 오랫동안 입력이 없을 때
-
-        if player.dir == 1:
-            player.image = load_image('Mario.png')
-        else:
-            player.image = load_image('MarioL.png')
-
 
     def exit(player, event):
         if event == SPACE:
@@ -162,7 +161,7 @@ class IdleState:
         #     player.add_event(FALLING_EVENT)
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, 300, player.frameX, player.frameY
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH, player.frameX, player.frameY
                                , player.x - player.scrollX, player.y)
 
 
@@ -181,11 +180,6 @@ class RunState:
             player.dir = 1
 
         player.velocity += player.dir * RUN_SPEED_PPS
-
-        if player.dir == 1:
-            player.image = load_image('Mario.png')
-        elif player.dir == -1:
-            player.image = load_image('MarioL.png')
 
 
     def exit(player, event):
@@ -267,7 +261,7 @@ class RunState:
             player.add_event(FALLING_EVENT)
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, 300 - player.frameY * P_State.S_Run,
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Run,
                                player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
@@ -289,10 +283,6 @@ class DashState:
             player.dir = 1
 
         player.velocity += player.dir * DASH_SPEED_PPS
-        if player.dir == 1:
-            player.image = load_image('Mario.png')
-        elif player.dir == -1:
-            player.image = load_image('MarioL.png')
 
     def exit(player, event):
         if event == SPACE:
@@ -386,7 +376,7 @@ class DashState:
             player.y = (1/2) * GRAVITY_ACCEL_PPS2 * (player.timer_jump ** 2) + player.pos_startFalling
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, 300 - player.frameY * P_State.S_Dash,
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Dash,
                                player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
@@ -403,7 +393,7 @@ class DownState:
         pass
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, 300 - player.frameY * P_State.S_Down,
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Down,
                                player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
@@ -415,6 +405,7 @@ class JumpState:
         if not player.isJumping:
             player.timer_jump = 0
             player.jump_startY = player.y
+            print(player.y)
             player.isJumping = True
 
         # 방향
@@ -430,12 +421,6 @@ class JumpState:
             player.velocity += player.dir * DASH_SPEED_PPS
         else:
             player.velocity += player.dir * RUN_SPEED_PPS
-
-        # 이미지
-        if player.dir == 1:
-            player.image = load_image('Mario.png')
-        elif player.dir == -1:
-            player.image = load_image('MarioL.png')
 
     def exit(player, event):
         if event == SPACE:
@@ -514,20 +499,31 @@ class JumpState:
                 for box in Map_Box.boxes:
                     if collideCheck(player, box) == "top":
                         # 충돌한 박스가 충돌하면 아이템이 나오는 question box 인 경우.
-                        if box.itemValue == boxType.coin:
-                            print('코인')#
-                            newCoin = Item_Coin.Coin()
-                            newCoin.x, newCoin.y = box.x, box.y + box.frameY/2 + 10
-                            newCoin.isEffect = True
-                            Item_Coin.coins.append(newCoin)
-                            # newCoin = Item_Coin.make_coins(box.x, box.y + box.frameY/2 + 10, True)
-                            game_world.add_object(newCoin, 0)
-                        elif box.itemValue == boxType.mushroom:
-                            print('버섯')#
-                        elif box.itemValue == boxType.flower:
-                            print('꽃')#
+                        if not box.isUsed:
+                            if box.itemValue == boxType.coin:
+                                # 코인(이펙트) 생성
+                                newCoin = Item_Coin.Coin()
+                                newCoin.x, newCoin.y = box.x, box.y + box.frameY/2 + 15
+                                newCoin.isEffect = True
+                                Item_Coin.coins.append(newCoin)
+                                game_world.add_object(newCoin, 0)
+
+                                game_data.gameData.coin += 1
+                            elif box.itemValue == boxType.mushroom:
+                                print('버섯')#
+                                newMush = Item_TransForm.TransformItem()
+                                newMush.x, newMush.y = box.x, box.y + box.frameY
+                                newMush.itemValue = transitem_Value.Mushroom
+                                Item_TransForm.transItems.append(newMush)
+                                game_world.add_object(newMush, 1)
+                            elif box.itemValue == boxType.flower:
+                                print('꽃')#
+                            # Box를 사용한 상태로 변경
+                            box.isUsed = True
 
                         # 충돌 상태 True
+                        box.slowFrame = 0
+                        box.frame = 0
                         collipse = True
                         break
             elif checkCount == 1:
@@ -557,7 +553,7 @@ class JumpState:
                 player.add_event(FALLING_EVENT)
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, 300 - player.frameY * P_State.S_Jump,
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Jump,
                                player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
@@ -585,11 +581,6 @@ class FallingState:
         else:
             player.velocity = player.dir * RUN_SPEED_PPS
 
-        # 이미지
-        if player.dir == 1:
-            player.image = load_image('Mario.png')
-        elif player.dir == -1:
-            player.image = load_image('MarioL.png')
 
     def exit(player, event):
         if event == SPACE:
@@ -605,6 +596,7 @@ class FallingState:
             # 초기화
             player.timer_jump = 0
             player.isJumping = False
+            player.isDash = False
             player.pos_startFalling = 0
             player.isSave_startFallingPos = False
             collipse = False
@@ -627,25 +619,25 @@ class FallingState:
             if checkCount == 0:
                 for box in Map_Box.boxes:
                     if collideCheck(player, box) == "bottom":
-                        player.y = box.y + box.frameY
+                        player.y = box.y + box.frameY/2 + player.frameY/2
                         collipse = True
                         break
             elif checkCount == 1:
                 for brick in Map_Brick.bricks:
                     if collideCheck(player, brick) == "bottom":
-                        player.y = brick.y + brick.frameY
+                        player.y = brick.y + brick.frameY/2 + player.frameY/2
                         collipse = True
                         break
             elif checkCount == 2:
                 for pipe in Map_Pipe.pipes:
                     if collideCheck(player, pipe) == "bottom":
-                        player.y = pipe.y + pipe.frameY
+                        player.y = pipe.y + pipe.frameY/2 + player.frameY/2
                         collipse = True
                         break
             elif checkCount == 3:
                 for tile in Map_Tile.tiles:
                     if collideCheck(player, tile) == "bottom":
-                        player.y = tile.y + tile.frameY
+                        player.y = tile.y + tile.frameY/2 + player.frameY/2
                         collipse = True
                         break
 
@@ -707,7 +699,7 @@ class FallingState:
                 player.add_event(LANDING_EVENT)
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, 300 - player.frameY * P_State.S_Jump,
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Jump,
                                player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
@@ -724,11 +716,6 @@ class GroundpoundState:
         # 기타 변수들 초기화
         if player.isDash: player.isDash = False
 
-        # 이미지
-        if player.dir == 1:
-            player.image = load_image('Mario.png')
-        elif player.dir == -1:
-            player.image = load_image('MarioL.png')
 
     def exit(player, event):
         if event == LANDING_EVENT:
@@ -752,29 +739,25 @@ class GroundpoundState:
             if checkCount == 0:
                 for box in Map_Box.boxes:
                     if collideCheck(player, box) == "bottom":
-                        print("'Player bottom & Box' Collide!")  #
-                        player.y = box.y + box.frameY  # 발판 위로 올림
+                        player.y = box.y + box.frameY / 2 + player.frameY / 2
                         collipse = True
                         break
             elif checkCount == 1:
                 for brick in Map_Brick.bricks:
                     if collideCheck(player, brick) == "bottom":
-                        print("'Player bottom & Brick' Collide!")  #
-                        player.y = brick.y + brick.frameY  # 발판 위로 올림
+                        player.y = brick.y + brick.frameY/2 + player.frameY/2  # 발판 위로 올림
                         collipse = True
                         break
             elif checkCount == 2:
                 for pipe in Map_Pipe.pipes:
                     if collideCheck(player, pipe) == "bottom":
-                        print("'Player bottom & Pipe' Collide!")  #
-                        player.y = pipe.y + pipe.frameY  # 발판 위로 올림
+                        player.y = pipe.y + pipe.frameY/2 + player.frameY/2  # 발판 위로 올림
                         collipse = True
                         break
             elif checkCount == 3:
                 for tile in Map_Tile.tiles:
                     if collideCheck(player, tile) == "bottom":
-                        print("'Player bottom & Tile' Collide!")  #
-                        player.y = tile.y + tile.frameY  # 발판 위로 올림
+                        player.y = tile.y + tile.frameY/2 + player.frameY/2  # 발판 위로 올림
                         collipse = True
                         break
 
@@ -785,7 +768,7 @@ class GroundpoundState:
 
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, 300 - player.frameY * P_State.S_Slide,
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Slide,
                                player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
@@ -836,21 +819,26 @@ next_state_table = {
 
 
 class Player:
-
+    image_StandardL = None
     def __init__(self):
         # position
         self.x, self.y = 100, 60
         self.frameX, self.frameY = 40, 30
+        self.imageH = 300
 
         # Scroll
         self.scrollX = 0
 
-        # Boy is only once created, so instance image loading is fine
-        self.image = load_image('Mario.png')
+        # Image Loading
+        if self.image_StandardL == None:
+            self.image_StandardL = load_image('MarioL.png')
+            self.image_StandardR = load_image('Mario.png')
+            self.image_SuperL = load_image('MarioL_super.png')
+            self.image_SuperR = load_image('Mario_super.png')
+            self.image_FireL = load_image('MarioL_fire.png')
+            self.image_FireR = load_image('Mario_fire.png')
 
-        # Debug #
-        self.font = load_font('ENCR10B.TTF', 16)
-        ###
+        self.transform = P_Transform.T_Basic
 
         self.dir = 1
         self.velocity = 0
@@ -876,6 +864,10 @@ class Player:
 
         self.show_bb = False    # 바운딩박스 출력
 
+        # Debug #
+        self.font = load_font('ENCR10B.TTF', 16)
+        ###
+
 
     def fire_ball(self):
         ball = Ball(self.x, self.y, self.dir*SHOOT_SPEED_PPS)
@@ -892,6 +884,53 @@ class Player:
             self.cur_state.exit(self, event)
             self.cur_state = next_state_table[self.cur_state][event]
             self.cur_state.enter(self, event)
+
+        # 이미지 업데이트
+        if self.transform == P_Transform.T_Basic:
+            if self.dir == 1:
+                self.image = self.image_StandardR
+            else:
+                self.image = self.image_StandardL
+        elif self.transform == P_Transform.T_Super:
+            if self.dir == 1:
+                self.image = self.image_SuperR
+            else:
+                self.image = self.image_SuperL
+        elif self.transform == P_Transform.T_Fire:
+            if self.dir == 1:
+                self.image = self.image_FireR
+            else:
+                self.image = self.image_FireL
+
+        # 변신 아이템 충돌
+        for transItem in Item_TransForm.transItems:
+            if not collideCheck(self, transItem) == None:
+                # 충돌하면 캐릭터 상태변경
+                if transItem.itemValue == Item_TransForm.Value.Mushroom:
+                    if self.transform < P_Transform.T_Super:
+                        self.transform = P_Transform.T_Super
+                        game_data.gameData.transform = P_Transform.T_Super
+                elif transItem.itemValue == Item_TransForm.Value.Fireflower:
+                    if game_data.gameData.transform < P_Transform.T_Fire:
+                        self.transform = P_Transform.T_Fire
+                        game_data.gameData.transform = P_Transform.T_Fire
+
+                # 해당 충돌 아이템 삭제
+                Item_TransForm.transItems.remove(transItem)
+                game_world.remove_object(transItem)
+                self.y += 15
+                self.jump_startY +=100
+                break
+
+        # Frame Image Update
+        if self.transform == P_Transform.T_Basic:
+            self.frameX, self.frameY = 40, 30
+            self.imageH = 300
+        elif self.transform == P_Transform.T_Super or self.transform == P_Transform.T_Fire:
+            self.frameX, self.frameY = 40, 60
+            self.imageH = 660
+
+
 
     def get_boundingbox(self):  # 바운딩박스
         return self.x - self.frameX/2, self.y + self.frameY/2, self.x + self.frameX/2, self.y - self.frameY/2
@@ -921,9 +960,19 @@ class Player:
                 Map_Brick.show_bb = False
                 Map_Pipe.show_bb = False
                 Map_Tile.show_bb = False
+                Item_TransForm.show_bb = False
             else:
                 self.show_bb = True
                 Map_Box.show_bb = True
                 Map_Brick.show_bb = True
                 Map_Pipe.show_bb = True
                 Map_Tile.show_bb = True
+                Item_TransForm.show_bb = True
+
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):#test
+            score = game_data.gameData.score
+            coin = game_data.gameData.coin
+            life = game_data.gameData.life
+            transform = game_data.gameData.transform
+            print('xy: '+ str(((self.x, self.y)))+ 'Life: ' + str(life), ' | Score: ' + str(score)
+                  + ' | Coin: ' + str(coin) + ' | Transform: ' + str(transform))
