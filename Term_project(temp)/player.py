@@ -82,7 +82,8 @@ RIGHT_DOWN, LEFT_DOWN, RIGHT_UP, LEFT_UP\
     ,UP_DOWN, DOWN_DOWN, UP_UP, DOWN_UP\
     ,SHIFT_DOWN, SHIFT_UP\
     ,SPACE\
-    ,FALLING_EVENT, LANDING_EVENT, LANDING_RUN_EVENT, LANDING_DASH_EVENT = range(15)
+    ,FALLING_EVENT, LANDING_EVENT, LANDING_RUN_EVENT, LANDING_DASH_EVENT\
+    ,TRANSLATE_EVENT, TRANS2IDLE_EVENT, TRANS2RUN_EVENT, TRANS2DASH_EVENT, TRANS2JUMP = range(20)
 
 key_event_table = {
     (SDL_KEYDOWN, SDLK_RIGHT): RIGHT_DOWN,
@@ -157,8 +158,8 @@ class IdleState:
 
             checkCount += 1
 
-        # if not collipse:
-        #     player.add_event(FALLING_EVENT)
+        if not collipse:
+            player.add_event(FALLING_EVENT)
 
     def draw(player):
         player.image.clip_draw(int(player.frame) * player.frameX, player.imageH, player.frameX, player.frameY
@@ -340,25 +341,25 @@ class DashState:
             if checkCount == 0:
                 for box in Map_Box.boxes:
                     if collideCheck(player, box) == "bottom":
-                        player.y = box.y + box.frameY  # 발판 위로 올림
+                        player.y = box.y + box.frameY/2 + player.frameY/2  # 발판 위로 올림
                         collipse = True
                         break
             elif checkCount == 1:
                 for brick in Map_Brick.bricks:
                     if collideCheck(player, brick) == "bottom":
-                        player.y = brick.y + brick.frameY  # 발판 위로 올림
+                        player.y = brick.y + brick.frameY/2 + player.frameY/2  # 발판 위로 올림
                         collipse = True
                         break
             elif checkCount == 2:
                 for pipe in Map_Pipe.pipes:
                     if collideCheck(player, pipe) == "bottom":
-                        player.y = pipe.y + pipe.frameY  # 발판 위로 올림
+                        player.y = pipe.y + pipe.frameY/2 + player.frameY/2  # 발판 위로 올림
                         collipse = True
                         break
             elif checkCount == 3:
                 for tile in Map_Tile.tiles:
                     if collideCheck(player, tile) == "bottom":
-                        player.y = tile.y + tile.frameY  # 발판 위로 올림
+                        player.y = tile.y + tile.frameY/2 + player.frameY/2  # 발판 위로 올림
                         collipse = True
                         break
 
@@ -518,6 +519,11 @@ class JumpState:
                                 game_world.add_object(newMush, 1)
                             elif box.itemValue == boxType.flower:
                                 print('꽃')#
+                                newFlower = Item_TransForm.TransformItem()
+                                newFlower.x, newFlower.y = box.x, box.y + box.frameY
+                                newFlower.itemValue = transitem_Value.Fireflower
+                                Item_TransForm.transItems.append(newFlower)
+                                game_world.add_object(newFlower, 1)
                             # Box를 사용한 상태로 변경
                             box.isUsed = True
 
@@ -772,49 +778,96 @@ class GroundpoundState:
                                player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
+class TranslateState:
+    def enter(player, event):
+        player.frame = 0  # IdleState는 애니메이션이 없음.
+
+        if event == SHIFT_UP:                       # 변신 도중 SHIFT키를 떼었을 때
+            player.isDash = False
+            player.prevState = "RunState"
+
+        if event == LEFT_UP or event == RIGHT_UP:   # 변신 도중 왼쪽or오른쪽 키를 떼었을 때
+            player.isMovingInAir = False
+            player.prevState = "IdleState"
+
+
+    def exit(player, event):
+        if event == TRANS2IDLE_EVENT or event == TRANS2RUN_EVENT or event == TRANS2DASH_EVENT:
+            player.prevState = None
+
+    def do(player):
+        player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 6
+        if player.frame >= 5:
+            if player.prevState == "RunState":
+                player.add_event(TRANS2RUN_EVENT)
+            elif player.prevState == "DashState":
+                player.add_event(TRANS2DASH_EVENT)
+            else:
+                player.add_event(TRANS2IDLE_EVENT)
+
+
+    def draw(player):
+        player.image.clip_draw(int(player.frame) * player.frameX, 0, player.frameX, player.frameY
+                               , player.x - player.scrollX, player.y)
+
+
 next_state_table = {
     IdleState: {RIGHT_DOWN: RunState, LEFT_DOWN: RunState, RIGHT_UP: IdleState, LEFT_UP: IdleState
         , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: DownState, DOWN_UP: IdleState
         , SHIFT_DOWN: IdleState, SHIFT_UP: IdleState
         , SPACE: IdleState
         , FALLING_EVENT: FallingState
-        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState},
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
     RunState: {RIGHT_DOWN: IdleState, LEFT_DOWN: IdleState, RIGHT_UP: IdleState, LEFT_UP: IdleState
         , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: DownState, DOWN_UP: IdleState
         , SHIFT_DOWN: DashState, SHIFT_UP: RunState
         , SPACE: RunState
         , FALLING_EVENT: FallingState
-        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState},
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
     DashState: {RIGHT_DOWN: IdleState, LEFT_DOWN: IdleState, RIGHT_UP: IdleState, LEFT_UP: IdleState
         , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: DownState, DOWN_UP: IdleState
         , SHIFT_DOWN: RunState, SHIFT_UP: RunState
         , SPACE: DashState
         , FALLING_EVENT: FallingState
-        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState},
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
     DownState: {RIGHT_DOWN: DownState, LEFT_DOWN: DownState, RIGHT_UP: DownState, LEFT_UP: DownState
         , UP_DOWN: DownState, UP_UP: DownState, DOWN_DOWN: DownState, DOWN_UP: IdleState
         , SHIFT_DOWN: DownState, SHIFT_UP: DownState
         , SPACE: DownState
         , FALLING_EVENT: FallingState
-        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState},
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
     JumpState: {RIGHT_DOWN: JumpState, LEFT_DOWN: JumpState, RIGHT_UP: JumpState, LEFT_UP: JumpState
         , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: GroundpoundState, DOWN_UP: JumpState
         , SHIFT_DOWN: JumpState, SHIFT_UP: JumpState
         , SPACE: DownState
         , FALLING_EVENT: FallingState
-        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState},
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
     FallingState: {RIGHT_DOWN: FallingState, LEFT_DOWN: FallingState, RIGHT_UP: FallingState, LEFT_UP: FallingState
         , UP_DOWN: FallingState, UP_UP: FallingState, DOWN_DOWN: GroundpoundState, DOWN_UP: FallingState
         , SHIFT_DOWN: FallingState, SHIFT_UP: FallingState
         , SPACE: FallingState
         , FALLING_EVENT: FallingState
-        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState},
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
     GroundpoundState: {RIGHT_DOWN: GroundpoundState, LEFT_DOWN: GroundpoundState, RIGHT_UP: GroundpoundState, LEFT_UP: GroundpoundState
         , UP_DOWN: GroundpoundState, UP_UP: GroundpoundState, DOWN_DOWN: GroundpoundState, DOWN_UP: GroundpoundState
         , SHIFT_DOWN: GroundpoundState, SHIFT_UP: GroundpoundState
         , SPACE: GroundpoundState
         , FALLING_EVENT: FallingState
-        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState}
+        , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
+        , TRANSLATE_EVENT: TranslateState},
+    TranslateState: {RIGHT_DOWN: TranslateState, LEFT_DOWN: TranslateState, RIGHT_UP: TranslateState, LEFT_UP: TranslateState
+        , UP_DOWN: TranslateState, UP_UP: TranslateState, DOWN_DOWN: TranslateState, DOWN_UP: TranslateState
+        , SHIFT_DOWN: TranslateState, SHIFT_UP: TranslateState
+        , SPACE: TranslateState
+        , FALLING_EVENT: TranslateState
+        , LANDING_EVENT: TranslateState, LANDING_RUN_EVENT: TranslateState, LANDING_DASH_EVENT: TranslateState
+        , TRANSLATE_EVENT: IdleState, TRANS2IDLE_EVENT: IdleState, TRANS2RUN_EVENT: RunState, TRANS2DASH_EVENT: DashState, TRANS2JUMP: JumpState}
 }
 
 
@@ -839,6 +892,8 @@ class Player:
             self.image_FireR = load_image('Mario_fire.png')
 
         self.transform = P_Transform.T_Basic
+
+        self.prevState = None  # 이전상태의 이름
 
         self.dir = 1
         self.velocity = 0
@@ -905,30 +960,33 @@ class Player:
         # 변신 아이템 충돌
         for transItem in Item_TransForm.transItems:
             if not collideCheck(self, transItem) == None:
+                self.prevState = self.cur_state.__name__  # 이전상태의 이름을 저장해둔다.
+                if not self.cur_state == JumpState or self.cur_state == FallingState or self.cur_state == GroundpoundState: #버그방지용
+                    self.y += 15
                 # 충돌하면 캐릭터 상태변경
                 if transItem.itemValue == Item_TransForm.Value.Mushroom:
                     if self.transform < P_Transform.T_Super:
                         self.transform = P_Transform.T_Super
                         game_data.gameData.transform = P_Transform.T_Super
+
+                        # Frame Image Update
+                        self.frameX, self.frameY = 40, 60
+                        self.imageH = 660
+                        self.add_event(TRANSLATE_EVENT)
                 elif transItem.itemValue == Item_TransForm.Value.Fireflower:
                     if game_data.gameData.transform < P_Transform.T_Fire:
                         self.transform = P_Transform.T_Fire
                         game_data.gameData.transform = P_Transform.T_Fire
 
+                        # Frame Image Update
+                        self.frameX, self.frameY = 40, 60
+                        self.imageH = 660
+                        self.add_event(TRANSLATE_EVENT)
+
                 # 해당 충돌 아이템 삭제
                 Item_TransForm.transItems.remove(transItem)
                 game_world.remove_object(transItem)
-                self.y += 15
-                self.jump_startY +=100
                 break
-
-        # Frame Image Update
-        if self.transform == P_Transform.T_Basic:
-            self.frameX, self.frameY = 40, 30
-            self.imageH = 300
-        elif self.transform == P_Transform.T_Super or self.transform == P_Transform.T_Fire:
-            self.frameX, self.frameY = 40, 60
-            self.imageH = 660
 
 
 
