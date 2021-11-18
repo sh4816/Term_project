@@ -134,7 +134,6 @@ class TransformItem():
             if self.y < 0 or self.x < 0:
                 transItems.remove(self)
                 game_world.remove_object(self)
-                print('removed')#
 
     def draw(self):
         # 렌더링

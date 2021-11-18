@@ -1,4 +1,5 @@
 from pico2d import *
+import enum
 import game_framework
 import game_world
 from collide import collideCheck
@@ -24,7 +25,16 @@ def KMPH2MPS(KMPH): # km/h -> m/sec
     return MPS      #return m/sec
 
 MOVE_SPEED_PPS = (KMPH2MPS(5) * PIXEL_PER_METER)
+DASH_SPPED_PPS = (KMPH2MPS(15) * PIXEL_PER_METER)
 GRAVITY_ACCEL_PPS2 = -400.0 # px/s^2
+
+
+# enum
+class G_State(enum.IntEnum):
+    Walk = 0
+    Dead_by_turtle = enum.auto()
+    Dash = enum.auto()
+
 
 show_bb = False
 
@@ -37,6 +47,7 @@ class Goomba():
         self.x, self.y = 0, 0
         self.scrollX = 0
         self.frame = 0
+        self.state = G_State.Walk
 
         self.ismoving = False   # 굼바는 화면에 처음으로 잡혔을 때부터 움직이기 시작한다.
 
@@ -89,10 +100,12 @@ class Goomba():
             # 충돌하지 않았을 때에만 이동
             if collipse:
                 self.dir = (-1) * self.dir  # 방향전환
+
+            # 움직임
+            if self.state == G_State.Walk:
                 self.x += self.dir * MOVE_SPEED_PPS * game_framework.frame_time
-            else:
-                self.x += self.dir * MOVE_SPEED_PPS * game_framework.frame_time
-                self.x = clamp(25, self.x, 6600 - 25)
+            elif self.state == G_State.Dash:
+                self.x += self.dir * DASH_SPPED_PPS * game_framework.frame_time
 
 
             #=== 바닥에 아무것도 없으면(허공에 있으면) 아래로 낙하
@@ -136,15 +149,14 @@ class Goomba():
             if self.y < 0 or self.x < 0:
                 goombas.remove(self)
                 game_world.remove_object(self)
-                print('맵 밖으로 벗어남. removed')#
 
     def draw(self):
         # 렌더링
         if self.dir == 1:
-            self.image.clip_draw(int(self.frame)*self.frameX,90 - 1 * self.frameY, self.frameX, self.frameY
+            self.image.clip_draw(int(self.frame)*self.frameX, 60 - int(self.state) * self.frameY, self.frameX, self.frameY
                                  , self.x - self.scrollX, self.y)
         else:
-            self.imageL.clip_draw(int(self.frame) * self.frameX, 90 - 1 * self.frameY, self.frameX, self.frameY
+            self.imageL.clip_draw(int(self.frame) * self.frameX, 60 - int(self.state) * self.frameY, self.frameX, self.frameY
                                  , self.x - self.scrollX, self.y)
 
         # self.image.draw(self.x - self.scrollX, self.y)

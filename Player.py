@@ -69,15 +69,6 @@ class P_State(enum.IntEnum):
     S_Gameover = enum.auto()
     S_Transform = enum.auto()
 
-# 박스 종류
-class boxType(enum.IntEnum):
-    coin = 0
-    mushroom = enum.auto()
-    flower = enum.auto()
-
-class transitem_Value(enum.IntEnum):
-    Mushroom = 1
-    Fireflower = enum.auto()
 
 # Player Event
 RIGHT_DOWN, LEFT_DOWN, RIGHT_UP, LEFT_UP\
@@ -502,7 +493,7 @@ class JumpState:
                     if collideCheck(player, box) == "top":
                         # 충돌한 박스가 충돌하면 아이템이 나오는 question box 인 경우.
                         if not box.isUsed:
-                            if box.itemValue == boxType.coin:
+                            if box.itemValue == Map_Box.boxType.coin:
                                 # 코인(이펙트) 생성
                                 newCoin = Item_Coin.Coin()
                                 newCoin.x, newCoin.y = box.x, box.y + box.frameY/2 + 15
@@ -511,17 +502,17 @@ class JumpState:
                                 game_world.add_object(newCoin, 0)
 
                                 game_data.gameData.coin += 1
-                            elif box.itemValue == boxType.mushroom:
+                            elif box.itemValue == Map_Box.boxType.mushroom:
                                 newMush = Item_TransForm.TransformItem()
                                 newMush.x, newMush.y = box.x, box.y + box.frameY
-                                newMush.itemValue = transitem_Value.Mushroom
+                                newMush.itemValue = Item_TransForm.Value.Mushroom
                                 Item_TransForm.transItems.append(newMush)
                                 game_world.add_object(newMush, 1)
-                            elif box.itemValue == boxType.flower:
+                            elif box.itemValue == Map_Box.boxType.flower:
                                 newFlower = Item_TransForm.TransformItem()
                                 newFlower.x, newFlower.y = box.x, box.y + box.frameY
                                 newFlower.isReverse = False
-                                newFlower.itemValue = transitem_Value.Fireflower
+                                newFlower.itemValue = Item_TransForm.transitem_Value.Fireflower
                                 Item_TransForm.transItems.append(newFlower)
                                 game_world.add_object(newFlower, 1)
                             # Box를 사용한 상태로 변경
@@ -750,7 +741,7 @@ class GroundpoundState:
 
                         # 충돌한 박스가 충돌하면 아이템이 나오는 question box 인 경우.
                         if not box.isUsed:
-                            if box.itemValue == boxType.coin:
+                            if box.itemValue == Map_Box.boxType.coin:
                                 # 코인(이펙트) 생성
                                 newCoin = Item_Coin.Coin()
                                 newCoin.x, newCoin.y = box.x, box.y - box.frameY/2 - 15
@@ -759,17 +750,17 @@ class GroundpoundState:
                                 game_world.add_object(newCoin, 0)
 
                                 game_data.gameData.coin += 1
-                            elif box.itemValue == boxType.mushroom:
+                            elif box.itemValue == Map_Box.boxType.mushroom:
                                 newMush = Item_TransForm.TransformItem()
                                 newMush.x, newMush.y = box.x, box.y - box.frameY
-                                newMush.itemValue = transitem_Value.Mushroom
+                                newMush.itemValue = Item_TransForm.transitem_Value.Mushroom
                                 Item_TransForm.transItems.append(newMush)
                                 game_world.add_object(newMush, 1)
-                            elif box.itemValue == boxType.flower:
+                            elif box.itemValue == Map_Box.boxType.flower:
                                 newFlower = Item_TransForm.TransformItem()
                                 newFlower.x, newFlower.y = box.x, box.y - box.frameY
                                 newFlower.isReverse = True
-                                newFlower.itemValue = transitem_Value.Fireflower
+                                newFlower.itemValue = Item_TransForm.transitem_Value.Fireflower
                                 Item_TransForm.transItems.append(newFlower)
                                 game_world.add_object(newFlower, 1)
                             # Box를 사용한 상태로 변경
@@ -925,6 +916,9 @@ class Player:
         self.prevState = None  # 이전상태의 이름
         self.isTrans = False   # 변신 중 인지
 
+        self.never_collide_with_mob = False   # 몹과는 절대로 충돌하지 않는상태
+        self.ncwmTimer = 0                    # 충돌하지 않는 상태 타이머
+
         self.dir = 1
         self.velocity = 0
         self.frame = 0
@@ -1014,14 +1008,30 @@ class Player:
                 game_world.remove_object(transItem)
                 break
 
-        # 몬스터
-        # 몬스터 충돌
+        #=== 몬스터
+        if self.never_collide_with_mob: # 무적시간
+            self.ncwmTimer -= game_framework.frame_time
+            if self.ncwmTimer <= 0:
+                self.never_collide_with_mob = False
+        # goomba
         for goomba in mob_goomba.goombas:
             if not goomba.ismoving:
                 # goomba는 화면에 처음 잡혔을 때부터 움직이기 시작한다.
-                if self.x - self.scrollX <= goomba.x - goomba.scrollX <= self.x + 800 - self.scrollX:
+                if self.x <= goomba.x <= self.x + 800:
                     goomba.ismoving = True
             else:
+                # goomba의 시야에 플레이어가 들어오면 돌진을 시작한다.
+                if goomba.dir == 1:
+                    if goomba.x < self.x < goomba.x + 300:
+                        goomba.state = mob_goomba.G_State.Dash
+                    else:
+                        goomba.state = mob_goomba.G_State.Walk
+                else:
+                    if goomba.x - 300 < self.x < goomba.x:
+                        goomba.state = mob_goomba.G_State.Dash
+                    else:
+                        goomba.state = mob_goomba.G_State.Walk
+
                 # 충돌체크
                 if not collideCheck(self, goomba) == None:
                     if self.cur_state == FallingState or self.cur_state == GroundpoundState:
@@ -1030,11 +1040,18 @@ class Player:
                             mob_goomba.goombas.remove(goomba)
                             game_world.remove_object(goomba)
                     else:
-                        game_data.gameData.life -= 1
-                        self.x += (-1) * self.dir * 15
-                        self.y += 7
-                        if self.transform > P_Transform.T_Basic:
-                            self.transform -= 1
+                        if not self.never_collide_with_mob:
+                            game_data.gameData.life -= 1
+                            if not self.never_collide_with_mob:
+                                self.never_collide_with_mob = True  # 몹과 충돌하지 않는 상태가 되어서
+                                self.ncwmTimer = 1000               # 1초의 무적시간이 주어진다.
+                            if self.transform > P_Transform.T_Basic:
+                                if self.transform == P_Transform.T_Fire:
+                                    self.transform = P_Transform.T_Super
+                                elif self.transform == P_Transform.T_Super:
+                                    self.transform = P_Transform.T_Basic
+                            else:
+                                print('Game over')#
 
 
     def get_boundingbox(self):  # 바운딩박스
