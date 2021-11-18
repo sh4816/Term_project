@@ -991,6 +991,7 @@ class Player:
         # 변신 아이템 충돌
         for transItem in Item_TransForm.transItems:
             if not collideCheck(self, transItem) == None:
+                game_data.gameData.score += 100
                 if self.transform < transItem.itemValue:
                     self.prevState = self.cur_state.__name__  # 이전상태의 이름을 저장해둔다.
                     if not self.cur_state == JumpState or self.cur_state == GroundpoundState: #버그방지용
