@@ -1,7 +1,7 @@
 import game_framework
 from pico2d import *
 
-import state_map1
+import state_title
 
 name = "IntroState"
 image = None
@@ -24,7 +24,7 @@ def update():
     if (logo_time > 1.0):
         logo_time = 0
         #game_framework.quit()
-        game_framework.change_state(state_map1)
+        game_framework.change_state(state_title)
     delay(0.01)
     logo_time += 0.01
 
