@@ -913,6 +913,8 @@ class Player:
             self.image_FireL = load_image('MarioL_fire.png')
             self.image_FireR = load_image('Mario_fire.png')
 
+            self.image = self.image_StandardL
+
         self.transform = P_Transform.T_Basic
         self.prevState = None  # 이전상태의 이름
         self.isTrans = False   # 변신 중 인지
