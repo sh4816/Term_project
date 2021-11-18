@@ -4,6 +4,7 @@ import Map_Tile
 import Map_Box
 import Map_Brick
 import Map_Pipe
+import Map_Castle
 import mob_goomba
 
 def editMap(mapName):
@@ -70,6 +71,8 @@ def editMap(mapName):
                 Map_Brick.makeBrick(obj_xPos*size, obj_yPos*size)
             elif obj_type == "pipe":
                 Map_Pipe.makePipe(obj_xPos*size, obj_yPos*size, obj_name)
+            elif obj_type == "castle":
+                Map_Castle.makeCastle(obj_xPos*size, obj_yPos*size)
 
         except:
             break

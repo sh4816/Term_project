@@ -154,3 +154,4 @@
 193 7 tile tile_Steel
 193 8 tile tile_Steel
 193 9 tile tile_Steel
+218 3 castle None

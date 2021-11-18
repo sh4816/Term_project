@@ -34,6 +34,7 @@ class G_State(enum.IntEnum):
     Walk = 0
     Dead_by_turtle = enum.auto()
     Dash = enum.auto()
+    Dead = enum.auto()
 
 
 show_bb = False
@@ -152,12 +153,16 @@ class Goomba():
 
     def draw(self):
         # 렌더링
-        if self.dir == 1:
-            self.image.clip_draw(int(self.frame)*self.frameX, 60 - int(self.state) * self.frameY, self.frameX, self.frameY
-                                 , self.x - self.scrollX, self.y)
+        if not self.state == G_State.Dead:
+            if self.dir == 1:
+                self.image.clip_draw(int(self.frame)*self.frameX, 60 - int(self.state) * self.frameY, self.frameX, self.frameY
+                                     , self.x - self.scrollX, self.y)
+            else:
+                self.imageL.clip_draw(int(self.frame) * self.frameX, 60 - int(self.state) * self.frameY, self.frameX, self.frameY
+                                     , self.x - self.scrollX, self.y)
         else:
-            self.imageL.clip_draw(int(self.frame) * self.frameX, 60 - int(self.state) * self.frameY, self.frameX, self.frameY
-                                 , self.x - self.scrollX, self.y)
+            self.image.clip_draw(int(self.frame)*self.frameX, 0, self.frameX, self.frameY/10
+                                     , self.x - self.scrollX, self.y)
 
         # self.image.draw(self.x - self.scrollX, self.y)
 

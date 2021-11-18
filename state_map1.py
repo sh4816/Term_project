@@ -15,6 +15,7 @@ import Map_Tile
 import Map_Box
 import Map_Brick
 import Map_Pipe
+import Map_Castle
 import Item_Coin
 import Item_TransForm
 import ball
@@ -52,13 +53,15 @@ def enter():
     for pipe in Map_Pipe.pipes:
         game_world.add_object(pipe, 0)
 
+    for castle in Map_Castle.castles:
+        game_world.add_object(castle, 0)
+
     for coin in Item_Coin.coins:
         game_world.add_object(coin, 0)
 
     for transItem in Item_TransForm.transItems:
         game_world.add_object(transItem, 0)
 
-    # mob_goomba.make_goombas(300, 100)
     for goomba in mob_goomba.goombas:
         game_world.add_object(goomba, 0)
 
@@ -107,6 +110,9 @@ def update():
 
     for brick in Map_Brick.bricks:
         brick.scrollX = scrollMgr.getScrollX("Map1", player)
+
+    for castle in Map_Castle.castles:
+        castle.scrollX = scrollMgr.getScrollX("Map1", player)
 
     for pipe in Map_Pipe.pipes:
         pipe.scrollX = scrollMgr.getScrollX("Map1", player)

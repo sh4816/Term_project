@@ -11,6 +11,7 @@ import Map_Tile
 import Map_Box
 import Map_Brick
 import Map_Pipe
+import Map_Castle
 import Item_Coin
 import Item_TransForm
 import ball
@@ -512,7 +513,7 @@ class JumpState:
                                 newFlower = Item_TransForm.TransformItem()
                                 newFlower.x, newFlower.y = box.x, box.y + box.frameY
                                 newFlower.isReverse = False
-                                newFlower.itemValue = Item_TransForm.transitem_Value.Fireflower
+                                newFlower.itemValue = Item_TransForm.Value.Fireflower
                                 Item_TransForm.transItems.append(newFlower)
                                 game_world.add_object(newFlower, 1)
                             # Box를 사용한 상태로 변경
@@ -990,7 +991,7 @@ class Player:
             if not collideCheck(self, transItem) == None:
                 if self.transform < transItem.itemValue:
                     self.prevState = self.cur_state.__name__  # 이전상태의 이름을 저장해둔다.
-                    if not self.cur_state == JumpState or self.cur_state == FallingState or self.cur_state == GroundpoundState: #버그방지용
+                    if not self.cur_state == JumpState or self.cur_state == GroundpoundState: #버그방지용
                         self.y += 15
 
                     if transItem.itemValue == Item_TransForm.Value.Mushroom:
@@ -1036,7 +1037,6 @@ class Player:
                 if not collideCheck(self, goomba) == None:
                     if self.cur_state == FallingState or self.cur_state == GroundpoundState:
                         if collideCheck(self, goomba) == 'bottom':
-                            print('처치')#
                             mob_goomba.goombas.remove(goomba)
                             game_world.remove_object(goomba)
                     else:
@@ -1084,6 +1084,7 @@ class Player:
                 Map_Tile.show_bb = False
                 Item_TransForm.show_bb = False
                 mob_goomba.show_bb = False
+                Map_Castle.show_bb = False
             else:
                 self.show_bb = True
                 Map_Box.show_bb = True
@@ -1092,6 +1093,7 @@ class Player:
                 Map_Tile.show_bb = True
                 Item_TransForm.show_bb = True
                 mob_goomba.show_bb = True
+                Map_Castle.show_bb = True
 
         if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):#test
             score = game_data.gameData.score
