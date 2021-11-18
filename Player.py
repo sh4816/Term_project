@@ -1,6 +1,8 @@
 import game_framework
 import enum
 import math
+
+import mob_goomba
 from collide import *
 from pico2d import *
 
@@ -406,7 +408,6 @@ class JumpState:
         if not player.isJumping:
             player.timer_jump = 0
             player.jump_startY = player.y
-            print(player.y)
             player.isJumping = True
 
         # 방향
@@ -511,14 +512,12 @@ class JumpState:
 
                                 game_data.gameData.coin += 1
                             elif box.itemValue == boxType.mushroom:
-                                print('버섯')#
                                 newMush = Item_TransForm.TransformItem()
                                 newMush.x, newMush.y = box.x, box.y + box.frameY
                                 newMush.itemValue = transitem_Value.Mushroom
                                 Item_TransForm.transItems.append(newMush)
                                 game_world.add_object(newMush, 1)
                             elif box.itemValue == boxType.flower:
-                                print('꽃')#
                                 newFlower = Item_TransForm.TransformItem()
                                 newFlower.x, newFlower.y = box.x, box.y + box.frameY
                                 newFlower.isReverse = False
@@ -761,14 +760,12 @@ class GroundpoundState:
 
                                 game_data.gameData.coin += 1
                             elif box.itemValue == boxType.mushroom:
-                                print('버섯')  #
                                 newMush = Item_TransForm.TransformItem()
                                 newMush.x, newMush.y = box.x, box.y - box.frameY
                                 newMush.itemValue = transitem_Value.Mushroom
                                 Item_TransForm.transItems.append(newMush)
                                 game_world.add_object(newMush, 1)
                             elif box.itemValue == boxType.flower:
-                                print('꽃')  #
                                 newFlower = Item_TransForm.TransformItem()
                                 newFlower.x, newFlower.y = box.x, box.y - box.frameY
                                 newFlower.isReverse = True
@@ -876,7 +873,7 @@ next_state_table = {
     JumpState: {RIGHT_DOWN: JumpState, LEFT_DOWN: JumpState, RIGHT_UP: JumpState, LEFT_UP: JumpState
         , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: GroundpoundState, DOWN_UP: JumpState
         , SHIFT_DOWN: JumpState, SHIFT_UP: JumpState
-        , SPACE: DownState
+        , SPACE: JumpState
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
         , TRANSLATE_EVENT: TranslateState},
@@ -1017,6 +1014,27 @@ class Player:
                 game_world.remove_object(transItem)
                 break
 
+        # 몬스터
+        # 몬스터 충돌
+        for goomba in mob_goomba.goombas:
+            if not goomba.ismoving:
+                # goomba는 화면에 처음 잡혔을 때부터 움직이기 시작한다.
+                if self.x - self.scrollX <= goomba.x - goomba.scrollX <= self.x + 800 - self.scrollX:
+                    goomba.ismoving = True
+            else:
+                # 충돌체크
+                if not collideCheck(self, goomba) == None:
+                    if self.cur_state == FallingState or self.cur_state == GroundpoundState:
+                        if collideCheck(self, goomba) == 'bottom':
+                            print('처치')#
+                            mob_goomba.goombas.remove(goomba)
+                            game_world.remove_object(goomba)
+                    else:
+                        game_data.gameData.life -= 1
+                        self.x += (-1) * self.dir * 15
+                        self.y += 7
+                        if self.transform > P_Transform.T_Basic:
+                            self.transform -= 1
 
 
     def get_boundingbox(self):  # 바운딩박스
@@ -1048,6 +1066,7 @@ class Player:
                 Map_Pipe.show_bb = False
                 Map_Tile.show_bb = False
                 Item_TransForm.show_bb = False
+                mob_goomba.show_bb = False
             else:
                 self.show_bb = True
                 Map_Box.show_bb = True
@@ -1055,6 +1074,7 @@ class Player:
                 Map_Pipe.show_bb = True
                 Map_Tile.show_bb = True
                 Item_TransForm.show_bb = True
+                mob_goomba.show_bb = True
 
         if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):#test
             score = game_data.gameData.score

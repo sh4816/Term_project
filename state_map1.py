@@ -18,6 +18,7 @@ import Map_Pipe
 import Item_Coin
 import Item_TransForm
 import ball
+import mob_goomba
 
 
 name = "Map1"
@@ -56,6 +57,10 @@ def enter():
 
     for transItem in Item_TransForm.transItems:
         game_world.add_object(transItem, 0)
+
+    # mob_goomba.make_goombas(300, 100)
+    for goomba in mob_goomba.goombas:
+        game_world.add_object(goomba, 0)
 
 
     game_world.add_object(player, 1)
@@ -115,8 +120,12 @@ def update():
     for fireball in ball.fireballs:
         fireball.scrollX = scrollMgr.getScrollX("Map1", player)
 
+    for goomba in mob_goomba.goombas:
+        goomba.scrollX = scrollMgr.getScrollX("Map1", player)
+
     for game_object in game_world.all_objects():
         game_object.update()
+
 
 
 def draw():

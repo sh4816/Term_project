@@ -1,6 +1,11 @@
 import game_framework
 from pico2d import *
 import game_world
+from collide import collideCheck
+import Map_Tile
+import Map_Box
+import Map_Brick
+import Map_Pipe
 
 PIXEL_PER_METER = (10.0 / 0.3) #10 pixel 30cm boy.py와 동일
 SHOOT_SPEED_KMPH = 100.0
@@ -33,7 +38,38 @@ class Fireball:
         self.x += self.velocity * game_framework.frame_time
         self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
 
-        if self.x < 25 or self.x > 1600 - 25:
+        # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
+        collipse = False
+        checkCount = 0
+        while (not collipse and checkCount < 4):
+            if checkCount == 0:
+                for box in Map_Box.boxes:
+                    if collideCheck(self, box) == "left" or collideCheck(self, box) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 1:
+                for brick in Map_Brick.bricks:
+                    if collideCheck(self, brick) == "left" or collideCheck(self, brick) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 2:
+                for pipe in Map_Pipe.pipes:
+                    if collideCheck(self, pipe) == "left" or collideCheck(self, pipe) == "right":
+                        collipse = True
+                        break
+            elif checkCount == 3:
+                for tile in Map_Tile.tiles:
+                    if collideCheck(self, tile) == "left" or collideCheck(self, tile) == "right":
+                        collipse = True
+                        break
+
+            checkCount += 1
+
+        # 충돌하면 삭제
+        if collipse:
+            game_world.remove_object(self)
+        # 맵을 벗어나면 삭제
+        if self.x < 0 or self.x > 6600:
             game_world.remove_object(self)
 
 fireballs = []
