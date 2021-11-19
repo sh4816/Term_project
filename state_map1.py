@@ -7,34 +7,18 @@ import game_framework
 import game_world
 import ScrollManager as scrollMgr
 
-from player import Player, reset_variable
+from player import Player, P_Transform
 import game_data
 import MapEditor
 import Map_Background
-import Map_Tile
-import Map_Box
-import Map_Brick
-import Map_Pipe
-import Map_Castle
-import Map_Flag
-import Item_Coin
-import Item_TransForm
-import ball
-import mob_goomba
 
 
 name = "Map1"
 
 player = None
-bg = None
 
 def enter():
-    # Player 객체를 생성
-    global player
-    player = Player()
-
     #=== 맵 배경
-    global bg
     bg = Map_Background.BG()
     game_world.add_object(bg, 0)
     bg.value = "map1"
@@ -42,19 +26,18 @@ def enter():
     #=== 맵 오브젝트 불러오기
     MapEditor.editMap("map1")
 
-    # # 뒤
-    # game_world.add_objects(Map_Tile.tiles, 0)
-    # game_world.add_objects(Map_Castle.castles, 0)
-    #
-    # # 앞
-    # game_world.add_objects(Map_Box.boxes, 1)
-    # game_world.add_objects(Map_Brick.bricks, 1)
-    # game_world.add_objects(Map_Pipe.pipes, 1)
-    # game_world.add_objects(Map_Castle.doors, 1)
-    # game_world.add_objects(Map_Flag.flags, 1)
-    # game_world.add_objects(Item_Coin.coins, 1)
-    # game_world.add_objects(Item_TransForm.transItems, 1)
-    # game_world.add_objects(mob_goomba.goombas, 1)
+    # Player 객체를 생성
+    global player
+    player = Player()
+    # Game Data에서 Player 속성 읽어오기
+    player.transform = game_data.gameData.transform
+    if player.transform == P_Transform.T_Basic:
+        player.frameX, player.frameY = 40, 30
+        player.imageH = 300
+    else:
+        player.frameX, player.frameY = 40, 60
+        player.y = 75
+        player.imageH = 660
 
     game_world.add_object(player, 1)
 
@@ -93,7 +76,6 @@ def update():
     for game_object in game_world.all_objects():
         game_object.scrollX = scrollMgr.getScrollX("Map1", player)
         game_object.update()
-
 
 
 def draw():
