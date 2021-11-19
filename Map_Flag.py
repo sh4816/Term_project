@@ -35,7 +35,7 @@ class Flag:
 
 # 객체 생성 함수
 flags = []
-def makeCastle(xPos, yPos):
+def makeFlag(xPos, yPos):
     newFlag = Flag()
     newFlag.x, newFlag.y = xPos, yPos
     flags.append(newFlag)

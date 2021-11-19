@@ -104,9 +104,6 @@ class TileSnowfield:
 # 객체 생성 함수
 tiles = []
 def makeTile(xPos, yPos, type):
-    # newGrass = TileGrass()
-    # newGrass.x, newTile.y = xPos, yPos
-    # newGrass.type = type
     if type == "tile_Grass":
         newTile = TileGrass()
     elif type == "tile_Dirt":

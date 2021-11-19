@@ -12,6 +12,7 @@ import Map_Box
 import Map_Brick
 import Map_Pipe
 import Map_Castle
+import Map_Flag
 import Item_Coin
 import Item_TransForm
 import ball
@@ -77,7 +78,8 @@ RIGHT_DOWN, LEFT_DOWN, RIGHT_UP, LEFT_UP\
     ,SHIFT_DOWN, SHIFT_UP\
     ,SPACE\
     ,FALLING_EVENT, LANDING_EVENT, LANDING_RUN_EVENT, LANDING_DASH_EVENT\
-    ,TRANSLATE_EVENT, TRANS2IDLE_EVENT, TRANS2RUN_EVENT, TRANS2DASH_EVENT, TRANS2JUMP = range(20)
+    ,TRANSLATE_EVENT, TRANS2IDLE_EVENT, TRANS2RUN_EVENT, TRANS2DASH_EVENT, TRANS2JUMP\
+    ,STAGECLEAR_EVENT = range(21)
 
 key_event_table = {
     (SDL_KEYDOWN, SDLK_RIGHT): RIGHT_DOWN,
@@ -645,6 +647,11 @@ class FallingState:
             #=== 이동
             player.timer_jump += game_framework.frame_time
 
+            # 낙하 (수직낙하운동)
+            # v = v0 + gt, v0 = 0 -> v = gt 에서
+            # v = gt --(적분)--> S = 1/2 g t^2 + C (C = S0)  (*Game Design 폴더 참고)
+            player.y = (1/2) * GRAVITY_ACCEL_PPS2 * (player.timer_jump ** 2) + player.pos_startFalling
+
             # x축 이동
             if player.isMovingInAir:
                 # x축 이동
@@ -680,11 +687,6 @@ class FallingState:
                     if not collipse:
                         player.x += player.velocity * game_framework.frame_time
                         player.x = clamp(25, player.x, 6600 - 25)
-
-            # 낙하 (수직낙하운동)
-            # v = v0 + gt, v0 = 0 -> v = gt 에서
-            # v = gt --(적분)--> S = 1/2 g t^2 + C (C = S0)  (*Game Design 폴더 참고)
-            player.y = (1/2) * GRAVITY_ACCEL_PPS2 * (player.timer_jump ** 2) + player.pos_startFalling
 
         else:
             # 다음 상태 지정
@@ -833,6 +835,54 @@ class TranslateState:
                                , player.x - player.scrollX, player.y)
 
 
+class StageclearState:
+
+    def enter(player, event):
+        if not player.stageclear:
+            player.frame = 0
+            #=== x 축 이동 관련
+            player.dir = 1
+
+            player.velocity = player.dir * RUN_SPEED_PPS
+
+            #=== y 축 이동 관련
+            player.timer_jump = 0
+            player.pos_startFalling = player.y
+
+            player.stageclear = True
+
+
+    def exit(player, event):
+        pass
+
+    def do(player):
+        #=== 공중에서 깃발과 충돌했다면 y 축 이동을 먼저 한다.
+        # 충돌 체크 (아래에 발판이 없는지 확인)
+        collipse = False
+
+        for tile in Map_Tile.tiles:
+            if collideCheck(player, tile) == "bottom":
+                player.y = tile.y + tile.frameY / 2 + player.frameY / 2
+                collipse = True
+                break
+
+        if not collipse:
+            player.frame = 0
+            # 낙하 (수직낙하운동, FallState 와 동일한 로직)
+            player.timer_jump += game_framework.frame_time
+            player.y = (1/2) * GRAVITY_ACCEL_PPS2 * (player.timer_jump ** 2) + player.pos_startFalling
+        else:
+            player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 2
+            #=== 발판에 도달하면 자동으로 x 축 이동을 한다.
+            player.x += player.velocity * game_framework.frame_time
+            player.x = clamp(25, player.x, 6600 - 25)
+
+    def draw(player):
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Run,
+                               player.frameX, player.frameY, player.x - player.scrollX, player.y)
+
+
+
 next_state_table = {
     IdleState: {RIGHT_DOWN: RunState, LEFT_DOWN: RunState, RIGHT_UP: IdleState, LEFT_UP: IdleState
         , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: DownState, DOWN_UP: IdleState
@@ -840,56 +890,72 @@ next_state_table = {
         , SPACE: IdleState
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
-        , TRANSLATE_EVENT: TranslateState},
+        , TRANSLATE_EVENT: TranslateState
+        , STAGECLEAR_EVENT: StageclearState},
     RunState: {RIGHT_DOWN: IdleState, LEFT_DOWN: IdleState, RIGHT_UP: IdleState, LEFT_UP: IdleState
         , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: DownState, DOWN_UP: IdleState
         , SHIFT_DOWN: DashState, SHIFT_UP: RunState
         , SPACE: RunState
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
-        , TRANSLATE_EVENT: TranslateState},
+        , TRANSLATE_EVENT: TranslateState
+        , STAGECLEAR_EVENT: StageclearState},
     DashState: {RIGHT_DOWN: IdleState, LEFT_DOWN: IdleState, RIGHT_UP: IdleState, LEFT_UP: IdleState
         , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: DownState, DOWN_UP: IdleState
         , SHIFT_DOWN: RunState, SHIFT_UP: RunState
         , SPACE: DashState
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
-        , TRANSLATE_EVENT: TranslateState},
+        , TRANSLATE_EVENT: TranslateState
+        , STAGECLEAR_EVENT: StageclearState},
     DownState: {RIGHT_DOWN: DownState, LEFT_DOWN: DownState, RIGHT_UP: DownState, LEFT_UP: DownState
         , UP_DOWN: DownState, UP_UP: DownState, DOWN_DOWN: DownState, DOWN_UP: IdleState
         , SHIFT_DOWN: DownState, SHIFT_UP: DownState
         , SPACE: DownState
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
-        , TRANSLATE_EVENT: TranslateState},
+        , TRANSLATE_EVENT: TranslateState
+        , STAGECLEAR_EVENT: StageclearState},
     JumpState: {RIGHT_DOWN: JumpState, LEFT_DOWN: JumpState, RIGHT_UP: JumpState, LEFT_UP: JumpState
         , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: GroundpoundState, DOWN_UP: JumpState
         , SHIFT_DOWN: JumpState, SHIFT_UP: JumpState
         , SPACE: JumpState
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
-        , TRANSLATE_EVENT: TranslateState},
+        , TRANSLATE_EVENT: TranslateState
+        , STAGECLEAR_EVENT: StageclearState},
     FallingState: {RIGHT_DOWN: FallingState, LEFT_DOWN: FallingState, RIGHT_UP: FallingState, LEFT_UP: FallingState
         , UP_DOWN: FallingState, UP_UP: FallingState, DOWN_DOWN: GroundpoundState, DOWN_UP: FallingState
         , SHIFT_DOWN: FallingState, SHIFT_UP: FallingState
         , SPACE: FallingState
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
-        , TRANSLATE_EVENT: TranslateState},
+        , TRANSLATE_EVENT: TranslateState
+        , STAGECLEAR_EVENT: StageclearState},
     GroundpoundState: {RIGHT_DOWN: GroundpoundState, LEFT_DOWN: GroundpoundState, RIGHT_UP: GroundpoundState, LEFT_UP: GroundpoundState
         , UP_DOWN: GroundpoundState, UP_UP: GroundpoundState, DOWN_DOWN: GroundpoundState, DOWN_UP: GroundpoundState
         , SHIFT_DOWN: GroundpoundState, SHIFT_UP: GroundpoundState
         , SPACE: GroundpoundState
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
-        , TRANSLATE_EVENT: TranslateState},
+        , TRANSLATE_EVENT: TranslateState
+        , STAGECLEAR_EVENT: StageclearState},
     TranslateState: {RIGHT_DOWN: TranslateState, LEFT_DOWN: TranslateState, RIGHT_UP: TranslateState, LEFT_UP: TranslateState
         , UP_DOWN: TranslateState, UP_UP: TranslateState, DOWN_DOWN: TranslateState, DOWN_UP: TranslateState
         , SHIFT_DOWN: TranslateState, SHIFT_UP: TranslateState
         , SPACE: TranslateState
         , FALLING_EVENT: TranslateState
         , LANDING_EVENT: TranslateState, LANDING_RUN_EVENT: TranslateState, LANDING_DASH_EVENT: TranslateState
-        , TRANSLATE_EVENT: IdleState, TRANS2IDLE_EVENT: IdleState, TRANS2RUN_EVENT: RunState, TRANS2DASH_EVENT: DashState, TRANS2JUMP: JumpState}
+        , TRANSLATE_EVENT: IdleState, TRANS2IDLE_EVENT: IdleState, TRANS2RUN_EVENT: RunState, TRANS2DASH_EVENT: DashState, TRANS2JUMP: JumpState
+        , STAGECLEAR_EVENT: StageclearState},
+    StageclearState: {RIGHT_DOWN: StageclearState, LEFT_DOWN: StageclearState, RIGHT_UP: StageclearState, LEFT_UP: StageclearState
+        , UP_DOWN: StageclearState, UP_UP: StageclearState, DOWN_DOWN: StageclearState, DOWN_UP: StageclearState
+        , SHIFT_DOWN: StageclearState, SHIFT_UP: StageclearState
+        , SPACE: StageclearState
+        , FALLING_EVENT: StageclearState
+        , LANDING_EVENT: StageclearState, LANDING_RUN_EVENT: StageclearState, LANDING_DASH_EVENT: StageclearState
+        , TRANSLATE_EVENT: StageclearState, TRANS2IDLE_EVENT: StageclearState, TRANS2RUN_EVENT: StageclearState, TRANS2DASH_EVENT: StageclearState, TRANS2JUMP: StageclearState
+        , STAGECLEAR_EVENT: StageclearState}
 }
 
 
@@ -940,11 +1006,13 @@ class Player:
         self.isDoubleInput = False  # 키입력이 두 개 동시에 되었는지
         self.isDash = False         # 대쉬 중인지
 
+        self.show_bb = False  # 바운딩박스 출력
+
+        self.stageclear = False     # stage를 클리어했는지
+
         self.event_que = []
         self.cur_state = IdleState
         self.cur_state.enter(self, None)
-
-        self.show_bb = False    # 바운딩박스 출력
 
         # Debug #
         self.font = load_font('ENCR10B.TTF', 16)
@@ -1055,15 +1123,22 @@ class Player:
                                     self.transform = P_Transform.T_Basic
                             else:
                                 print('Game over')#
-
+        #=== 스테이지 클리어 관련
+        # Flag
+        for flag in Map_Flag.flags:
+            if not collideCheck(self, flag) == None:
+                self.add_event(STAGECLEAR_EVENT)
         # Castle
-        for door in Map_Castle.doors:
-            if not collideCheck(self, door) == None:
-                if game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
-                    game_data.gameData.unlocked_stage += 1      # 다음 스테이지 해금
-                    print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')#test
-                # Game Data 업데이트
-                game_framework.change_state(state_select)       # 스테이지 선택화면으로 이동
+        if self.stageclear:
+            for door in Map_Castle.doors:
+                if not collideCheck(self, door) == None:
+                    if game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
+                        game_data.gameData.unlocked_stage += 1      # 다음 스테이지 해금
+                        print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')#test
+                    # Game Data 업데이트
+                    reset_variable(self)
+                    print('초기화 x: ' + str(self.x))
+                    game_framework.change_state(state_select)       # 스테이지 선택화면으로 이동
 
 
     def get_boundingbox(self):  # 바운딩박스
@@ -1114,3 +1189,42 @@ class Player:
             transform = game_data.gameData.transform
             print('Life: ' + str(life), ' | Score: ' + str(score)
                   + ' | Coin: ' + str(coin) + ' | Transform: ' + str(transform))
+
+
+def reset_variable(player):
+    # position
+    player.x, player.y = 100, 60
+
+    # Scroll
+    player.scrollX = 0
+
+    player.prevState = None  # 이전상태의 이름
+    player.isTrans = False  # 변신 중 인지
+
+    player.never_collide_with_mob = False  # 몹과는 절대로 충돌하지 않는상태
+    player.ncwmTimer = 0  # 충돌하지 않는 상태 타이머
+
+    player.dir = 1
+    player.velocity = 0
+    player.frame = 0
+    player.timer_jump = 0  # 점프 타이머
+    player.jump_startY = 0  # 점프를 시작한 y좌표
+    player.isJumping = False  # 점프
+
+    player.isSave_startFallingPos = False  # pos_startFalling를 저장했는 지 #test
+    player.pos_startFalling = 0  # 발판이 없을 때 낙하를 시작하는 좌표 #test
+
+    player.isCollideJumping = False  # 점프 중에 충돌했는 지
+    player.pos_collideJumping = 0  # 점프 중에 충돌한 시점의 좌표
+    player.time_collideJumping = 0  # 점프 중에 충돌한 시점의 시점
+
+    player.isMovingInAir = False  # 공중에서 움직이는지
+    player.isDoubleInput = False  # 키입력이 두 개 동시에 되었는지
+    player.isDash = False  # 대쉬 중인지
+
+    player.show_bb = False  # 바운딩박스 출력
+
+    player.stageclear = False  # stage를 클리어했는지
+
+    player.cur_state = IdleState
+    player.cur_state.enter(player, None)
