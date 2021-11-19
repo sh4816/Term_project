@@ -1057,11 +1057,12 @@ class Player:
                                 print('Game over')#
 
         # Castle
-        for castle in Map_Castle.castles:
-            if not collideCheck(self, castle) == None:
+        for door in Map_Castle.doors:
+            if not collideCheck(self, door) == None:
                 if game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
                     game_data.gameData.unlocked_stage += 1      # 다음 스테이지 해금
                     print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')#test
+                # Game Data 업데이트
                 game_framework.change_state(state_select)       # 스테이지 선택화면으로 이동
 
 

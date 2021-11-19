@@ -41,10 +41,9 @@
 11 Transform(5)
 
 #mob
-# goomba: 40x40
-0 Idle (9)
-1 Walk (8)
-2 Dead
+# goomba: 30x30
 
 
 #status: 380x50
+
+#flag: 30x450

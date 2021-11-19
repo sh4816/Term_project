@@ -56,6 +56,9 @@ def enter():
     for castle in Map_Castle.castles:
         game_world.add_object(castle, 0)
 
+    for door in Map_Castle.doors:
+        game_world.add_object(door, 0)
+
     for coin in Item_Coin.coins:
         game_world.add_object(coin, 0)
 
@@ -113,6 +116,9 @@ def update():
 
     for castle in Map_Castle.castles:
         castle.scrollX = scrollMgr.getScrollX("Map1", player)
+
+    for door in Map_Castle.doors:
+        door.scrollX = scrollMgr.getScrollX("Map1", player)
 
     for pipe in Map_Pipe.pipes:
         pipe.scrollX = scrollMgr.getScrollX("Map1", player)
