@@ -180,3 +180,9 @@ def makeGoombas(xPos, yPos, dir):
     newmob.x, newmob.y = xPos, yPos
     newmob.dir = dir
     goombas.append(newmob)
+
+
+def removeAll():
+    print('굼바 전체 삭제')
+    for obj in goombas:
+        goombas.remove(obj)

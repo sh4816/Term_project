@@ -73,3 +73,8 @@ class Fireball:
             game_world.remove_object(self)
 
 fireballs = []
+
+def removeAll():
+    print('파이어볼 전체 삭제')
+    for obj in fireballs:
+        fireballs.remove(obj)

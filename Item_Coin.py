@@ -41,3 +41,9 @@ def make_coins(xPos, yPos, effect):
     else:
         newcoin.isUsed = True
     coins.append(newcoin)
+
+
+def removeAll():
+    print('코인 전체 삭제')
+    for obj in coins:
+        coins.remove(obj)

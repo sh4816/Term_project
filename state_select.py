@@ -2,8 +2,12 @@ import game_framework
 from pico2d import *
 import enum
 
+# Game Data
 import game_data
-import state_map1#
+
+# Map
+import state_map1
+import state_map2_1
 
 name = "TitleState"
 image = None
@@ -47,7 +51,12 @@ def handle_events():
             # 입장
             elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_RETURN):
                 if game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:              # 잠겨있지 않은 맵에만
-                    if game_data.gameData.cur_stage == 1: game_framework.change_state(state_map1)  # 1번 맵 입장
+                    if game_data.gameData.cur_stage == 1:
+                        print('1번 맵 입장')#
+                        game_framework.change_state(state_map1)  # 1번 맵 입장
+                    elif game_data.gameData.cur_stage == 2:
+                        print('2번 맵 입장')#
+                        game_framework.change_state(state_map2_1)   # 2-1번 맵 입장
                 else:
                     print('잠겨있는 맵')
             elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_LEFT):

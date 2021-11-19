@@ -147,10 +147,11 @@ class IdleState:
                         collipse = True
                         break
             elif checkCount == 3:
-                for tile in Map_Tile.tiles:
-                    if collideCheck(player, tile) == "bottom":
-                        collipse = True
-                        break
+                for obj in game_world.all_objects():
+                    if obj.__class__ == Map_Tile.TileGrass:
+                        if collideCheck(player, obj) == "bottom":
+                            collipse = True
+                            break
 
             checkCount += 1
 
@@ -247,10 +248,13 @@ class RunState:
                         collipse = True
                         break
             elif checkCount == 3:
-                for tile in Map_Tile.tiles:
-                    if collideCheck(player, tile) == "bottom":
-                        collipse = True
-                        break
+                # for tile in Map_Tile.tiles:
+                #     if collideCheck(player, tile) == "bottom":
+                for obj in game_world.all_objects():
+                    if obj.__class__ == Map_Tile.TileGrass:
+                        if collideCheck(player, obj) == "bottom":
+                            collipse = True
+                            break
 
             checkCount += 1
 
@@ -353,11 +357,12 @@ class DashState:
                         collipse = True
                         break
             elif checkCount == 3:
-                for tile in Map_Tile.tiles:
-                    if collideCheck(player, tile) == "bottom":
-                        player.y = tile.y + tile.frameY/2 + player.frameY/2  # 발판 위로 올림
-                        collipse = True
-                        break
+                for obj in game_world.all_objects():
+                    if obj.__class__ == Map_Tile.TileGrass:
+                        if collideCheck(player, obj) == "bottom":
+                            player.y = obj.y + obj.frameY/2 + player.frameY/2  # 발판 위로 올림
+                            collipse = True
+                            break
 
             checkCount += 1
 
@@ -635,11 +640,12 @@ class FallingState:
                         collipse = True
                         break
             elif checkCount == 3:
-                for tile in Map_Tile.tiles:
-                    if collideCheck(player, tile) == "bottom":
-                        player.y = tile.y + tile.frameY/2 + player.frameY/2
-                        collipse = True
-                        break
+                for obj in game_world.all_objects():
+                    if obj.__class__ == Map_Tile.TileGrass:
+                        if collideCheck(player, obj) == "bottom":
+                            player.y = obj.y + obj.frameY/2 + player.frameY/2
+                            collipse = True
+                            break
 
             checkCount += 1
 
@@ -782,11 +788,12 @@ class GroundpoundState:
                         collipse = True
                         break
             elif checkCount == 3:
-                for tile in Map_Tile.tiles:
-                    if collideCheck(player, tile) == "bottom":
-                        player.y = tile.y + tile.frameY/2 + player.frameY/2  # 발판 위로 올림
-                        collipse = True
-                        break
+                for obj in game_world.all_objects():
+                    if obj.__class__ == Map_Tile.TileGrass:
+                        if collideCheck(player, obj) == "bottom":
+                            player.y = obj.y + obj.frameY/2 + player.frameY/2  # 발판 위로 올림
+                            collipse = True
+                            break
 
             checkCount += 1
 
@@ -860,11 +867,12 @@ class StageclearState:
         # 충돌 체크 (아래에 발판이 없는지 확인)
         collipse = False
 
-        for tile in Map_Tile.tiles:
-            if collideCheck(player, tile) == "bottom":
-                player.y = tile.y + tile.frameY / 2 + player.frameY / 2
-                collipse = True
-                break
+        for obj in game_world.all_objects():
+            if obj.__class__ == Map_Tile.TileGrass:
+                if collideCheck(player, obj) == 'bottom':
+                    player.y = obj.y + obj.frameY / 2 + player.frameY / 2
+                    collipse = True
+                    break
 
         if not collipse:
             player.frame = 0
@@ -1182,7 +1190,7 @@ class Player:
                 mob_goomba.show_bb = True
                 Map_Castle.show_bb = True
 
-        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):#test
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):
             score = game_data.gameData.score
             coin = game_data.gameData.coin
             life = game_data.gameData.life

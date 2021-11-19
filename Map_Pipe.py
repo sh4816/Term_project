@@ -50,3 +50,7 @@ def makePipe(xPos, yPos, type):
 
     pipes.append(newPipe)
 
+def removeAll():
+    print('파이프 전체 삭제')
+    for obj in pipes:
+        pipes.remove(obj)

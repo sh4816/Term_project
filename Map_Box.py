@@ -63,3 +63,9 @@ def makeBox(xPos, yPos, box_type):
     # newBox.itemValue += 1
 
     boxes.append(newBox)
+
+
+def removeAll():
+    print('상자 전체 삭제')
+    for obj in boxes:
+        boxes.remove(obj)

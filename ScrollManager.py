@@ -8,13 +8,13 @@ def ScrollLock(player):
     global ScrollX, MapLen
 
     if 0 <= player.x < 300:
-        return True
+        return "Lock_LeftEnd"
     elif player.x - ScrollX < 300:
-        return True
+        return "Lock_LeftMoving"
     elif ScrollX + 600 >= MapLen:
-        return True
+        return "Lock_RightEnd"
 
-    return False
+    return "NonLock"
 
 
 def getScrollX(Map, player):
@@ -22,9 +22,17 @@ def getScrollX(Map, player):
 
     if Map == "Map1":
         MapLen = 6600
+    elif Map == "Map2_1":
+        MapLen = 600
 
-    if not ScrollLock(player):
+    if ScrollLock(player) == "NonLock":
         ScrollX = player.x - 300
+    elif ScrollLock(player) == "Lock_LeftEnd":
+        ScrollX = 0
+    elif ScrollLock(player) == "Lock_LeftMoving":
+        ScrollX = player.scrollX
+    elif ScrollLock(player) == "Lock_RightEnd":
+        ScrollX = MapLen - 600
 
     return ScrollX
 

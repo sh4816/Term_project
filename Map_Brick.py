@@ -39,3 +39,9 @@ def makeBrick(xPos, yPos):
     newBrick = Brick()
     newBrick.x, newBrick.y = xPos, yPos
     bricks.append(newBrick)
+
+
+def removeAll():
+    print('벽돌 전체 삭제')
+    for obj in bricks:
+        bricks.remove(obj)

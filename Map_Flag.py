@@ -40,3 +40,8 @@ def makeFlag(xPos, yPos):
     newFlag.x, newFlag.y = xPos, yPos
     flags.append(newFlag)
 
+
+def removeAll():
+    print('깃발 전체 삭제')
+    for obj in flags:
+        flags.remove(obj)

@@ -8,7 +8,12 @@ import Map_Castle
 import Map_Flag
 import mob_goomba
 
+ground_data_file = None
+obj_data_file = None
+mob_data_file = None
+
 def editMap(mapName):
+    global ground_data_file, obj_data_file, mob_data_file
     #=== initialize
     size = 30
 
@@ -17,6 +22,10 @@ def editMap(mapName):
         ground_file_name = "Data_Map_1_ground.txt"
         obj_file_name = "Data_Map_1_obj.txt"
         mob_file_name = "Data_Map_1_mob.txt"
+    elif mapName == "map2_1":
+        ground_file_name = "Data_Map_2_1_ground.txt"
+        obj_file_name = "Data_Map_2_1_obj.txt"
+        mob_file_name = "Data_Map_2_1_mob.txt"
 
 
     #=== 지형 Ground
@@ -42,6 +51,7 @@ def editMap(mapName):
 
         except:
             break
+    ground_data_file.close()
 
 
     #=== 오브젝트 Obj
@@ -79,6 +89,7 @@ def editMap(mapName):
 
         except:
             break
+    obj_data_file.close()
 
     # 몹 obj
     mob_xPos, mob_yPos = 0, 0
@@ -106,6 +117,4 @@ def editMap(mapName):
 
         except:
             break
-
-
     mob_data_file.close()

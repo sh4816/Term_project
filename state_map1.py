@@ -33,49 +33,46 @@ def enter():
     global player
     player = Player()
 
-    # 맵 배경
+    #=== 맵 배경
     global bg
     bg = Map_Background.BG()
     game_world.add_object(bg, 0)
     bg.value = "map1"
 
-    # 맵 오브젝트 불러오기
+    #=== 맵 오브젝트 불러오기
     MapEditor.editMap("map1")
 
-    for tile in Map_Tile.tiles:
-        game_world.add_object(tile, 0)
+    # 뒤
+    game_world.add_objects(Map_Tile.tiles, 0)
+    game_world.add_objects(Map_Castle.castles, 0)
 
-    for box in Map_Box.boxes:
-        game_world.add_object(box, 0)
-
-    for brick in Map_Brick.bricks:
-        game_world.add_object(brick, 0)
-
-    for pipe in Map_Pipe.pipes:
-        game_world.add_object(pipe, 0)
-
-    for castle in Map_Castle.castles:
-        game_world.add_object(castle, 0)
-
-    for door in Map_Castle.doors:
-        game_world.add_object(door, 0)
-
-    for flag in Map_Flag.flags:
-        game_world.add_object(flag, 0)
-
-    for coin in Item_Coin.coins:
-        game_world.add_object(coin, 0)
-
-    for transItem in Item_TransForm.transItems:
-        game_world.add_object(transItem, 0)
-
-    for goomba in mob_goomba.goombas:
-        game_world.add_object(goomba, 0)
+    # 앞
+    game_world.add_objects(Map_Box.boxes, 1)
+    game_world.add_objects(Map_Brick.bricks, 1)
+    game_world.add_objects(Map_Pipe.pipes, 1)
+    game_world.add_objects(Map_Castle.doors, 1)
+    game_world.add_objects(Map_Flag.flags, 1)
+    game_world.add_objects(Item_Coin.coins, 1)
+    game_world.add_objects(Item_TransForm.transItems, 1)
+    game_world.add_objects(mob_goomba.goombas, 1)
 
     game_world.add_object(player, 1)
 
 
 def exit():
+    Map_Tile.removeAll()
+    Map_Tile.removeAll()
+    Map_Box.removeAll()
+    Map_Brick.removeAll()
+    Map_Pipe.removeAll()
+    Map_Castle.removeAll()
+    Map_Flag.removeAll()
+    Item_Coin.removeAll()
+    Item_TransForm.removeAll()
+    ball.removeAll()
+    mob_goomba.removeAll()
+    for game_object in game_world.all_objects():
+        game_world.remove_object(game_object)
     game_world.clear()
 
 

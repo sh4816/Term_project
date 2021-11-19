@@ -59,8 +59,17 @@ def makeDoor(xPos, yPos):
     newDoor.x, newDoor.y = xPos, yPos
     doors.append(newDoor)
 
+
 def makeCastle(xPos, yPos):
     newCastle = Castle()
     newCastle.x, newCastle.y = xPos, yPos
     castles.append(newCastle)
     makeDoor(newCastle.x, newCastle.y)  # 문 생성
+
+
+def removeAll():
+    print('성&문 전체 삭제')
+    for obj in castles:
+        castles.remove(obj)
+    for obj in doors:
+        doors.remove(obj)

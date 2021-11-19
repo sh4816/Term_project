@@ -1,5 +1,7 @@
 from pico2d import *
 
+import game_world
+
 show_bb = False
 
 # 지형 종류별 클래스
@@ -116,5 +118,11 @@ def makeTile(xPos, yPos, type):
     newTile.x, newTile.y = xPos, yPos
     newTile.type = type
 
-    tiles.append(newTile)
+    game_world.add_object(newTile, 1)
+    #tiles.append(newTile)
+
+def removeAll():
+    print('타일 전체 삭제')
+    for obj in tiles:
+        tiles.remove(obj)
 

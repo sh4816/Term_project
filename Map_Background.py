@@ -13,7 +13,7 @@ class BG:
         pass
 
     def draw(self):
-        if self.value == "Map1":
+        if self.value == "Map1" or self.value == "Map2_1":
             self.image = load_image('BG.png')
 
         # 작동 방식: 800x600 크기의 중심을 왼쪽으로 이동시키면서 화면 왼쪽 바깥으로 잘려나간 부분을 화면 오른쪽에서 다시 그려준다.

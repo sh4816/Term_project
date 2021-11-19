@@ -161,3 +161,9 @@ def make_transItem(xPos, yPos, value):
     newitem.x, newitem.y = xPos, yPos
     newitem.itemValue = value
     transItems.append(newitem)
+
+
+def removeAll():
+    print('변신아이템 전체 삭제')
+    for obj in transItems:
+        transItems.remove(obj)
