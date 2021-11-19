@@ -120,40 +120,18 @@ class IdleState:
                 player.add_event(LEFT_DOWN)
 
     def do(player):
-        # 오랫동안 입력이 없을 때
-        # player.timer -= 1
-        # if player.timer == 0:
-        #     player.add_event(SLEEP_TIMER)
-
         # === 발판이 없을 때 낙하 시작
         # 충돌 체크 (아래에 발판이 없는지 확인)
         collipse = False
-        checkCount = 0
 
-        while (not collipse and checkCount < 4):
-            if checkCount == 0:
-                for box in Map_Box.boxes:
-                    if collideCheck(player, box) == "bottom":
-                        collipse = True
-                        break
-            elif checkCount == 1:
-                for brick in Map_Brick.bricks:
-                    if collideCheck(player, brick) == "bottom":
-                        collipse = True
-                        break
-            elif checkCount == 2:
-                for pipe in Map_Pipe.pipes:
-                    if collideCheck(player, pipe) == "bottom":
-                        collipse = True
-                        break
-            elif checkCount == 3:
-                for obj in game_world.all_objects():
-                    if obj.__class__ == Map_Tile.TileGrass:
-                        if collideCheck(player, obj) == "bottom":
-                            collipse = True
-                            break
-
-            checkCount += 1
+        for obj in game_world.all_objects():
+            if obj.__class__ == Map_Box.Box_Question \
+                    or obj.__class__ == Map_Brick.Brick \
+                    or obj.__class__ == Map_Pipe.Pipe \
+                    or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                if collideCheck(player, obj) == "bottom":
+                    collipse = True
+                    break
 
         if not collipse:
             player.add_event(FALLING_EVENT)
@@ -196,30 +174,16 @@ class RunState:
         #=== x 이동
         # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
         collipse = False
-        checkCount = 0
-        while (not collipse and checkCount < 4):
-            if checkCount == 0:
-                for box in Map_Box.boxes:
-                    if collideCheck(player, box) == "left" or collideCheck(player, box) == "right":
-                        collipse = True
-                        break
-            elif checkCount == 1:
-                for brick in Map_Brick.bricks:
-                    if collideCheck(player, brick) == "left" or collideCheck(player, brick) == "right":
-                        collipse = True
-                        break
-            elif checkCount == 2:
-                for pipe in Map_Pipe.pipes:
-                    if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
-                        collipse = True
-                        break
-            elif checkCount == 3:
-                for tile in Map_Tile.tiles:
-                    if collideCheck(player, tile) == "left" or collideCheck(player, tile) == "right":
-                        collipse = True
-                        break
 
-            checkCount += 1
+        for obj in game_world.all_objects():
+            if obj.__class__ == Map_Box.Box_Question \
+                    or obj.__class__ == Map_Brick.Brick \
+                    or obj.__class__ == Map_Pipe.Pipe \
+                    or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                if collideCheck(player, obj) == "left" or collideCheck(player, obj) == "right":
+                    #player.x = obj.x - obj.frameX - 1 # 끼임 방지
+                    collipse = True
+                    break
 
         # 충돌하지 않았을 때에만 이동
         if not collipse:
@@ -230,33 +194,15 @@ class RunState:
         #=== 발판이 없을 때 낙하 시작
         # 충돌 체크 (아래에 발판이 없는지 확인)
         collipse = False
-        checkCount = 0
-        while (not collipse and checkCount < 4):
-            if checkCount == 0:
-                for box in Map_Box.boxes:
-                    if collideCheck(player, box) == "bottom":
-                        collipse = True
-                        break
-            elif checkCount == 1:
-                for brick in Map_Brick.bricks:
-                    if collideCheck(player, brick) == "bottom":
-                        collipse = True
-                        break
-            elif checkCount == 2:
-                for pipe in Map_Pipe.pipes:
-                    if collideCheck(player, pipe) == "bottom":
-                        collipse = True
-                        break
-            elif checkCount == 3:
-                # for tile in Map_Tile.tiles:
-                #     if collideCheck(player, tile) == "bottom":
-                for obj in game_world.all_objects():
-                    if obj.__class__ == Map_Tile.TileGrass:
-                        if collideCheck(player, obj) == "bottom":
-                            collipse = True
-                            break
 
-            checkCount += 1
+        for obj in game_world.all_objects():
+            if obj.__class__ == Map_Box.Box_Question \
+                    or obj.__class__ == Map_Brick.Brick \
+                    or obj.__class__ == Map_Pipe.Pipe \
+                    or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                if collideCheck(player, obj) == "bottom":
+                    collipse = True
+                    break
 
         if not collipse:
             player.add_event(FALLING_EVENT)
@@ -301,30 +247,14 @@ class DashState:
         #=== x 이동
         # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
         collipse = False
-        checkCount = 0
-        while (not collipse and checkCount < 4):
-            if checkCount == 0:
-                for box in Map_Box.boxes:
-                    if collideCheck(player, box) == "left" or collideCheck(player, box) == "right":
-                        collipse = True
-                        break
-            elif checkCount == 1:
-                for brick in Map_Brick.bricks:
-                    if collideCheck(player, brick) == "left" or collideCheck(player, brick) == "right":
-                        collipse = True
-                        break
-            elif checkCount == 2:
-                for pipe in Map_Pipe.pipes:
-                    if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
-                        collipse = True
-                        break
-            elif checkCount == 3:
-                for tile in Map_Tile.tiles:
-                    if collideCheck(player, tile) == "left" or collideCheck(player, tile) == "right":
-                        collipse = True
-                        break
-
-            checkCount += 1
+        for obj in game_world.all_objects():
+            if obj.__class__ == Map_Box.Box_Question \
+                    or obj.__class__ == Map_Brick.Brick \
+                    or obj.__class__ == Map_Pipe.Pipe \
+                    or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                if collideCheck(player, obj) == "left" or collideCheck(player, obj) == "right":
+                    collipse = True
+                    break
 
         # 충돌하지 않았을 때에만 이동
         if not collipse:
@@ -335,47 +265,19 @@ class DashState:
         #=== 발판이 없을 때 낙하 운동
         # 충돌 체크 (아래에 발판이 없는지 확인)
         collipse = False
-        checkCount = 0
 
-        while (not collipse and checkCount < 4):
-            if checkCount == 0:
-                for box in Map_Box.boxes:
-                    if collideCheck(player, box) == "bottom":
-                        player.y = box.y + box.frameY/2 + player.frameY/2  # 발판 위로 올림
-                        collipse = True
-                        break
-            elif checkCount == 1:
-                for brick in Map_Brick.bricks:
-                    if collideCheck(player, brick) == "bottom":
-                        player.y = brick.y + brick.frameY/2 + player.frameY/2  # 발판 위로 올림
-                        collipse = True
-                        break
-            elif checkCount == 2:
-                for pipe in Map_Pipe.pipes:
-                    if collideCheck(player, pipe) == "bottom":
-                        player.y = pipe.y + pipe.frameY/2 + player.frameY/2  # 발판 위로 올림
-                        collipse = True
-                        break
-            elif checkCount == 3:
-                for obj in game_world.all_objects():
-                    if obj.__class__ == Map_Tile.TileGrass:
-                        if collideCheck(player, obj) == "bottom":
+        for obj in game_world.all_objects():
+            if obj.__class__ == Map_Box.Box_Question \
+                    or obj.__class__ == Map_Brick.Brick \
+                    or obj.__class__ == Map_Pipe.Pipe \
+                    or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                if collideCheck(player, obj) == "bottom":
                             player.y = obj.y + obj.frameY/2 + player.frameY/2  # 발판 위로 올림
                             collipse = True
                             break
 
-            checkCount += 1
-
         if not collipse:
-            if not player.isSave_startFallingPos:
-                player.pos_startFalling = player.y
-                player.isSave_startFallingPos = True
-
-            # 낙하 (수직낙하운동)
-            player.timer_jump += game_framework.frame_time
-            # v = v0 + gt, v0 = 0 -> v = gt 에서
-            # v = gt --(적분)--> S = 1/2 g t^2 + C (C = S0)  (*Game Design 폴더 참고)
-            player.y = (1/2) * GRAVITY_ACCEL_PPS2 * (player.timer_jump ** 2) + player.pos_startFalling
+            player.add_event(FALLING_EVENT)
 
     def draw(player):
         player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Dash,
@@ -451,30 +353,14 @@ class JumpState:
         if player.isMovingInAir:
             # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
             collipse = False
-            checkCount = 0
-            while (not collipse and checkCount < 4):
-                if checkCount == 0:
-                    for box in Map_Box.boxes:
-                        if collideCheck(player, box) == "left" or collideCheck(player, box) == "right":
-                            collipse = True
-                            break
-                elif checkCount == 1:
-                    for brick in Map_Brick.bricks:
-                        if collideCheck(player, brick) == "left" or collideCheck(player, brick) == "right":
-                            collipse = True
-                            break
-                elif checkCount == 2:
-                    for pipe in Map_Pipe.pipes:
-                        if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
-                            collipse = True
-                            break
-                elif checkCount == 3:
-                    for tile in Map_Tile.tiles:
-                        if collideCheck(player, tile) == "left" or collideCheck(player, tile) == "right":
-                            collipse = True
-                            break
-
-                checkCount += 1
+            for obj in game_world.all_objects():
+                if obj.__class__ == Map_Box.Box_Question \
+                        or obj.__class__ == Map_Brick.Brick \
+                        or obj.__class__ == Map_Pipe.Pipe \
+                        or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                    if collideCheck(player, obj) == "left" or collideCheck(player, obj) == "right":
+                        collipse = True
+                        break
 
             # 충돌하지 않았을 때에만 이동
             if not collipse:
@@ -493,61 +379,47 @@ class JumpState:
         # 상태 별 행동
         #=== 충돌 체크
         collipse = False
-        checkCount = 0
+
         # 점프 중 player의 윗부분 충돌
-        while (not collipse and checkCount < 4):
-            if checkCount == 0:
-                for box in Map_Box.boxes:
-                    if collideCheck(player, box) == "top":
-                        # 충돌한 박스가 충돌하면 아이템이 나오는 question box 인 경우.
-                        if not box.isUsed:
-                            if box.itemValue == Map_Box.boxType.coin:
-                                # 코인(이펙트) 생성
-                                newCoin = Item_Coin.Coin()
-                                newCoin.x, newCoin.y = box.x, box.y + box.frameY/2 + 15
-                                newCoin.isEffect = True
-                                Item_Coin.coins.append(newCoin)
-                                game_world.add_object(newCoin, 0)
+        for obj in game_world.all_objects():
+            if obj.__class__ == Map_Box.Box_Question:  # 충돌체크를 해야할 클래스의 이름
+                if collideCheck(player, obj) == "top":
+                     # 충돌한 박스가 충돌하면 아이템이 나오는 question box 인 경우.
+                    if not obj.isUsed:
+                        if obj.itemValue == Map_Box.boxType.coin:
+                            # 코인(이펙트) 생성
+                            newCoin = Item_Coin.Coin()
+                            newCoin.x, newCoin.y = obj.x, obj.y + obj.frameY/2 + 15
+                            newCoin.isEffect = True
+                            Item_Coin.coins.append(newCoin)
+                            game_world.add_object(newCoin, 0)
 
-                                game_data.gameData.coin += 1
-                            elif box.itemValue == Map_Box.boxType.mushroom:
-                                newMush = Item_TransForm.TransformItem()
-                                newMush.x, newMush.y = box.x, box.y + box.frameY
-                                newMush.itemValue = Item_TransForm.Value.Mushroom
-                                Item_TransForm.transItems.append(newMush)
-                                game_world.add_object(newMush, 1)
-                            elif box.itemValue == Map_Box.boxType.flower:
-                                newFlower = Item_TransForm.TransformItem()
-                                newFlower.x, newFlower.y = box.x, box.y + box.frameY
-                                newFlower.isReverse = False
-                                newFlower.itemValue = Item_TransForm.Value.Fireflower
-                                Item_TransForm.transItems.append(newFlower)
-                                game_world.add_object(newFlower, 1)
-                            # Box를 사용한 상태로 변경
-                            box.isUsed = True
+                            game_data.gameData.coin += 1
+                        elif obj.itemValue == Map_Box.boxType.mushroom:
+                            newMush = Item_TransForm.TransformItem()
+                            newMush.x, newMush.y = obj.x, obj.y + obj.frameY
+                            newMush.itemValue = Item_TransForm.Value.Mushroom
+                            game_world.add_object(newMush, 1)
+                        elif obj.itemValue == Map_Box.boxType.flower:
+                            newFlower = Item_TransForm.TransformItem()
+                            newFlower.x, newFlower.y = obj.x, obj.y + obj.frameY
+                            newFlower.isReverse = False
+                            newFlower.itemValue = Item_TransForm.Value.Fireflower
+                            game_world.add_object(newFlower, 1)
+                        # Box를 사용한 상태로 변경
+                        obj.isUsed = True
 
-                        # 충돌 상태 True
-                        box.slowFrame = 0
-                        box.frame = 0
-                        collipse = True
-                        break
-            elif checkCount == 1:
-                for brick in Map_Brick.bricks:
-                    if collideCheck(player, brick) == "top":
-                        collipse = True
-                        break
-            elif checkCount == 2:
-                for pipe in Map_Pipe.pipes:
-                    if collideCheck(player, pipe) == "top":
-                        collipse = True
-                        break
-            elif checkCount == 3:
-                for tile in Map_Tile.tiles:
-                    if collideCheck(player, tile) == "top":
-                        collipse = True
-                        break
-
-            checkCount += 1
+                    # 충돌 상태 True
+                    obj.slowFrame = 0
+                    obj.frame = 0
+                    collipse = True
+                    break
+            elif obj.__class__ == Map_Brick.Brick \
+                or obj.__class__ == Map_Pipe.Pipe \
+                or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                if collideCheck(player, obj) == "top":
+                    collipse = True
+                    break
 
         # 점프 도중 player의 윗부분이 충돌했을 때
         if collipse:
@@ -618,36 +490,16 @@ class FallingState:
         # === 발판이 없을 때 낙하 운동
         # 충돌 체크 (아래에 발판이 없는지 확인)
         collipse = False
-        checkCount = 0
 
-        while (not collipse and checkCount < 4):
-            if checkCount == 0:
-                for box in Map_Box.boxes:
-                    if collideCheck(player, box) == "bottom":
-                        player.y = box.y + box.frameY/2 + player.frameY/2
+        for obj in game_world.all_objects():
+            if obj.__class__ == Map_Box.Box_Question\
+                or obj.__class__ == Map_Brick.Brick\
+                or obj.__class__ == Map_Pipe.Pipe\
+                or obj.__class__ == Map_Tile.Tile:      # 충돌체크를 해야할 클래스의 이름
+                    if collideCheck(player, obj) == "bottom":
+                        player.y = obj.y + obj.frameY / 2 + player.frameY / 2
                         collipse = True
                         break
-            elif checkCount == 1:
-                for brick in Map_Brick.bricks:
-                    if collideCheck(player, brick) == "bottom":
-                        player.y = brick.y + brick.frameY/2 + player.frameY/2
-                        collipse = True
-                        break
-            elif checkCount == 2:
-                for pipe in Map_Pipe.pipes:
-                    if collideCheck(player, pipe) == "bottom":
-                        player.y = pipe.y + pipe.frameY/2 + player.frameY/2
-                        collipse = True
-                        break
-            elif checkCount == 3:
-                for obj in game_world.all_objects():
-                    if obj.__class__ == Map_Tile.TileGrass:
-                        if collideCheck(player, obj) == "bottom":
-                            player.y = obj.y + obj.frameY/2 + player.frameY/2
-                            collipse = True
-                            break
-
-            checkCount += 1
 
         if not collipse:
             #=== 이동
@@ -664,30 +516,14 @@ class FallingState:
                 if player.isMovingInAir:
                     # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
                     collipse = False
-                    checkCount = 0
-                    while (not collipse and checkCount < 4):
-                        if checkCount == 0:
-                            for box in Map_Box.boxes:
-                                if collideCheck(player, box) == "left" or collideCheck(player, box) == "right":
-                                    collipse = True
-                                    break
-                        elif checkCount == 1:
-                            for brick in Map_Brick.bricks:
-                                if collideCheck(player, brick) == "left" or collideCheck(player, brick) == "right":
-                                    collipse = True
-                                    break
-                        elif checkCount == 2:
-                            for pipe in Map_Pipe.pipes:
-                                if collideCheck(player, pipe) == "left" or collideCheck(player, pipe) == "right":
-                                    collipse = True
-                                    break
-                        elif checkCount == 3:
-                            for tile in Map_Tile.tiles:
-                                if collideCheck(player, tile) == "left" or collideCheck(player, tile) == "right":
-                                    collipse = True
-                                    break
-
-                        checkCount += 1
+                    for obj in game_world.all_objects():
+                        if obj.__class__ == Map_Box.Box_Question \
+                                or obj.__class__ == Map_Brick.Brick \
+                                or obj.__class__ == Map_Pipe.Pipe \
+                                or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                            if collideCheck(player, obj) == "left" or collideCheck(player, obj) == "right":
+                                collipse = True
+                                break
 
                     # 충돌하지 않았을 때에만 이동
                     if not collipse:
@@ -743,53 +579,40 @@ class GroundpoundState:
         # 충돌해서 착지를 할 때
         while (not collipse and checkCount < 4):
             if checkCount == 0:
-                for box in Map_Box.boxes:
-                    if collideCheck(player, box) == "bottom":
-                        player.y = box.y + box.frameY / 2 + player.frameY / 2
-                        collipse = True
-
-                        # 충돌한 박스가 충돌하면 아이템이 나오는 question box 인 경우.
-                        if not box.isUsed:
-                            if box.itemValue == Map_Box.boxType.coin:
-                                # 코인(이펙트) 생성
-                                newCoin = Item_Coin.Coin()
-                                newCoin.x, newCoin.y = box.x, box.y - box.frameY/2 - 15
-                                newCoin.isEffect = True
-                                Item_Coin.coins.append(newCoin)
-                                game_world.add_object(newCoin, 0)
-
-                                game_data.gameData.coin += 1
-                            elif box.itemValue == Map_Box.boxType.mushroom:
-                                newMush = Item_TransForm.TransformItem()
-                                newMush.x, newMush.y = box.x, box.y - box.frameY
-                                newMush.itemValue = Item_TransForm.Value.Mushroom
-                                Item_TransForm.transItems.append(newMush)
-                                game_world.add_object(newMush, 1)
-                            elif box.itemValue == Map_Box.boxType.flower:
-                                newFlower = Item_TransForm.TransformItem()
-                                newFlower.x, newFlower.y = box.x, box.y - box.frameY
-                                newFlower.isReverse = True
-                                newFlower.itemValue = Item_TransForm.Value.Fireflower
-                                Item_TransForm.transItems.append(newFlower)
-                                game_world.add_object(newFlower, 1)
-                            # Box를 사용한 상태로 변경
-                            box.isUsed = True
-                        break
-            elif checkCount == 1:
-                for brick in Map_Brick.bricks:
-                    if collideCheck(player, brick) == "bottom":
-                        player.y = brick.y + brick.frameY/2 + player.frameY/2  # 발판 위로 올림
-                        collipse = True
-                        break
-            elif checkCount == 2:
-                for pipe in Map_Pipe.pipes:
-                    if collideCheck(player, pipe) == "bottom":
-                        player.y = pipe.y + pipe.frameY/2 + player.frameY/2  # 발판 위로 올림
-                        collipse = True
-                        break
-            elif checkCount == 3:
                 for obj in game_world.all_objects():
-                    if obj.__class__ == Map_Tile.TileGrass:
+                    if obj.__class__ == Map_Box.Box_Question:
+                        if collideCheck(player, obj) == "bottom":
+                            player.y = obj.y + obj.frameY / 2 + player.frameY / 2
+                            collipse = True
+
+                            # 충돌한 박스가 충돌하면 아이템이 나오는 question box 인 경우.
+                            if not obj.isUsed:
+                                if obj.itemValue == Map_Box.boxType.coin:
+                                    # 코인(이펙트) 생성
+                                    newCoin = Item_Coin.Coin()
+                                    newCoin.x, newCoin.y = obj.x, obj.y - obj.frameY/2 - 15
+                                    newCoin.isEffect = True
+                                    game_world.add_object(newCoin, 0)
+
+                                    game_data.gameData.coin += 1
+                                elif obj.itemValue == Map_Box.boxType.mushroom:
+                                    newMush = Item_TransForm.TransformItem()
+                                    newMush.x, newMush.y = obj.x, obj.y - obj.frameY
+                                    newMush.itemValue = Item_TransForm.Value.Mushroom
+                                    game_world.add_object(newMush, 1)
+                                elif obj.itemValue == Map_Box.boxType.flower:
+                                    newFlower = Item_TransForm.TransformItem()
+                                    newFlower.x, newFlower.y = obj.x, obj.y - obj.frameY
+                                    newFlower.isReverse = True
+                                    newFlower.itemValue = Item_TransForm.Value.Fireflower
+                                    game_world.add_object(newFlower, 1)
+
+                                # Box를 사용한 상태로 변경
+                                obj.isUsed = True
+                            break
+                    elif obj.__class__ == Map_Brick.Brick \
+                        or obj.__class__ == Map_Pipe.Pipe \
+                        or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
                         if collideCheck(player, obj) == "bottom":
                             player.y = obj.y + obj.frameY/2 + player.frameY/2  # 발판 위로 올림
                             collipse = True
@@ -868,7 +691,7 @@ class StageclearState:
         collipse = False
 
         for obj in game_world.all_objects():
-            if obj.__class__ == Map_Tile.TileGrass:
+            if obj.__class__ == Map_Tile.Tile:
                 if collideCheck(player, obj) == 'bottom':
                     player.y = obj.y + obj.frameY / 2 + player.frameY / 2
                     collipse = True
@@ -1065,28 +888,28 @@ class Player:
                 self.image = self.image_FireL
 
         # 변신 아이템 충돌
-        for transItem in Item_TransForm.transItems:
-            if not collideCheck(self, transItem) == None:
-                game_data.gameData.score += 100
-                if self.transform < transItem.itemValue:
-                    self.prevState = self.cur_state.__name__  # 이전상태의 이름을 저장해둔다.
-                    if not self.cur_state == JumpState or self.cur_state == GroundpoundState: #버그방지용
-                        self.y += 15
+        for transItem in game_world.all_objects():
+            if transItem.__class__ == Item_TransForm.TransformItem:  # 충돌체크를 해야할 클래스의 이름
+                if not collideCheck(self, transItem) == None:
+                    game_data.gameData.score += 100
+                    if self.transform < transItem.itemValue:
+                        self.prevState = self.cur_state.__name__  # 이전상태의 이름을 저장해둔다.
+                        if not self.cur_state == JumpState or self.cur_state == GroundpoundState: #버그방지용
+                            self.y += 15
 
-                    if transItem.itemValue == Item_TransForm.Value.Mushroom:
-                        self.transform = P_Transform.T_Super
-                    elif transItem.itemValue == Item_TransForm.Value.Fireflower:
-                        self.transform = P_Transform.T_Fire
-                    game_data.gameData.transform = self.transform   # 게임데이터 최신화
-                    # Frame Image Update
-                    self.frameX, self.frameY = 40, 60
-                    self.imageH = 660
-                    self.add_event(TRANSLATE_EVENT)
+                        if transItem.itemValue == Item_TransForm.Value.Mushroom:
+                            self.transform = P_Transform.T_Super
+                        elif transItem.itemValue == Item_TransForm.Value.Fireflower:
+                            self.transform = P_Transform.T_Fire
+                        game_data.gameData.transform = self.transform   # 게임데이터 최신화
+                        # Frame Image Update
+                        self.frameX, self.frameY = 40, 60
+                        self.imageH = 660
+                        self.add_event(TRANSLATE_EVENT)
 
-                # 해당 충돌 아이템 삭제
-                Item_TransForm.transItems.remove(transItem)
-                game_world.remove_object(transItem)
-                break
+                    # 해당 충돌 아이템 삭제
+                    game_world.remove_object(transItem)
+                    break
 
         #=== 몬스터
         if self.never_collide_with_mob: # 무적시간
@@ -1094,59 +917,62 @@ class Player:
             if self.ncwmTimer <= 0:
                 self.never_collide_with_mob = False
         # goomba
-        for goomba in mob_goomba.goombas:
-            if not goomba.ismoving:
-                # goomba는 화면에 처음 잡혔을 때부터 움직이기 시작한다.
-                if self.x <= goomba.x <= self.x + 800:
-                    goomba.ismoving = True
-            else:
-                # goomba의 시야에 플레이어가 들어오면 돌진을 시작한다.
-                if goomba.dir == 1:
-                    if goomba.x < self.x < goomba.x + 300:
-                        goomba.state = mob_goomba.G_State.Dash
-                    else:
-                        goomba.state = mob_goomba.G_State.Walk
+        for goomba in game_world.all_objects():
+            if goomba.__class__ == mob_goomba.Goomba:  # 충돌체크를 해야할 클래스의 이름
+                if not goomba.ismoving:
+                    # goomba는 화면에 처음 잡혔을 때부터 움직이기 시작한다.
+                    if self.x <= goomba.x <= self.x + 800:
+                        goomba.ismoving = True
                 else:
-                    if goomba.x - 300 < self.x < goomba.x:
-                        goomba.state = mob_goomba.G_State.Dash
+                    # goomba의 시야에 플레이어가 들어오면 돌진을 시작한다.
+                    if goomba.dir == 1:
+                        if goomba.x < self.x < goomba.x + 300:
+                            goomba.state = mob_goomba.G_State.Dash
+                        else:
+                            goomba.state = mob_goomba.G_State.Walk
                     else:
-                        goomba.state = mob_goomba.G_State.Walk
+                        if goomba.x - 300 < self.x < goomba.x:
+                            goomba.state = mob_goomba.G_State.Dash
+                        else:
+                            goomba.state = mob_goomba.G_State.Walk
 
-                # 충돌체크
-                if not collideCheck(self, goomba) == None:
-                    if self.cur_state == FallingState or self.cur_state == GroundpoundState:
-                        if collideCheck(self, goomba) == 'bottom':
-                            mob_goomba.goombas.remove(goomba)
-                            game_world.remove_object(goomba)
-                    else:
-                        if not self.never_collide_with_mob:
-                            game_data.gameData.life -= 1
+                    # 충돌체크
+                    if not collideCheck(self, goomba) == None:
+                        if self.cur_state == FallingState or self.cur_state == GroundpoundState:
+                            if collideCheck(self, goomba) == 'bottom':
+                                # 충돌한 객체 삭제
+                                game_world.remove_object(goomba)
+                        else:
                             if not self.never_collide_with_mob:
-                                self.never_collide_with_mob = True  # 몹과 충돌하지 않는 상태가 되어서
-                                self.ncwmTimer = 1000               # 1초의 무적시간이 주어진다.
-                            if self.transform > P_Transform.T_Basic:
-                                if self.transform == P_Transform.T_Fire:
-                                    self.transform = P_Transform.T_Super
-                                elif self.transform == P_Transform.T_Super:
-                                    self.transform = P_Transform.T_Basic
-                            else:
-                                print('Game over')#
+                                game_data.gameData.life -= 1
+                                if not self.never_collide_with_mob:
+                                    self.never_collide_with_mob = True  # 몹과 충돌하지 않는 상태가 되어서
+                                    self.ncwmTimer = 1000               # 1초의 무적시간이 주어진다.
+                                if self.transform > P_Transform.T_Basic:
+                                    if self.transform == P_Transform.T_Fire:
+                                        self.transform = P_Transform.T_Super
+                                    elif self.transform == P_Transform.T_Super:
+                                        self.transform = P_Transform.T_Basic
+                                else:
+                                    print('Game over')#
         #=== 스테이지 클리어 관련
         # Flag
-        for flag in Map_Flag.flags:
-            if not collideCheck(self, flag) == None:
-                self.add_event(STAGECLEAR_EVENT)
+        for flag in game_world.all_objects():
+            if flag.__class__ == Map_Flag.Flag:  # 충돌체크를 해야할 클래스의 이름
+                if not collideCheck(self, flag) == None:
+                    self.add_event(STAGECLEAR_EVENT)
         # Castle
         if self.stageclear:
-            for door in Map_Castle.doors:
-                if not collideCheck(self, door) == None:
-                    if game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
-                        game_data.gameData.unlocked_stage += 1      # 다음 스테이지 해금
-                        print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')#test
-                    # Game Data 업데이트
-                    reset_variable(self)
-                    print('초기화 x: ' + str(self.x))
-                    game_framework.change_state(state_select)       # 스테이지 선택화면으로 이동
+            for door in game_world.all_objects():
+                if door.__class__ == Map_Castle.Door:  # 충돌체크를 해야할 클래스의 이름
+                    if not collideCheck(self, door) == None:
+                        if game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
+                            game_data.gameData.unlocked_stage += 1      # 다음 스테이지 해금
+                            print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')#test
+                        # Game Data 업데이트
+                        #reset_variable(self)
+                        print('초기화 x: ' + str(self.x))
+                        game_framework.change_state(state_select)       # 스테이지 선택화면으로 이동
 
 
     def get_boundingbox(self):  # 바운딩박스

@@ -71,6 +71,16 @@ def handle_events():
                     print('curStage 증가 -> curStage: ' + str(game_data.gameData.cur_stage))
                 else:
                     print('마지막 스테이지여서 움직이지 못함')
+            # 아래 3개는 치트키임
+            elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_1):
+                print('치트키 - 해금 1')
+                game_data.gameData.unlocked_stage = 1
+            elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_2):
+                print('치트키 - 해금 2')
+                game_data.gameData.unlocked_stage = 2
+            elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_3):
+                print('치트키 - 해금 3')
+                game_data.gameData.unlocked_stage = 3
 
 
 def draw():

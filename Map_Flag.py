@@ -1,5 +1,7 @@
 from pico2d import *
 
+import game_world
+
 show_bb = False
 
 class Flag:
@@ -38,10 +40,5 @@ flags = []
 def makeFlag(xPos, yPos):
     newFlag = Flag()
     newFlag.x, newFlag.y = xPos, yPos
-    flags.append(newFlag)
 
-
-def removeAll():
-    print('깃발 전체 삭제')
-    for obj in flags:
-        flags.remove(obj)
+    game_world.add_object(newFlag, 1)

@@ -1,5 +1,7 @@
 from pico2d import *
 
+import game_world
+
 show_bb = False
 
 # 벽돌
@@ -38,10 +40,5 @@ bricks = []
 def makeBrick(xPos, yPos):
     newBrick = Brick()
     newBrick.x, newBrick.y = xPos, yPos
-    bricks.append(newBrick)
 
-
-def removeAll():
-    print('벽돌 전체 삭제')
-    for obj in bricks:
-        bricks.remove(obj)
+    game_world.add_object(newBrick, 1)

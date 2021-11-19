@@ -27,7 +27,6 @@ class Coin():
 
         if self.isEffect:
             if self.slowFrame >= 40:
-                coins.remove(self)
                 game_world.remove_object(self)
 
 
@@ -40,10 +39,5 @@ def make_coins(xPos, yPos, effect):
         newcoin.isEffect = True
     else:
         newcoin.isUsed = True
-    coins.append(newcoin)
 
-
-def removeAll():
-    print('코인 전체 삭제')
-    for obj in coins:
-        coins.remove(obj)
+    game_world.add_object(newcoin, 1)

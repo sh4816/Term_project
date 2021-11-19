@@ -60,30 +60,15 @@ class TransformItem():
             #=== 왼쪽 오른쪽으로 이동
             # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
             collipse = False
-            checkCount = 0
-            while (not collipse and checkCount < 4):
-                if checkCount == 0:
-                    for box in Map_Box.boxes:
-                        if collideCheck(self, box) == "left" or collideCheck(self, box) == "right":
-                            collipse = True
-                            break
-                elif checkCount == 1:
-                    for brick in Map_Brick.bricks:
-                        if collideCheck(self, brick) == "left" or collideCheck(self, brick) == "right":
-                            collipse = True
-                            break
-                elif checkCount == 2:
-                    for pipe in Map_Pipe.pipes:
-                        if collideCheck(self, pipe) == "left" or collideCheck(self, pipe) == "right":
-                            collipse = True
-                            break
-                elif checkCount == 3:
-                    for tile in Map_Tile.tiles:
-                        if collideCheck(self, tile) == "left" or collideCheck(self, tile) == "right":
-                            collipse = True
-                            break
+            for obj in game_world.all_objects():
+                if obj.__class__ == Map_Box.Box_Question \
+                        or obj.__class__ == Map_Brick.Brick \
+                        or obj.__class__ == Map_Pipe.Pipe \
+                        or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                    if collideCheck(self, obj) == "left" or collideCheck(self, obj) == "right":
+                        collipse = True
+                        break
 
-                checkCount += 1
             # 충돌하지 않았을 때에만 이동
             if collipse:
                 self.dir = (-1) * self.dir  # 방향전환
@@ -95,34 +80,15 @@ class TransformItem():
 
             #=== 바닥에 아무것도 없으면(허공에 있으면) 아래로 낙하
             collipse = False
-            checkCount = 0
-            while (not collipse and checkCount < 4):
-                if checkCount == 0:
-                    for box in Map_Box.boxes:
-                        if collideCheck(self, box) == "bottom":
-                            self.y = box.y + box.frameY
+            for obj in game_world.all_objects():
+                if obj.__class__ == Map_Box.Box_Question \
+                        or obj.__class__ == Map_Brick.Brick \
+                        or obj.__class__ == Map_Pipe.Pipe \
+                        or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                    if collideCheck(self, obj) == "bottom":
+                            self.y = obj.y + obj.frameY
                             collipse = True
                             break
-                elif checkCount == 1:
-                    for brick in Map_Brick.bricks:
-                        if collideCheck(self, brick) == "bottom":
-                            self.y = brick.y + brick.frameY
-                            collipse = True
-                            break
-                elif checkCount == 2:
-                    for pipe in Map_Pipe.pipes:
-                        if collideCheck(self, pipe) == "bottom":
-                            self.y = pipe.y + pipe.frameY
-                            collipse = True
-                            break
-                elif checkCount == 3:
-                    for tile in Map_Tile.tiles:
-                        if collideCheck(self, tile) == "bottom":
-                            self.y = tile.y + tile.frameY
-                            collipse = True
-                            break
-
-                checkCount += 1
 
             if not collipse:
                 self.timerFall += game_framework.frame_time
@@ -160,10 +126,5 @@ def make_transItem(xPos, yPos, value):
     newitem = TransformItem()
     newitem.x, newitem.y = xPos, yPos
     newitem.itemValue = value
-    transItems.append(newitem)
 
-
-def removeAll():
-    print('변신아이템 전체 삭제')
-    for obj in transItems:
-        transItems.remove(obj)
+    game_world.add_object(newitem, 1)

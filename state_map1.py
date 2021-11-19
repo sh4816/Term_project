@@ -42,35 +42,24 @@ def enter():
     #=== 맵 오브젝트 불러오기
     MapEditor.editMap("map1")
 
-    # 뒤
-    game_world.add_objects(Map_Tile.tiles, 0)
-    game_world.add_objects(Map_Castle.castles, 0)
-
-    # 앞
-    game_world.add_objects(Map_Box.boxes, 1)
-    game_world.add_objects(Map_Brick.bricks, 1)
-    game_world.add_objects(Map_Pipe.pipes, 1)
-    game_world.add_objects(Map_Castle.doors, 1)
-    game_world.add_objects(Map_Flag.flags, 1)
-    game_world.add_objects(Item_Coin.coins, 1)
-    game_world.add_objects(Item_TransForm.transItems, 1)
-    game_world.add_objects(mob_goomba.goombas, 1)
+    # # 뒤
+    # game_world.add_objects(Map_Tile.tiles, 0)
+    # game_world.add_objects(Map_Castle.castles, 0)
+    #
+    # # 앞
+    # game_world.add_objects(Map_Box.boxes, 1)
+    # game_world.add_objects(Map_Brick.bricks, 1)
+    # game_world.add_objects(Map_Pipe.pipes, 1)
+    # game_world.add_objects(Map_Castle.doors, 1)
+    # game_world.add_objects(Map_Flag.flags, 1)
+    # game_world.add_objects(Item_Coin.coins, 1)
+    # game_world.add_objects(Item_TransForm.transItems, 1)
+    # game_world.add_objects(mob_goomba.goombas, 1)
 
     game_world.add_object(player, 1)
 
 
 def exit():
-    Map_Tile.removeAll()
-    Map_Tile.removeAll()
-    Map_Box.removeAll()
-    Map_Brick.removeAll()
-    Map_Pipe.removeAll()
-    Map_Castle.removeAll()
-    Map_Flag.removeAll()
-    Item_Coin.removeAll()
-    Item_TransForm.removeAll()
-    ball.removeAll()
-    mob_goomba.removeAll()
     for game_object in game_world.all_objects():
         game_world.remove_object(game_object)
     game_world.clear()
@@ -101,44 +90,8 @@ def update():
         player.transform = game_data.gameData.transform
 
     #=== Scroll Update
-    player.scrollX = scrollMgr.getScrollX("Map1", player)
-
-    bg.scrollX = scrollMgr.getScrollX("Map1", player)
-
-    for tile in Map_Tile.tiles:
-        tile.scrollX = scrollMgr.getScrollX("Map1", player)
-
-    for box in Map_Box.boxes:
-        box.scrollX = scrollMgr.getScrollX("Map1", player)
-
-    for brick in Map_Brick.bricks:
-        brick.scrollX = scrollMgr.getScrollX("Map1", player)
-
-    for castle in Map_Castle.castles:
-        castle.scrollX = scrollMgr.getScrollX("Map1", player)
-
-    for door in Map_Castle.doors:
-        door.scrollX = scrollMgr.getScrollX("Map1", player)
-
-    for flag in Map_Flag.flags:
-        flag.scrollX = scrollMgr.getScrollX("Map1", player)
-
-    for pipe in Map_Pipe.pipes:
-        pipe.scrollX = scrollMgr.getScrollX("Map1", player)
-
-    for coin in Item_Coin.coins:
-        coin.scrollX = scrollMgr.getScrollX("Map1", player)
-
-    for t_item in Item_TransForm.transItems:
-        t_item.scrollX = scrollMgr.getScrollX("Map1", player)
-
-    for fireball in ball.fireballs:
-        fireball.scrollX = scrollMgr.getScrollX("Map1", player)
-
-    for goomba in mob_goomba.goombas:
-        goomba.scrollX = scrollMgr.getScrollX("Map1", player)
-
     for game_object in game_world.all_objects():
+        game_object.scrollX = scrollMgr.getScrollX("Map1", player)
         game_object.update()
 
 

@@ -1,6 +1,8 @@
 from pico2d import *
 import enum
 
+import game_world
+
 show_bb = False
 
 class boxType(enum.IntEnum):
@@ -60,12 +62,5 @@ def makeBox(xPos, yPos, box_type):
         newBox.itemValue = boxType.mushroom
     elif box_type == "box_Flower":
         newBox.itemValue = boxType.flower
-    # newBox.itemValue += 1
 
-    boxes.append(newBox)
-
-
-def removeAll():
-    print('상자 전체 삭제')
-    for obj in boxes:
-        boxes.remove(obj)
+    game_world.add_object(newBox, 1)

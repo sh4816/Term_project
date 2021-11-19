@@ -1,5 +1,7 @@
 from pico2d import *
 
+import game_world
+
 show_bb = False
 
 class Castle:
@@ -57,19 +59,13 @@ castles = []
 def makeDoor(xPos, yPos):
     newDoor = Door()
     newDoor.x, newDoor.y = xPos, yPos
-    doors.append(newDoor)
+    #doors.append(newDoor)
+    game_world.add_object(newDoor, 1)
 
 
 def makeCastle(xPos, yPos):
     newCastle = Castle()
     newCastle.x, newCastle.y = xPos, yPos
-    castles.append(newCastle)
+
+    game_world.add_object(newCastle, 0)
     makeDoor(newCastle.x, newCastle.y)  # 문 생성
-
-
-def removeAll():
-    print('성&문 전체 삭제')
-    for obj in castles:
-        castles.remove(obj)
-    for obj in doors:
-        doors.remove(obj)
