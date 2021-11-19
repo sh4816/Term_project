@@ -6,10 +6,12 @@ class Castle:
     image = None
 
     def __init__(self):  # 생성자
-        self.frameX, self.frameY = 210, 90
+        self.frameX, self.frameY = 210, 180
         self.x, self.y = 0, 0
         self.scrollX = 0
         self.type = None
+
+        self.door_frameX, self.door_frameY = 30, 60
 
         self.image = load_image('castle.png')
 
@@ -22,10 +24,12 @@ class Castle:
         # bounding box
         global show_bb
         if show_bb:
+            # 성
             draw_rectangle(self.x - self.frameX / 2 - self.scrollX, self.y + self.frameY / 2
                            , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
-            draw_rectangle(self.x - 15 - self.scrollX, self.y - self.frameY / 2 + 30
-                           , self.x + 15 - self.scrollX, self.y - self.frameY / 2)
+            # 문
+            draw_rectangle(self.x - self.door_frameX / 2 - self.scrollX, self.y - self.door_frameY/4
+                           , self.x + self.door_frameX / 2 - self.scrollX, self.y - self.door_frameY)
 
 
 # 객체 생성 함수

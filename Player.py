@@ -1,6 +1,6 @@
 import game_framework
-import enum
-import math
+
+import state_select
 
 import mob_goomba
 from collide import *
@@ -754,14 +754,14 @@ class GroundpoundState:
                             elif box.itemValue == Map_Box.boxType.mushroom:
                                 newMush = Item_TransForm.TransformItem()
                                 newMush.x, newMush.y = box.x, box.y - box.frameY
-                                newMush.itemValue = Item_TransForm.transitem_Value.Mushroom
+                                newMush.itemValue = Item_TransForm.Value.Mushroom
                                 Item_TransForm.transItems.append(newMush)
                                 game_world.add_object(newMush, 1)
                             elif box.itemValue == Map_Box.boxType.flower:
                                 newFlower = Item_TransForm.TransformItem()
                                 newFlower.x, newFlower.y = box.x, box.y - box.frameY
                                 newFlower.isReverse = True
-                                newFlower.itemValue = Item_TransForm.transitem_Value.Fireflower
+                                newFlower.itemValue = Item_TransForm.Value.Fireflower
                                 Item_TransForm.transItems.append(newFlower)
                                 game_world.add_object(newFlower, 1)
                             # Box를 사용한 상태로 변경
@@ -1055,6 +1055,14 @@ class Player:
                                     self.transform = P_Transform.T_Basic
                             else:
                                 print('Game over')#
+
+        # Castle
+        for castle in Map_Castle.castles:
+            if not collideCheck(self, castle) == None:
+                if game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
+                    game_data.gameData.unlocked_stage += 1      # 다음 스테이지 해금
+                    print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')#test
+                game_framework.change_state(state_select)       # 스테이지 선택화면으로 이동
 
 
     def get_boundingbox(self):  # 바운딩박스

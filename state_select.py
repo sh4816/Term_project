@@ -74,11 +74,11 @@ def draw():
     elif game_data.gameData.unlocked_stage == 2:
         image_lock.draw(630, 200)
 
-    drawX = 330 + 150 * (game_data.gameData.cur_stage - 1)
-    if game_data.gameData.transform == P_Transform.T_Basic:
+    drawX = 325 + 153 * (game_data.gameData.cur_stage - 1)
+    if game_data.gameData.transform == int(P_Transform.T_Basic):
         image_mario.clip_draw(0, 90, 40, 30, drawX, 200)
     else:
-        image_mario.clip_draw(0, 90, 40, 60, drawX, 200)
+        image_mario.clip_draw(0, 240, 40, 60, drawX, 220)
 
     update_canvas()
 
