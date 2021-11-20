@@ -1,3 +1,4 @@
+import Map_MovingTile
 import game_framework
 
 import state_select
@@ -17,6 +18,7 @@ import Map_Brick
 import Map_Pipe
 import Map_Castle
 import Map_Flag
+import Map_MovingTile
 import Item_Coin
 import Item_TransForm
 import ball
@@ -132,7 +134,8 @@ class IdleState:
             if obj.__class__ == Map_Box.Box_Question \
                     or obj.__class__ == Map_Brick.Brick \
                     or obj.__class__ == Map_Pipe.Pipe \
-                    or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                    or obj.__class__ == Map_Tile.Tile\
+                    or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
                 if collideCheck(player, obj) == "bottom":
                     collipse = True
                     break
@@ -183,7 +186,8 @@ class RunState:
             if obj.__class__ == Map_Box.Box_Question \
                     or obj.__class__ == Map_Brick.Brick \
                     or obj.__class__ == Map_Pipe.Pipe \
-                    or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                    or obj.__class__ == Map_Tile.Tile\
+                    or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
                 if collideCheck(player, obj) == "left" or collideCheck(player, obj) == "right":
                     #player.x = obj.x - obj.frameX - 1 # 끼임 방지
                     collipse = True
@@ -203,7 +207,8 @@ class RunState:
             if obj.__class__ == Map_Box.Box_Question \
                     or obj.__class__ == Map_Brick.Brick \
                     or obj.__class__ == Map_Pipe.Pipe \
-                    or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                    or obj.__class__ == Map_Tile.Tile\
+                    or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
                 if collideCheck(player, obj) == "bottom":
                     collipse = True
                     break
@@ -255,7 +260,8 @@ class DashState:
             if obj.__class__ == Map_Box.Box_Question \
                     or obj.__class__ == Map_Brick.Brick \
                     or obj.__class__ == Map_Pipe.Pipe \
-                    or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                    or obj.__class__ == Map_Tile.Tile\
+                    or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
                 if collideCheck(player, obj) == "left" or collideCheck(player, obj) == "right":
                     collipse = True
                     break
@@ -274,11 +280,12 @@ class DashState:
             if obj.__class__ == Map_Box.Box_Question \
                     or obj.__class__ == Map_Brick.Brick \
                     or obj.__class__ == Map_Pipe.Pipe \
-                    or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                    or obj.__class__ == Map_Tile.Tile\
+                    or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
                 if collideCheck(player, obj) == "bottom":
-                            player.y = obj.y + obj.frameY/2 + player.frameY/2  # 발판 위로 올림
-                            collipse = True
-                            break
+                    player.y = obj.y + obj.frameY/2 + player.frameY/2  # 발판 위로 올림
+                    collipse = True
+                    break
 
         if not collipse:
             player.add_event(FALLING_EVENT)
@@ -361,7 +368,8 @@ class JumpState:
                 if obj.__class__ == Map_Box.Box_Question \
                         or obj.__class__ == Map_Brick.Brick \
                         or obj.__class__ == Map_Pipe.Pipe \
-                        or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                        or obj.__class__ == Map_Tile.Tile\
+                        or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
                     if collideCheck(player, obj) == "left" or collideCheck(player, obj) == "right":
                         collipse = True
                         break
@@ -419,7 +427,8 @@ class JumpState:
                     break
             elif obj.__class__ == Map_Brick.Brick \
                 or obj.__class__ == Map_Pipe.Pipe \
-                or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                or obj.__class__ == Map_Tile.Tile\
+                or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
                 if collideCheck(player, obj) == "top":
                     collipse = True
                     break
@@ -498,7 +507,8 @@ class FallingState:
             if obj.__class__ == Map_Box.Box_Question\
                 or obj.__class__ == Map_Brick.Brick\
                 or obj.__class__ == Map_Pipe.Pipe\
-                or obj.__class__ == Map_Tile.Tile:      # 충돌체크를 해야할 클래스의 이름
+                or obj.__class__ == Map_Tile.Tile\
+                or obj.__class__ == Map_MovingTile.MovingTile:      # 충돌체크를 해야할 클래스의 이름
                     if collideCheck(player, obj) == "bottom":
                         player.y = obj.y + obj.frameY / 2 + player.frameY / 2
                         collipse = True
@@ -523,7 +533,8 @@ class FallingState:
                         if obj.__class__ == Map_Box.Box_Question \
                                 or obj.__class__ == Map_Brick.Brick \
                                 or obj.__class__ == Map_Pipe.Pipe \
-                                or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                                or obj.__class__ == Map_Tile.Tile\
+                                or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
                             if collideCheck(player, obj) == "left" or collideCheck(player, obj) == "right":
                                 collipse = True
                                 break
@@ -614,7 +625,8 @@ class GroundpoundState:
                             break
                     elif obj.__class__ == Map_Brick.Brick \
                         or obj.__class__ == Map_Pipe.Pipe \
-                        or obj.__class__ == Map_Tile.Tile:  # 충돌체크를 해야할 클래스의 이름
+                        or obj.__class__ == Map_Tile.Tile\
+                        or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
                         if collideCheck(player, obj) == "bottom":
                             player.y = obj.y + obj.frameY/2 + player.frameY/2  # 발판 위로 올림
                             collipse = True
@@ -891,6 +903,12 @@ class Player:
             else:
                 self.image = self.image_FireL
 
+        # 움직이는 발판
+        for movingTile in game_world.all_objects():
+            if movingTile.__class__ == Map_MovingTile.MovingTile:
+                if collideCheck(self, movingTile) == 'bottom':
+                    self.y += movingTile.dir * Map_MovingTile.MOVE_SPEED_PPS * game_framework.frame_time
+
         # 변신 아이템 충돌
         for transItem in game_world.all_objects():
             if transItem.__class__ == Item_TransForm.TransformItem:  # 충돌체크를 해야할 클래스의 이름
@@ -1002,6 +1020,7 @@ class Player:
                 mob_goomba.show_bb = False
                 Map_Castle.show_bb = False
                 Trigger.show_bb = False
+                Map_MovingTile.show_bb = False
             else:
                 self.show_bb = True
                 Map_Box.show_bb = True
@@ -1012,6 +1031,7 @@ class Player:
                 mob_goomba.show_bb = True
                 Map_Castle.show_bb = True
                 Trigger.show_bb = True
+                Map_MovingTile.show_bb = True
 
         if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):
             score = game_data.gameData.score

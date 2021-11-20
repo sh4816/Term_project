@@ -10,6 +10,8 @@ from player import Player, P_Transform
 import game_data
 import MapEditor
 import Map_Background
+import Map_MovingTile
+import mob_goomba
 
 
 name = "Map2_2"
@@ -73,13 +75,23 @@ def handle_events():
 
 
 def update():
-    # === 맵 이동 트리거
     global player
+    # === 캐릭터가 일정범위 접근해 있어야 오브젝트들이 움직인다.
+    for obj in game_world.all_objects():
+        if obj.__class__ == mob_goomba:
+            if player.x + 600 >= obj.x:
+                obj.isMoving = True
+
+    # === 맵 이동 트리거
     for trigger in Trigger.triggers:
-        if collideCheck(player, trigger) == 'bottom':
-            if trigger.type == 'trans2_2':
+        if trigger.type == 'trans2_2':
+            if collideCheck(player, trigger) == 'bottom':
                 player.collide_trigger = True
                 break
+        if trigger.type == 'map_map2_3':
+            if collideCheck(player, trigger) == 'left':
+                print('Map 2-3 로 이동')  # test
+                #game_framework.change_state(state_map2_3)  # 맵 2-2 로 이동
         else:
             player.collide_trigger = False
 

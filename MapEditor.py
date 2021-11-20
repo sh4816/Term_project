@@ -8,6 +8,7 @@ import Map_Brick
 import Map_Pipe
 import Map_Castle
 import Map_Flag
+import Map_MovingTile
 import mob_goomba
 import Trigger
 
@@ -93,10 +94,15 @@ def editMap(mapName):
                 Map_Pipe.makePipe(obj_xPos*size, obj_yPos*size, obj_name)
                 if mapName == "map2_1":
                     Trigger.makeTrigger(obj_xPos*size, obj_yPos*size, 'map_map2_2')
+                elif mapName == "map2_2":
+                    Trigger.makeTrigger(obj_xPos*size, obj_yPos*size, 'map_map2_3')
             elif obj_type == "pipeT_transPos": # pipe trigger - 좌표 변환
                 Map_Pipe.makePipe(obj_xPos*size, obj_yPos*size, obj_name)
                 if mapName == "map2_2":
                     Trigger.makeTrigger(obj_xPos*size, obj_yPos*size, 'trans2_2')
+            elif obj_type == "moving":
+                Map_MovingTile.makeMovingTile(obj_xPos*size, obj_yPos*size, obj_name)
+                print(obj_xPos*size, obj_yPos*size, obj_name)
             elif obj_type == "coin":
                 Item_Coin.make_coins(obj_xPos*size, obj_yPos*size, False)
             elif obj_type == "castle":
