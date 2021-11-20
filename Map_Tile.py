@@ -10,6 +10,8 @@ class Tile:
     image_dirt = None
     image_snow = None
     image_steel = None
+    image_stone1 = None
+    image_stone2 = None
 
     def __init__(self):  # 생성자
         self.frameX, self.frameY = 30, 30  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
@@ -22,6 +24,8 @@ class Tile:
             self.image_dirt = load_image('tile_dirt.png')
             self.image_snow = load_image('tile_snowfield.png')
             self.image_steel = load_image('tile_steel.png')
+            self.image_stone1 = load_image('tile_stone1.png')
+            self.image_stone2 = load_image('tile_stone2.png')
 
     def update(self):
         pass
@@ -35,6 +39,10 @@ class Tile:
             self.image_snow.draw(self.x - self.scrollX, self.y)
         elif self.type == 'tile_Steel':
             self.image_steel.draw(self.x - self.scrollX, self.y)
+        elif self.type == 'tile_Stone1':
+            self.image_stone1.draw(self.x - self.scrollX, self.y)
+        elif self.type == 'tile_Stone2':
+            self.image_stone2.draw(self.x - self.scrollX, self.y)
 
         # bounding box
         global show_bb

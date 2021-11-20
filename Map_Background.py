@@ -2,6 +2,8 @@ from pico2d import *
 
 #BackGround
 class BG:
+    image = None
+
     def __init__(self): # 생성자
         self.image = load_image('BG.png')
         self.x = 0
@@ -9,12 +11,18 @@ class BG:
         self.overX = 0      # 이미지를 가져오는 범위가 기존 이미지를 얼마만큼 벗어나는지
         self.value = ""
 
+        self.image = load_image('BG.png')
+        self.image1 = load_image('BG.png')
+        self.image2 = load_image('BG2.png')
+
     def update(self):
         pass
 
     def draw(self):
-        if self.value == "Map1" or self.value == "Map2_1":
-            self.image = load_image('BG.png')
+        if self.value == "map1" or self.value == "map2_1":
+            self.image = self.image1
+        elif self.value == "map2_2":
+            self.image = self.image2
 
         # 작동 방식: 800x600 크기의 중심을 왼쪽으로 이동시키면서 화면 왼쪽 바깥으로 잘려나간 부분을 화면 오른쪽에서 다시 그려준다.
         # clib_draw: 렌더링 시작위치(x,y), 이미지에서 가져올 범위(w,h), 피봇(cx,cy), 렌더링 사이즈(w,h) 인거같기도...?

@@ -974,7 +974,7 @@ class Player:
                     game_framework.change_state(state_select)  # 스테이지 선택화면으로 이동
             if collideCheck(self, trigger) == 'right':
                 if trigger.type == 'map_map2_2':
-                    print('Map 2-2 로 이동')
+                    print('Map 2-2 로 이동')#test
 
 
     def get_boundingbox(self):  # 바운딩박스

@@ -1,4 +1,6 @@
 from enum import *
+
+import Item_Coin
 import Map_Background
 import Map_Tile
 import Map_Box
@@ -7,6 +9,7 @@ import Map_Pipe
 import Map_Castle
 import Map_Flag
 import mob_goomba
+import Trigger
 
 ground_data_file = None
 obj_data_file = None
@@ -26,6 +29,10 @@ def editMap(mapName):
         ground_file_name = "Data_Map_2_1_ground.txt"
         obj_file_name = "Data_Map_2_1_obj.txt"
         mob_file_name = "Data_Map_2_1_mob.txt"
+    elif mapName == "map2_2":
+        ground_file_name = "Data_Map_2_2_ground.txt"
+        obj_file_name = "Data_Map_2_2_obj.txt"
+        mob_file_name = "Data_Map_2_2_mob.txt"
 
 
     #=== 지형 Ground
@@ -79,9 +86,15 @@ def editMap(mapName):
             elif obj_type == "box":
                 Map_Box.makeBox(obj_xPos*size, obj_yPos*size, obj_name)
             elif obj_type == "brick":
-                Map_Brick.makeBrick(obj_xPos*size, obj_yPos*size)
+                Map_Brick.makeBrick(obj_xPos*size, obj_yPos*size, obj_name)
             elif obj_type == "pipe":
                 Map_Pipe.makePipe(obj_xPos*size, obj_yPos*size, obj_name)
+            elif obj_type == "pipe_T": # pipe trigger
+                Map_Pipe.makePipe(obj_xPos*size, obj_yPos*size, obj_name)
+                if mapName == "map2_1":
+                    Trigger.makeTrigger(obj_xPos*size, obj_yPos*size, 'map_map2_2')
+            elif obj_type == "coin":
+                Item_Coin.make_coins(obj_xPos*size, obj_yPos*size, False)
             elif obj_type == "castle":
                 Map_Castle.makeCastle(obj_xPos*size, obj_yPos*size)
             elif obj_type == "flag":

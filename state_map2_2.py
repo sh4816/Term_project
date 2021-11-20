@@ -1,27 +1,28 @@
 from pico2d import *
+
+import Trigger
 import game_framework
 import game_world
 import ScrollManager as scrollMgr
 
 from player import Player, P_Transform
 import game_data
-import Trigger
 import MapEditor
 import Map_Background
 
 
-name = "Map1"
+name = "Map2_2"
 
 player = None
 
 def enter():
     #=== 맵 배경
     bg = Map_Background.BG()
+    bg.value = "map2_2"
     game_world.add_object(bg, 0)
-    bg.value = "map1"
 
     #=== 맵 오브젝트 불러오기
-    MapEditor.editMap("map1")
+    MapEditor.editMap("map2_2")
 
     # Player 객체를 생성
     global player
@@ -68,10 +69,10 @@ def handle_events():
 def update():
     #=== Scroll Update
     for trigger in Trigger.triggers:
-        trigger.scrollX = scrollMgr.getScrollX("Map1", player)
+        trigger.scrollX = scrollMgr.getScrollX("Map2_2", player)
 
     for game_object in game_world.all_objects():
-        game_object.scrollX = scrollMgr.getScrollX("Map1", player)
+        game_object.scrollX = scrollMgr.getScrollX("Map2_2", player)
         game_object.update()
 
 
@@ -79,6 +80,4 @@ def draw():
     clear_canvas()
     for game_object in game_world.all_objects():
         game_object.draw()
-    for trigger in Trigger.triggers:
-        trigger.draw()
     update_canvas()

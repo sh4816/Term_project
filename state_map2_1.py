@@ -1,8 +1,6 @@
-import random
-import json
-import os
-
 from pico2d import *
+
+import Trigger
 import game_framework
 import game_world
 import ScrollManager as scrollMgr
@@ -43,6 +41,7 @@ def enter():
 
 
 def exit():
+    Trigger.remove_all_triggers()
     for game_object in game_world.all_objects():
         game_world.remove_object(game_object)
     game_world.clear()
@@ -68,11 +67,10 @@ def handle_events():
 
 
 def update():
-    #=== player State Update
-    if not player.transform == game_data.gameData.transform:
-        player.transform = game_data.gameData.transform
-
     #=== Scroll Update
+    for trigger in Trigger.triggers:
+        trigger.scrollX = scrollMgr.getScrollX("Map2_1", player)
+
     for game_object in game_world.all_objects():
         game_object.scrollX = scrollMgr.getScrollX("Map2_1", player)
         game_object.update()
