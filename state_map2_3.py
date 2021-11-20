@@ -10,24 +10,22 @@ from player import Player, P_Transform
 import game_data
 import MapEditor
 import Map_Background
-import mob_goomba
 
 #
-import state_map2_3
+import state_select
 
-
-name = "Map2_2"
+name = "Map2_3"
 
 player = None
 
 def enter():
     #=== 맵 배경
     bg = Map_Background.BG()
-    bg.value = "map2_2"
+    bg.value = "map2_3"
     game_world.add_object(bg, 0)
 
     #=== 맵 오브젝트 불러오기
-    MapEditor.editMap("map2_2")
+    MapEditor.editMap("map2_3")
 
     # Player 객체를 생성
     global player
@@ -36,10 +34,11 @@ def enter():
     player.transform = game_data.gameData.transform
     if player.transform == P_Transform.T_Basic:
         player.frameX, player.frameY = 40, 30
+        player.x, player.y = 75, 120
         player.imageH = 300
     else:
         player.frameX, player.frameY = 40, 60
-        player.y = 75
+        player.x, player.y = 75, 135
         player.imageH = 660
 
     game_world.add_object(player, 1)
@@ -72,33 +71,22 @@ def handle_events():
 
 
 def update():
-    global player
-    # === 캐릭터가 일정범위 접근해 있어야 오브젝트들이 움직인다.
-    for obj in game_world.all_objects():
-        if obj.__class__ == mob_goomba.Goomba:
-            if player.x + 600 >= obj.x:
-                obj.isMoving = True
-
     # === 맵 이동 트리거
     for trigger in Trigger.triggers:
-        if collideCheck(player, trigger) == 'bottom':
-            if trigger.type == 'trans2_2':
-                player.collide_trigger = True
-                break
-        if collideCheck(player, trigger) == 'right':
-            if trigger.type == 'map_map2_3':
-                print('Map 2-3 로 이동')  # test
-                game_framework.change_state(state_map2_3)  # 맵 2-3 로 이동
-                break
-        else:
-            player.collide_trigger = False
+        if collideCheck(player, trigger) == 'left':
+            if trigger.type == 'map_select':
+                if player.stageclear and game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
+                    game_data.gameData.unlocked_stage += 1  # 다음 스테이지 해금
+                    print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')  # test
+                # Game Data 업데이트
+                game_framework.change_state(state_select)  # 스테이지 선택화면으로 이동
 
     #=== Scroll Update
     for trigger in Trigger.triggers:
-        trigger.scrollX = scrollMgr.getScrollX("Map2_2", player)
+        trigger.scrollX = scrollMgr.getScrollX("Map2_3", player)
 
     for game_object in game_world.all_objects():
-        game_object.scrollX = scrollMgr.getScrollX("Map2_2", player)
+        game_object.scrollX = scrollMgr.getScrollX("Map2_3", player)
         game_object.update()
 
 

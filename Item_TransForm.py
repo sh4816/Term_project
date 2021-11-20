@@ -98,7 +98,6 @@ class TransformItem():
                     self.timerFall = 0
 
             if self.y < 0 or self.x < 0:
-                transItems.remove(self)
                 game_world.remove_object(self)
 
     def draw(self):

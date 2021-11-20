@@ -34,6 +34,10 @@ def editMap(mapName):
         ground_file_name = "Data_Map_2_2_ground.txt"
         obj_file_name = "Data_Map_2_2_obj.txt"
         mob_file_name = "Data_Map_2_2_mob.txt"
+    elif mapName == "map2_3":
+        ground_file_name = "Data_Map_2_3_ground.txt"
+        obj_file_name = "Data_Map_2_3_obj.txt"
+        mob_file_name = None
 
 
     #=== 지형 Ground
@@ -115,29 +119,30 @@ def editMap(mapName):
     obj_data_file.close()
 
     # 몹 obj
-    mob_xPos, mob_yPos = 0, 0
-    mob_type = ""
-    mob_name = ""
-    mob_dir = 1
+    if not mob_file_name == None:
+        mob_xPos, mob_yPos = 0, 0
+        mob_type = ""
+        mob_name = ""
+        mob_dir = 1
 
-    data_map_mob = []
+        data_map_mob = []
 
-    mob_data_file = open(mob_file_name, "r", encoding="utf8")
+        mob_data_file = open(mob_file_name, "r", encoding="utf8")
 
-    while True:
-        try:
-            data_mob_line = mob_data_file.readline()
+        while True:
+            try:
+                data_mob_line = mob_data_file.readline()
 
-            data_mob_obj = data_mob_line.split()
+                data_mob_obj = data_mob_line.split()
 
-            mob_xPos = float(data_mob_obj[0])
-            mob_yPos = float(data_mob_obj[1])
-            mob_type = data_mob_obj[2]
-            mob_dir = int(data_mob_obj[3])
+                mob_xPos = float(data_mob_obj[0])
+                mob_yPos = float(data_mob_obj[1])
+                mob_type = data_mob_obj[2]
+                mob_dir = int(data_mob_obj[3])
 
-            if mob_type == "goomba":
-                mob_goomba.makeGoombas(mob_xPos*size, mob_yPos*size, mob_dir)
+                if mob_type == "goomba":
+                    mob_goomba.makeGoombas(mob_xPos*size, mob_yPos*size, mob_dir)
 
-        except:
-            break
-    mob_data_file.close()
+            except:
+                break
+        mob_data_file.close()

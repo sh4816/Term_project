@@ -981,9 +981,9 @@ class Player:
 
         #=== 스테이지 클리어 관련
         # Flag
-        for flag in game_world.all_objects():
-            if flag.__class__ == Map_Flag.Flag:  # 충돌체크를 해야할 클래스의 이름
-                if not collideCheck(self, flag) == None:
+        for flagbar in game_world.all_objects():
+            if flagbar.__class__ == Map_Flag.Bar:  # 충돌체크를 해야할 클래스의 이름
+                if not collideCheck(self, flagbar) == None:
                     self.add_event(STAGECLEAR_EVENT)
 
 
@@ -1009,6 +1009,11 @@ class Player:
             key_event = key_event_table[(event.type, event.key)]
             self.add_event(key_event)
 
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_DOWN):
+            if self.collide_trigger:
+                print('이동')  #
+                self.x, self.y = 3435, 120
+
         if (event.type, event.key) == (SDL_KEYDOWN, SDLK_b):
             if self.show_bb:
                 self.show_bb = False
@@ -1020,6 +1025,7 @@ class Player:
                 mob_goomba.show_bb = False
                 Map_Castle.show_bb = False
                 Trigger.show_bb = False
+                Map_Flag.show_bb = False
                 Map_MovingTile.show_bb = False
             else:
                 self.show_bb = True
@@ -1031,6 +1037,7 @@ class Player:
                 mob_goomba.show_bb = True
                 Map_Castle.show_bb = True
                 Trigger.show_bb = True
+                Map_Flag.show_bb = True
                 Map_MovingTile.show_bb = True
 
         if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):

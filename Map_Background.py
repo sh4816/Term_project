@@ -19,7 +19,7 @@ class BG:
         pass
 
     def draw(self):
-        if self.value == "map1" or self.value == "map2_1":
+        if self.value == "map1" or self.value == "map2_1" or self.value == "map2_3":
             self.image = self.image1
         elif self.value == "map2_2":
             self.image = self.image2
