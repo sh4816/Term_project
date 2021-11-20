@@ -1,6 +1,8 @@
 import game_framework
 
 import state_select
+# import state_map2_2
+#import state_map2_2
 
 import mob_goomba
 from collide import *
@@ -841,6 +843,8 @@ class Player:
 
         self.stageclear = False     # stage를 클리어했는지
 
+        self.collide_trigger = False    # Trigger와 충돌했는지
+
         self.event_que = []
         self.cur_state = IdleState
         self.cur_state.enter(self, None)
@@ -963,18 +967,7 @@ class Player:
             if flag.__class__ == Map_Flag.Flag:  # 충돌체크를 해야할 클래스의 이름
                 if not collideCheck(self, flag) == None:
                     self.add_event(STAGECLEAR_EVENT)
-        #=== 맵 이동 트리거
-        for trigger in Trigger.triggers:
-            if collideCheck(self, trigger) == 'left':
-                if trigger.type == 'map_select':
-                    if self.stageclear and  game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
-                        game_data.gameData.unlocked_stage += 1  # 다음 스테이지 해금
-                        print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')  # test
-                    # Game Data 업데이트
-                    game_framework.change_state(state_select)  # 스테이지 선택화면으로 이동
-            if collideCheck(self, trigger) == 'right':
-                if trigger.type == 'map_map2_2':
-                    print('Map 2-2 로 이동')#test
+
 
 
     def get_boundingbox(self):  # 바운딩박스

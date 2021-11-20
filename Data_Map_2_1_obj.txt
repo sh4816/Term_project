@@ -1,5 +1,5 @@
-14 2 pipe_T pipeL_greenLB
-14 3 pipe_T pipeL_greenLT
+14 2 pipeT_Map2Map pipeL_greenLB
+14 3 pipeT_Map2Map pipeL_greenLT
 15 2 pipe pipeL_greenMB
 15 3 pipe pipeL_greenMT
 16 2 pipe pipeL_greenRB

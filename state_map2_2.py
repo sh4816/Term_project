@@ -4,6 +4,7 @@ import Trigger
 import game_framework
 import game_world
 import ScrollManager as scrollMgr
+from collide import *
 
 from player import Player, P_Transform
 import game_data
@@ -62,11 +63,26 @@ def handle_events():
             game_framework.quit()
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
                 game_framework.quit()
+        elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_DOWN):
+            global player
+            if player.collide_trigger:
+                print('이동')#
+                player.x, player.y = 3435, 120
         else:
             player.handle_event(event)
 
 
 def update():
+    # === 맵 이동 트리거
+    global player
+    for trigger in Trigger.triggers:
+        if collideCheck(player, trigger) == 'bottom':
+            if trigger.type == 'trans2_2':
+                player.collide_trigger = True
+                break
+        else:
+            player.collide_trigger = False
+
     #=== Scroll Update
     for trigger in Trigger.triggers:
         trigger.scrollX = scrollMgr.getScrollX("Map2_2", player)
@@ -80,4 +96,6 @@ def draw():
     clear_canvas()
     for game_object in game_world.all_objects():
         game_object.draw()
+    for trigger in Trigger.triggers:
+        trigger.draw()
     update_canvas()

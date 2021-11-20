@@ -2,6 +2,7 @@ from pico2d import *
 import game_framework
 import game_world
 import ScrollManager as scrollMgr
+from collide import *
 
 from player import Player, P_Transform
 import game_data
@@ -9,6 +10,8 @@ import Trigger
 import MapEditor
 import Map_Background
 
+# map state
+import state_select
 
 name = "Map1"
 
@@ -66,6 +69,17 @@ def handle_events():
 
 
 def update():
+    # === 맵 이동 트리거
+    global player
+    for trigger in Trigger.triggers:
+        if collideCheck(player, trigger) == 'left':
+            if trigger.type == 'map_select':
+                if player.stageclear and game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
+                    game_data.gameData.unlocked_stage += 1  # 다음 스테이지 해금
+                    print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')  # test
+                # Game Data 업데이트
+                game_framework.change_state(state_select)  # 스테이지 선택화면으로 이동
+
     #=== Scroll Update
     for trigger in Trigger.triggers:
         trigger.scrollX = scrollMgr.getScrollX("Map1", player)

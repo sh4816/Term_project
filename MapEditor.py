@@ -89,10 +89,14 @@ def editMap(mapName):
                 Map_Brick.makeBrick(obj_xPos*size, obj_yPos*size, obj_name)
             elif obj_type == "pipe":
                 Map_Pipe.makePipe(obj_xPos*size, obj_yPos*size, obj_name)
-            elif obj_type == "pipe_T": # pipe trigger
+            elif obj_type == "pipeT_Map2Map": # pipe trigger - 맵 state 이동
                 Map_Pipe.makePipe(obj_xPos*size, obj_yPos*size, obj_name)
                 if mapName == "map2_1":
                     Trigger.makeTrigger(obj_xPos*size, obj_yPos*size, 'map_map2_2')
+            elif obj_type == "pipeT_transPos": # pipe trigger - 좌표 변환
+                Map_Pipe.makePipe(obj_xPos*size, obj_yPos*size, obj_name)
+                if mapName == "map2_2":
+                    Trigger.makeTrigger(obj_xPos*size, obj_yPos*size, 'trans2_2')
             elif obj_type == "coin":
                 Item_Coin.make_coins(obj_xPos*size, obj_yPos*size, False)
             elif obj_type == "castle":

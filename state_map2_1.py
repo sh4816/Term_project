@@ -4,11 +4,15 @@ import Trigger
 import game_framework
 import game_world
 import ScrollManager as scrollMgr
+from collide import *
 
 from player import Player, P_Transform
 import game_data
 import MapEditor
 import Map_Background
+
+# state map
+import state_map2_2
 
 
 name = "Map2_1"
@@ -18,8 +22,8 @@ player = None
 def enter():
     #=== 맵 배경
     bg = Map_Background.BG()
-    game_world.add_object(bg, 0)
     bg.value = "map2_1"
+    game_world.add_object(bg, 0)
 
     #=== 맵 오브젝트 불러오기
     MapEditor.editMap("map2_1")
@@ -67,6 +71,14 @@ def handle_events():
 
 
 def update():
+    # === 맵 이동 트리거
+    global player
+    for trigger in Trigger.triggers:
+        if collideCheck(player, trigger) == 'right':
+            if trigger.type == 'map_map2_2':
+                print('Map 2-2 로 이동')  # test
+                game_framework.change_state(state_map2_2)   # 맵 2-2 로 이동
+
     #=== Scroll Update
     for trigger in Trigger.triggers:
         trigger.scrollX = scrollMgr.getScrollX("Map2_1", player)
@@ -80,4 +92,6 @@ def draw():
     clear_canvas()
     for game_object in game_world.all_objects():
         game_object.draw()
+    for trigger in Trigger.triggers:
+        trigger.draw()
     update_canvas()
