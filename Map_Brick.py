@@ -36,7 +36,6 @@ class Brick():
 
 
 # 벽돌
-bricks = []
 def makeBrick(xPos, yPos):
     newBrick = Brick()
     newBrick.x, newBrick.y = xPos, yPos

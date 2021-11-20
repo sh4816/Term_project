@@ -52,7 +52,6 @@ class Box_Question():
                            , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
 
 
-boxes = []
 def makeBox(xPos, yPos, box_type):
     newBox = Box_Question()
     newBox.x, newBox.y = xPos, yPos

@@ -1,6 +1,7 @@
 from pico2d import *
 
 import game_world
+import Trigger
 
 show_bb = False
 
@@ -54,18 +55,15 @@ class Door:
 
 
 # 객체 생성 함수
-doors = []
-castles = []
 def makeDoor(xPos, yPos):
     newDoor = Door()
     newDoor.x, newDoor.y = xPos, yPos
-    #doors.append(newDoor)
-    game_world.add_object(newDoor, 1)
-
+    # game_world.add_object(newDoor, 1)
+    Trigger.makeTrigger(newDoor.x, newDoor.y, 'map_select')
 
 def makeCastle(xPos, yPos):
     newCastle = Castle()
     newCastle.x, newCastle.y = xPos, yPos
 
     game_world.add_object(newCastle, 0)
-    makeDoor(newCastle.x, newCastle.y)  # 문 생성
+    makeDoor(newCastle.x, newCastle.y - 30)  # 문 생성

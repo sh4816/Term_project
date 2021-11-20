@@ -1,5 +1,6 @@
 from pico2d import *
 
+import Trigger
 import game_world
 
 show_bb = False
@@ -24,6 +25,7 @@ class Pipe:
         self.scrollX = 0
         self.type = ""
 
+        # Image Load
         if self.image == None:
             self.image = load_image('pipe_greenLT.png')
             self.image_LT = load_image('pipe_greenLT.png')
@@ -45,49 +47,51 @@ class Pipe:
             self.imageL_MB = load_image('pipeL_greenMB.png')
             self.imageL_RB = load_image('pipeL_greenRB.png')
 
+        self.font = load_font('ENCR10B.TTF', 16)
+
     def update(self):
         pass
 
     def draw(self):
         if self.type == "pipe_greenLT":
-            self.image_LT.draw(self.x - self.scrollX, self.y)
+            self.image = self.image_LT
         elif self.type == "pipe_greenMT":
-            self.image_MT.draw(self.x - self.scrollX, self.y)
+            self.image = self.image_MT
         elif self.type == "pipe_greenRT":
-            self.image_RT.draw(self.x - self.scrollX, self.y)
+            self.image = self.image_RT
         elif self.type == "pipe_greenLM":
-            self.image_LM.draw(self.x - self.scrollX, self.y)
+            self.image = self.image_LM
         elif self.type == "pipe_greenMM":
-            self.image_MM.draw(self.x - self.scrollX, self.y)
+            self.image = self.image_MM
         elif self.type == "pipe_greenRM":
-            self.image_RM.draw(self.x - self.scrollX, self.y)
+            self.image = self.image_RM
         elif self.type == "pipe_greenLB":
-            self.image_LB.draw(self.x - self.scrollX, self.y)
+            self.image = self.image_LB
         elif self.type == "pipe_greenMB":
-            self.image_MB.draw(self.x - self.scrollX, self.y)
+            self.image = self.image_MB
         elif self.type == "pipe_greenRB":
-            self.image_RB.draw(self.x - self.scrollX, self.y)
+            self.image = self.image_RB
         #Left
         elif self.type == "pipeL_greenLT":
-            self.imageL_LT.draw(self.x - self.scrollX, self.y)
+            self.image = self.imageL_LT
         elif self.type == "pipeL_greenMT":
-            self.imageL_MT.draw(self.x - self.scrollX, self.y)
+            self.image = self.imageL_MT
         elif self.type == "pipeL_greenRT":
-            self.imageL_RT.draw(self.x - self.scrollX, self.y)
+            self.image = self.imageL_RT
         elif self.type == "pipeL_greenLM":
-            self.imageL_LM.draw(self.x - self.scrollX, self.y)
+            self.image = self.imageL_LM
         elif self.type == "pipeL_greenMM":
-            self.imageL_MM.draw(self.x - self.scrollX, self.y)
+            self.image = self.imageL_MM
         elif self.type == "pipeL_greenRM":
-            self.imageL_RM.draw(self.x - self.scrollX, self.y)
+            self.image = self.imageL_RM
         elif self.type == "pipeL_greenLB":
-            self.imageL_LB.draw(self.x - self.scrollX, self.y)
+            self.image = self.imageL_LB
         elif self.type == "pipeL_greenMB":
-            self.imageL_MB.draw(self.x - self.scrollX, self.y)
+            self.image = self.imageL_MB
         elif self.type == "pipeL_greenRB":
-            self.imageL_RB.draw(self.x - self.scrollX, self.y)
+            self.image = self.imageL_RB
 
-        #self.image.draw(self.x - self.scrollX, self.y)
+        self.image.draw(self.x - self.scrollX, self.y)
 
         # bounding box
         global show_bb
@@ -95,11 +99,18 @@ class Pipe:
             draw_rectangle(self.x - self.frameX / 2 - self.scrollX, self.y + self.frameY / 2
                            , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
 
-pipes = []
+            if self.type == "pipeL_greenLB" or self.type == "pipeL_greenLM" or self.type == "pipeL_greenLT":
+                draw_rectangle(self.x - self.frameX / 2 - self.scrollX, self.y + self.frameY / 2
+                               , self.x - self.scrollX, self.y - self.frameY / 2)
+                self.font.draw(self.x - self.frameX / 2 - self.scrollX, self.y + self.frameY / 2 + 10, 'Trigger',
+                               (0, 0, 255))
+
 def makePipe(xPos, yPos, type):
     newPipe = Pipe()
     newPipe.x, newPipe.y = xPos, yPos
     newPipe.type = type
+    # if newPipe.type == "pipeL_greenLB" or newPipe.type == "pipeL_greenLM" or newPipe.type == "pipeL_greenLT":
+    #     Trigger.makeTrigger(newPipe.x, newPipe.y, 'map_select')
 
     game_world.add_object(newPipe, 1)
 

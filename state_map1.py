@@ -9,6 +9,7 @@ import ScrollManager as scrollMgr
 
 from player import Player, P_Transform
 import game_data
+import Trigger
 import MapEditor
 import Map_Background
 
@@ -73,6 +74,9 @@ def update():
         player.transform = game_data.gameData.transform
 
     #=== Scroll Update
+    for trigger in Trigger.triggers:
+        trigger.scrollX = scrollMgr.getScrollX("Map1", player)
+
     for game_object in game_world.all_objects():
         game_object.scrollX = scrollMgr.getScrollX("Map1", player)
         game_object.update()
@@ -82,4 +86,6 @@ def draw():
     clear_canvas()
     for game_object in game_world.all_objects():
         game_object.draw()
+    for trigger in Trigger.triggers:
+        trigger.draw()
     update_canvas()

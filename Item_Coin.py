@@ -30,8 +30,7 @@ class Coin():
                 game_world.remove_object(self)
 
 
-# 코인 여러 개를 한번에 생성 (맵에 배치될 코인)
-coins = []
+# 코인 생성 (맵에 배치될 코인)
 def make_coins(xPos, yPos, effect):
     newcoin = Coin()
     newcoin.x, newcoin.y = xPos, yPos

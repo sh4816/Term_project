@@ -3,8 +3,16 @@
   <component name="ChangeListManager">
     <list default="true" id="cd09cdb6-0872-4448-ad26-e7a287389195" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Item_Coin.py" beforeDir="false" afterPath="$PROJECT_DIR$/Item_Coin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Item_TransForm.py" beforeDir="false" afterPath="$PROJECT_DIR$/Item_TransForm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_Box.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Box.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_Brick.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Brick.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_Castle.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Castle.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_Flag.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Flag.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_Pipe.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Pipe.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_Tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Tile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mob_goomba.py" beforeDir="false" afterPath="$PROJECT_DIR$/mob_goomba.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/state_map1.py" beforeDir="false" afterPath="$PROJECT_DIR$/state_map1.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/state_map2_1.py" beforeDir="false" afterPath="$PROJECT_DIR$/state_map2_1.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -182,5 +190,6 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
 </project>

@@ -6,6 +6,8 @@ import mob_goomba
 from collide import *
 from pico2d import *
 
+import Trigger
+
 import game_data
 import Map_Tile
 import Map_Box
@@ -391,7 +393,6 @@ class JumpState:
                             newCoin = Item_Coin.Coin()
                             newCoin.x, newCoin.y = obj.x, obj.y + obj.frameY/2 + 15
                             newCoin.isEffect = True
-                            Item_Coin.coins.append(newCoin)
                             game_world.add_object(newCoin, 0)
 
                             game_data.gameData.coin += 1
@@ -593,7 +594,6 @@ class GroundpoundState:
                                     newCoin.x, newCoin.y = obj.x, obj.y - obj.frameY/2 - 15
                                     newCoin.isEffect = True
                                     game_world.add_object(newCoin, 0)
-
                                     game_data.gameData.coin += 1
                                 elif obj.itemValue == Map_Box.boxType.mushroom:
                                     newMush = Item_TransForm.TransformItem()
@@ -955,24 +955,26 @@ class Player:
                                         self.transform = P_Transform.T_Basic
                                 else:
                                     print('Game over')#
+
+
         #=== 스테이지 클리어 관련
         # Flag
         for flag in game_world.all_objects():
             if flag.__class__ == Map_Flag.Flag:  # 충돌체크를 해야할 클래스의 이름
                 if not collideCheck(self, flag) == None:
                     self.add_event(STAGECLEAR_EVENT)
-        # Castle
-        if self.stageclear:
-            for door in game_world.all_objects():
-                if door.__class__ == Map_Castle.Door:  # 충돌체크를 해야할 클래스의 이름
-                    if not collideCheck(self, door) == None:
-                        if game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
-                            game_data.gameData.unlocked_stage += 1      # 다음 스테이지 해금
-                            print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')#test
-                        # Game Data 업데이트
-                        #reset_variable(self)
-                        print('초기화 x: ' + str(self.x))
-                        game_framework.change_state(state_select)       # 스테이지 선택화면으로 이동
+        #=== 맵 이동 트리거
+        for trigger in Trigger.triggers:
+            if collideCheck(self, trigger) == 'left':
+                if trigger.type == 'map_select':
+                    if self.stageclear and  game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
+                        game_data.gameData.unlocked_stage += 1  # 다음 스테이지 해금
+                        print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')  # test
+                    # Game Data 업데이트
+                    game_framework.change_state(state_select)  # 스테이지 선택화면으로 이동
+            if collideCheck(self, trigger) == 'right':
+                if trigger.type == 'map_map2_2':
+                    print('Map 2-2 로 이동')
 
 
     def get_boundingbox(self):  # 바운딩박스
@@ -1006,6 +1008,7 @@ class Player:
                 Item_TransForm.show_bb = False
                 mob_goomba.show_bb = False
                 Map_Castle.show_bb = False
+                Trigger.show_bb = False
             else:
                 self.show_bb = True
                 Map_Box.show_bb = True
@@ -1015,6 +1018,7 @@ class Player:
                 Item_TransForm.show_bb = True
                 mob_goomba.show_bb = True
                 Map_Castle.show_bb = True
+                Trigger.show_bb = True
 
         if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):
             score = game_data.gameData.score
@@ -1023,6 +1027,9 @@ class Player:
             transform = game_data.gameData.transform
             print('Life: ' + str(life), ' | Score: ' + str(score)
                   + ' | Coin: ' + str(coin) + ' | Transform: ' + str(transform))
+
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_l):
+            self.x += (-1) * self.dir * 10
 
 
 def reset_variable(player):

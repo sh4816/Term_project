@@ -138,8 +138,6 @@ class Goomba():
                            , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
 
 
-
-goombas = []
 def makeGoombas(xPos, yPos, dir):
     newmob = Goomba()
     newmob.x, newmob.y = xPos, yPos

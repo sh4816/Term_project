@@ -45,7 +45,6 @@ class Tile:
 
 
 # 객체 생성 함수
-tiles = []
 def makeTile(xPos, yPos, type):
     newTile = Tile()
 

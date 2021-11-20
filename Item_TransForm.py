@@ -120,8 +120,6 @@ class TransformItem():
                            , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
 
 
-
-transItems = []
 def make_transItem(xPos, yPos, value):
     newitem = TransformItem()
     newitem.x, newitem.y = xPos, yPos
