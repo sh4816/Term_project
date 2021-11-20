@@ -4,8 +4,6 @@
     <list default="true" id="cd09cdb6-0872-4448-ad26-e7a287389195" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/BG2.png" beforeDir="false" afterPath="$PROJECT_DIR$/BG2.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Map_Background.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Background.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mygame.py" beforeDir="false" afterPath="$PROJECT_DIR$/mygame.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
