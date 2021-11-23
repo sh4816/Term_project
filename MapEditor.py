@@ -12,6 +12,7 @@ import Map_MovingTile
 import Map_Bridge
 import Map_Lava
 import Obstacle_Rotatedfire_Center
+import Obstacle_Button
 import mob_goomba
 import Trigger
 
@@ -140,6 +141,8 @@ def editMap(mapName):
             elif obj_type == "obstacle":
                 if obj_name == "obs_RFC":
                     Obstacle_Rotatedfire_Center.makeCenter(obj_xPos * size, obj_yPos * size)
+                elif obj_name == "obs_Button":
+                    Obstacle_Button.makeButton(obj_xPos * size, obj_yPos * size)
             elif obj_type == "coin":
                 Item_Coin.make_coins(obj_xPos*size, obj_yPos*size, False)
             elif obj_type == "castle":

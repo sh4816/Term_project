@@ -1,5 +1,7 @@
 from pico2d import *
 
+import Map_Bridge
+import Obstacle_Button
 import Trigger
 import game_framework
 import game_world
@@ -13,6 +15,7 @@ import Map_Background
 
 import Map_Lava
 import Obstacle_Rotatedfire
+import Obstacle_Button
 
 #
 import state_select
@@ -74,7 +77,7 @@ def handle_events():
 
 
 def update():
-    #=== 회전하는불꽃, 용암
+    #=== 회전하는불꽃, 용암, 버튼
     for obj in game_world.all_objects():
         if obj.__class__ == Map_Lava.Lava:
             if obj.type < 5:
@@ -83,6 +86,12 @@ def update():
         if obj.__class__ == Obstacle_Rotatedfire.RotatedFire:
             if not collideCheck(player, obj) == None:
                 print('Hit by Fire')#
+        if obj.__class__ == Obstacle_Button.BoomButton:
+            if collideCheck(player, obj) == 'bottom':
+                print('Boom')#
+                for target in game_world.all_objects():
+                    if target.__class__ == Map_Bridge.BridgeBoom:
+                        game_world.remove_object(target)
 
     # === 맵 이동 트리거
     for trigger in Trigger.triggers:
