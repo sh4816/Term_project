@@ -30,6 +30,7 @@ class Tile:
             self.image_stone4 = load_image('tile_stone4.png')
             self.image_stone5 = load_image('tile_stone5.png')
             self.image_stonebrick = load_image('tile_stonebrick.png')
+            self.image_brownbox = load_image('block_used.png')
 
     def update(self):
         pass
@@ -55,6 +56,8 @@ class Tile:
             self.image_stone5.draw(self.x - self.scrollX, self.y)
         elif self.type == 'tile_Stonebrick':
             self.image_stonebrick.draw(self.x - self.scrollX, self.y)
+        elif self.type == 'tile_Brownbox':
+            self.image_brownbox.draw(self.x - self.scrollX, self.y)
 
         # bounding box
         global show_bb

@@ -52,11 +52,9 @@ class MovingTile:
         if self.distance <= 0:
             self.dir = (-1) * self.dir  # 방향바꾸기
             self.distance = 0
-            print('a')
         elif self.distance >= self.max_distance:
             self.dir = (-1) * self.dir  # 방향바꾸기
             self.distance = self.max_distance
-            print('a')
 
     def draw(self):
         if self.type == 'pipeL_steelL':
@@ -77,7 +75,7 @@ class MovingTile:
 
 
 # 객체 생성 함수
-def makeMovingTile(xPos, yPos, type, vh, max_dis):
+def makeMovingTile(xPos, yPos, type, vh, max_dis, dir):
     newMovingTile = MovingTile()
 
     newMovingTile.x, newMovingTile.y = xPos, yPos
@@ -85,5 +83,10 @@ def makeMovingTile(xPos, yPos, type, vh, max_dis):
 
     newMovingTile.ver_or_hor = vh
     newMovingTile.max_distance = max_dis
+    newMovingTile.dir = dir
+    if newMovingTile.dir == 1:
+        newMovingTile.distance = 0
+    else:
+        newMovingTile.distance = newMovingTile.max_distance
 
     game_world.add_object(newMovingTile, 1)

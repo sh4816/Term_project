@@ -9,6 +9,9 @@ import Map_Pipe
 import Map_Castle
 import Map_Flag
 import Map_MovingTile
+import Map_Bridge
+import Map_Lava
+import Obstacle_Rotatedfire_Center
 import mob_goomba
 import Trigger
 
@@ -110,17 +113,33 @@ def editMap(mapName):
                 Map_Pipe.makePipe(obj_xPos*size, obj_yPos*size, obj_name)
                 if mapName == "map2_2":
                     Trigger.makeTrigger(obj_xPos*size, obj_yPos*size, 'trans2_2')
-            elif obj_type == "moving_V":
+            elif obj_type == "moving_VU":
                 maxdis = 0
                 if mapName == "map2_2":
                     maxdis = 400
-                Map_MovingTile.makeMovingTile(obj_xPos*size, obj_yPos*size, obj_name, 'vertical', maxdis)
-                print('최대 ' + str(maxdis) + '만큼 수직으로 움직이는 발판이 Pos' + str((obj_xPos, obj_yPos)) + '에 생성되었습니다.')
-            elif obj_type == "moving_H":
+                Map_MovingTile.makeMovingTile(obj_xPos*size, obj_yPos*size, obj_name, 'vertical', maxdis, 1)
+            elif obj_type == "moving_VD":
+                maxdis = 0
+                if mapName == "map2_2":
+                    maxdis = 400
+                Map_MovingTile.makeMovingTile(obj_xPos*size, obj_yPos*size, obj_name, 'vertical', maxdis, -1)
+            elif obj_type == "moving_HR":
                 maxdis = 0
                 if mapName == "map3":
-                    maxdis = 300
-                Map_MovingTile.makeMovingTile(obj_xPos * size, obj_yPos * size, obj_name, 'horizontal', maxdis)
+                    maxdis = 40
+                Map_MovingTile.makeMovingTile(obj_xPos * size, obj_yPos * size, obj_name, 'horizontal', maxdis, 1)
+            elif obj_type == "moving_HL":
+                maxdis = 0
+                if mapName == "map3":
+                    maxdis = 40
+                Map_MovingTile.makeMovingTile(obj_xPos * size, obj_yPos * size, obj_name, 'horizontal', maxdis, -1)
+            elif obj_type == "bridge":
+                Map_Bridge.makeBridge(obj_xPos * size, obj_yPos * size, obj_name)
+            elif obj_type == "lava":
+                Map_Lava.makeLava(obj_xPos * size, obj_yPos * size, obj_name)
+            elif obj_type == "obstacle":
+                if obj_name == "obs_RFC":
+                    Obstacle_Rotatedfire_Center.makeCenter(obj_xPos * size, obj_yPos * size)
             elif obj_type == "coin":
                 Item_Coin.make_coins(obj_xPos*size, obj_yPos*size, False)
             elif obj_type == "castle":

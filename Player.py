@@ -1,4 +1,7 @@
+import Map_Bridge
+import Map_Lava
 import Map_MovingTile
+import Obstacle_Rotatedfire
 import game_framework
 
 import state_select
@@ -19,6 +22,7 @@ import Map_Pipe
 import Map_Castle
 import Map_Flag
 import Map_MovingTile
+import Map_Bridge
 import Item_Coin
 import Item_TransForm
 import ball
@@ -135,7 +139,8 @@ class IdleState:
                     or obj.__class__ == Map_Brick.Brick \
                     or obj.__class__ == Map_Pipe.Pipe \
                     or obj.__class__ == Map_Tile.Tile\
-                    or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
+                    or obj.__class__ == Map_MovingTile.MovingTile\
+                    or obj.__class__ == Map_Bridge.BridgeBoom:  # 충돌체크를 해야할 클래스의 이름
                 if collideCheck(player, obj) == "bottom":
                     collipse = True
                     break
@@ -208,7 +213,8 @@ class RunState:
                     or obj.__class__ == Map_Brick.Brick \
                     or obj.__class__ == Map_Pipe.Pipe \
                     or obj.__class__ == Map_Tile.Tile\
-                    or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
+                    or obj.__class__ == Map_MovingTile.MovingTile\
+                    or obj.__class__ == Map_Bridge.BridgeBoom:  # 충돌체크를 해야할 클래스의 이름
                 if collideCheck(player, obj) == "bottom":
                     collipse = True
                     break
@@ -281,7 +287,8 @@ class DashState:
                     or obj.__class__ == Map_Brick.Brick \
                     or obj.__class__ == Map_Pipe.Pipe \
                     or obj.__class__ == Map_Tile.Tile\
-                    or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
+                    or obj.__class__ == Map_MovingTile.MovingTile\
+                    or obj.__class__ == Map_Bridge.BridgeBoom:  # 충돌체크를 해야할 클래스의 이름
                 if collideCheck(player, obj) == "bottom":
                     player.y = obj.y + obj.frameY/2 + player.frameY/2  # 발판 위로 올림
                     collipse = True
@@ -428,7 +435,8 @@ class JumpState:
             elif obj.__class__ == Map_Brick.Brick \
                 or obj.__class__ == Map_Pipe.Pipe \
                 or obj.__class__ == Map_Tile.Tile\
-                or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
+                or obj.__class__ == Map_MovingTile.MovingTile\
+                or obj.__class__ == Map_Bridge.BridgeBoom:  # 충돌체크를 해야할 클래스의 이름
                 if collideCheck(player, obj) == "top":
                     collipse = True
                     break
@@ -508,7 +516,8 @@ class FallingState:
                 or obj.__class__ == Map_Brick.Brick\
                 or obj.__class__ == Map_Pipe.Pipe\
                 or obj.__class__ == Map_Tile.Tile\
-                or obj.__class__ == Map_MovingTile.MovingTile:      # 충돌체크를 해야할 클래스의 이름
+                or obj.__class__ == Map_MovingTile.MovingTile\
+                or obj.__class__ == Map_Bridge.BridgeBoom:      # 충돌체크를 해야할 클래스의 이름
                     if collideCheck(player, obj) == "bottom":
                         player.y = obj.y + obj.frameY / 2 + player.frameY / 2
                         collipse = True
@@ -626,7 +635,8 @@ class GroundpoundState:
                     elif obj.__class__ == Map_Brick.Brick \
                         or obj.__class__ == Map_Pipe.Pipe \
                         or obj.__class__ == Map_Tile.Tile\
-                        or obj.__class__ == Map_MovingTile.MovingTile:  # 충돌체크를 해야할 클래스의 이름
+                        or obj.__class__ == Map_MovingTile.MovingTile\
+                        or obj.__class__ == Map_Bridge.BridgeBoom:  # 충돌체크를 해야할 클래스의 이름
                         if collideCheck(player, obj) == "bottom":
                             player.y = obj.y + obj.frameY/2 + player.frameY/2  # 발판 위로 올림
                             collipse = True
@@ -1027,6 +1037,8 @@ class Player:
                 Trigger.show_bb = False
                 Map_Flag.show_bb = False
                 Map_MovingTile.show_bb = False
+                Map_Lava.show_bb = False
+                Obstacle_Rotatedfire.show_bb = False
             else:
                 self.show_bb = True
                 Map_Box.show_bb = True
@@ -1039,6 +1051,8 @@ class Player:
                 Trigger.show_bb = True
                 Map_Flag.show_bb = True
                 Map_MovingTile.show_bb = True
+                Map_Lava.show_bb = True
+                Obstacle_Rotatedfire.show_bb = True
 
         if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):
             score = game_data.gameData.score

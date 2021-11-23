@@ -11,6 +11,9 @@ import game_data
 import MapEditor
 import Map_Background
 
+import Map_Lava
+import Obstacle_Rotatedfire
+
 #
 import state_select
 
@@ -71,6 +74,16 @@ def handle_events():
 
 
 def update():
+    #=== 회전하는불꽃, 용암
+    for obj in game_world.all_objects():
+        if obj.__class__ == Map_Lava.Lava:
+            if obj.type < 5:
+                if not collideCheck(player, obj) == None:
+                    print('Game over - Lava')#
+        if obj.__class__ == Obstacle_Rotatedfire.RotatedFire:
+            if not collideCheck(player, obj) == None:
+                print('Hit by Fire')#
+
     # === 맵 이동 트리거
     for trigger in Trigger.triggers:
         if collideCheck(player, trigger) == 'left':
