@@ -3,7 +3,18 @@
   <component name="ChangeListManager">
     <list default="true" id="cd09cdb6-0872-4448-ad26-e7a287389195" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BG2.png" beforeDir="false" afterPath="$PROJECT_DIR$/BG2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Data_Map_1_ground.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Data_Map_1_ground.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Data_Map_2_1_ground.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Data_Map_2_1_ground.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Data_Map_2_2_ground.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Data_Map_2_2_ground.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Data_Map_2_2_obj.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Data_Map_2_2_obj.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Data_Map_2_3_ground.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Data_Map_2_3_ground.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MapEditor.py" beforeDir="false" afterPath="$PROJECT_DIR$/MapEditor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_Background.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Background.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_MovingTile.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_MovingTile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_Tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Tile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ScrollManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/ScrollManager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mygame.py" beforeDir="false" afterPath="$PROJECT_DIR$/mygame.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/state_map2_3.py" beforeDir="false" afterPath="$PROJECT_DIR$/state_map2_3.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

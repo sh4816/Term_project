@@ -38,12 +38,17 @@ def editMap(mapName):
         ground_file_name = "Data_Map_2_3_ground.txt"
         obj_file_name = "Data_Map_2_3_obj.txt"
         mob_file_name = None
+    elif mapName == "map3":
+        ground_file_name = "Data_Map_3_ground.txt"
+        obj_file_name = "Data_Map_3_obj.txt"
+        mob_file_name = None
 
 
     #=== 지형 Ground
     ground_repeat = 0
     ground_xPos, ground_yPos = 0, 0
     ground_type = ""
+    ground_isCollide = ""
     data_map_ground = []
 
     ground_data_file = open(ground_file_name, "r", encoding="utf8")
@@ -57,9 +62,10 @@ def editMap(mapName):
             ground_xPos = float(data_map_ground[1])
             ground_yPos = float(data_map_ground[2])
             ground_type = data_map_ground[3]
+            ground_isCollide = data_map_ground[4]
 
             for i in range(ground_repeat):
-                Map_Tile.makeTile((ground_xPos + i)*size, ground_yPos*size, ground_type)
+                Map_Tile.makeTile((ground_xPos + i)*size, ground_yPos*size, ground_type, ground_isCollide)
 
         except:
             break
@@ -87,7 +93,7 @@ def editMap(mapName):
             obj_name = data_map_obj[3]
 
             if obj_type == "tile":
-                Map_Tile.makeTile(obj_xPos*size, obj_yPos*size, obj_name)
+                Map_Tile.makeTile(obj_xPos*size, obj_yPos*size, obj_name, 'Y')
             elif obj_type == "box":
                 Map_Box.makeBox(obj_xPos*size, obj_yPos*size, obj_name)
             elif obj_type == "brick":
@@ -104,9 +110,17 @@ def editMap(mapName):
                 Map_Pipe.makePipe(obj_xPos*size, obj_yPos*size, obj_name)
                 if mapName == "map2_2":
                     Trigger.makeTrigger(obj_xPos*size, obj_yPos*size, 'trans2_2')
-            elif obj_type == "moving":
-                Map_MovingTile.makeMovingTile(obj_xPos*size, obj_yPos*size, obj_name)
-                print(obj_xPos*size, obj_yPos*size, obj_name)
+            elif obj_type == "moving_V":
+                maxdis = 0
+                if mapName == "map2_2":
+                    maxdis = 400
+                Map_MovingTile.makeMovingTile(obj_xPos*size, obj_yPos*size, obj_name, 'vertical', maxdis)
+                print('최대 ' + str(maxdis) + '만큼 수직으로 움직이는 발판이 Pos' + str((obj_xPos, obj_yPos)) + '에 생성되었습니다.')
+            elif obj_type == "moving_H":
+                maxdis = 0
+                if mapName == "map3":
+                    maxdis = 300
+                Map_MovingTile.makeMovingTile(obj_xPos * size, obj_yPos * size, obj_name, 'horizontal', maxdis)
             elif obj_type == "coin":
                 Item_Coin.make_coins(obj_xPos*size, obj_yPos*size, False)
             elif obj_type == "castle":

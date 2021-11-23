@@ -1,21 +1,36 @@
-90 0 1 tile_Stone1
-90 0 0 tile_Stone2
-26 93 1 tile_Stone1
-26 93 0 tile_Stone2
-7 128 1 tile_Stone1
-7 128 0 tile_Stone2
-18 144 14 tile_Stone1
-18 144 13 tile_Stone2
-18 144 12 tile_Stone2
-18 144 11 tile_Stone2
-18 144 10 tile_Stone2
-18 144 9 tile_Stone2
-18 144 8 tile_Stone2
-18 144 7 tile_Stone2
-18 144 6 tile_Stone2
-18 144 5 tile_Stone2
-18 144 4 tile_Stone2
-18 144 3 tile_Stone2
-18 144 2 tile_Stone2
-18 144 1 tile_Stone2
-18 144 0 tile_Stone2
+90 0 1 tile_Stone1 Y
+90 0 0 tile_Stone2 N
+26 93 1 tile_Stone1 Y
+26 93 0 tile_Stone2 N
+7 128 1 tile_Stone1 Y
+7 128 0 tile_Stone2 N
+1 144 14 tile_Stone1 Y
+1 144 13 tile_Stone2 Y
+1 144 12 tile_Stone2 Y
+1 144 11 tile_Stone2 Y
+1 144 10 tile_Stone2 Y
+1 144 9 tile_Stone2 Y
+1 144 8 tile_Stone2 Y
+1 144 7 tile_Stone2 Y
+1 144 6 tile_Stone2 Y
+1 144 5 tile_Stone2 Y
+1 144 4 tile_Stone2 Y
+1 144 3 tile_Stone2 Y
+1 144 2 tile_Stone2 Y
+1 144 1 tile_Stone2 Y
+1 144 0 tile_Stone2 Y
+17 145 14 tile_Stone1 Y
+17 145 13 tile_Stone2 N
+17 145 12 tile_Stone2 N
+17 145 11 tile_Stone2 N
+17 145 10 tile_Stone2 N
+17 145 9 tile_Stone2 N
+17 145 8 tile_Stone2 N
+17 145 7 tile_Stone2 N
+17 145 6 tile_Stone2 N
+17 145 5 tile_Stone2 N
+17 145 4 tile_Stone2 N
+17 145 3 tile_Stone2 N
+17 145 2 tile_Stone2 N
+17 145 1 tile_Stone2 N
+17 145 0 tile_Stone2 N

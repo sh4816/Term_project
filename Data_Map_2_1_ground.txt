@@ -1,2 +1,2 @@
-27 0 1 tile_Grass
-27 0 0 tile_Dirt
+27 0 1 tile_Grass Y
+27 0 0 tile_Dirt N

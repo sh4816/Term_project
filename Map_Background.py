@@ -16,6 +16,7 @@ class BG:
         self.image2 = load_image('BG2.png')
         self.image3 = load_image('BG3.png')
         self.imageB1 = load_image('BGB1.png')
+        self.imageF = load_image('BGFinal.png')
 
     def update(self):
         pass
@@ -29,6 +30,8 @@ class BG:
             self.image = self.imageB1
         elif self.value == "map2_3":
             self.image = self.image3
+        elif self.value == "map3":
+            self.image = self.imageF
 
         # 작동 방식: 800x600 크기의 중심을 왼쪽으로 이동시키면서 화면 왼쪽 바깥으로 잘려나간 부분을 화면 오른쪽에서 다시 그려준다.
         # clib_draw: 렌더링 시작위치(x,y), 이미지에서 가져올 범위(w,h), 피봇(cx,cy), 렌더링 사이즈(w,h) 인거같기도...?

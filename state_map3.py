@@ -14,18 +14,18 @@ import Map_Background
 #
 import state_select
 
-name = "Map2_3"
+name = "Map3"
 
 player = None
 
 def enter():
     #=== 맵 배경
     bg = Map_Background.BG()
-    bg.value = "map2_3"
+    bg.value = "map3"
     game_world.add_object(bg, 0)
 
     #=== 맵 오브젝트 불러오기
-    MapEditor.editMap("map2_3")
+    MapEditor.editMap("map3")
 
     # Player 객체를 생성
     global player
@@ -34,11 +34,11 @@ def enter():
     player.transform = game_data.gameData.transform
     if player.transform == P_Transform.T_Basic:
         player.frameX, player.frameY = 40, 30
-        player.x, player.y = 75, 120
+        player.x, player.y = 75, 360
         player.imageH = 300
     else:
         player.frameX, player.frameY = 40, 60
-        player.x, player.y = 75, 135
+        player.x, player.y = 75, 375
         player.imageH = 660
 
     game_world.add_object(player, 1)

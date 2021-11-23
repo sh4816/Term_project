@@ -29,7 +29,10 @@ class MovingTile:
         self.type = None
 
         self.isMoving = False
+        self.ver_or_hor = None
         self.dir = 1
+        self.distance = 0           # 움직인 거리
+        self.max_distance = 0       # 움직일 수 있는 최대 거리
         self.velocity = self.dir * MOVE_SPEED_PPS
 
         if self.image == None:
@@ -39,12 +42,21 @@ class MovingTile:
             self.image_pipe_SR = load_image('pipeL_steelR.png')
 
     def update(self):
-        self.y += self.velocity * game_framework.frame_time
+        if self.ver_or_hor == 'vertical':
+            self.y += self.dir * self.velocity * game_framework.frame_time
+        elif self.ver_or_hor == 'horizontal':
+            self.x += self.dir * self.velocity * game_framework.frame_time
 
-        if self.y <= 0:
-            self.y = 600 - 15
-        elif self.y >= 600:
-            self.y = 15
+        self.distance += self.dir * self.velocity * game_framework.frame_time
+        # 일정 거리를 왔다갔다하면서 반복 운동한다
+        if self.distance <= 0:
+            self.dir = (-1) * self.dir  # 방향바꾸기
+            self.distance = 0
+            print('a')
+        elif self.distance >= self.max_distance:
+            self.dir = (-1) * self.dir  # 방향바꾸기
+            self.distance = self.max_distance
+            print('a')
 
     def draw(self):
         if self.type == 'pipeL_steelL':
@@ -65,10 +77,13 @@ class MovingTile:
 
 
 # 객체 생성 함수
-def makeMovingTile(xPos, yPos, type):
+def makeMovingTile(xPos, yPos, type, vh, max_dis):
     newMovingTile = MovingTile()
 
     newMovingTile.x, newMovingTile.y = xPos, yPos
     newMovingTile.type = type
+
+    newMovingTile.ver_or_hor = vh
+    newMovingTile.max_distance = max_dis
 
     game_world.add_object(newMovingTile, 1)
