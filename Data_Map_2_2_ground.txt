@@ -34,3 +34,4 @@
 17 145 2 tile_Stone2 N
 17 145 1 tile_Stone2 N
 17 145 0 tile_Stone2 N
+40 5 18 tile_Greenbrick Y

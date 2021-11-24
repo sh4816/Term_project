@@ -115,7 +115,6 @@ def update():
         if kupa.__class__ == mob_kupa.Kupa:
             if not kupa.ismoving:
                 if player.x + 600 >= kupa.x:    # 쿠파는 화면에 들어왔을 때부터 움직이기 시작한다.
-                    print('kupa start moving')
                     kupa.ismoving = True
                     kupa.state = mob_kupa.K_State.S_Walk
             else:

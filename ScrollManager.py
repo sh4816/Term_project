@@ -32,6 +32,8 @@ def getScrollX(Map, player):
         MapLen = 4570
     elif Map == "Map3_ending":
         MapLen = 5070
+    elif Map == "MapF_Boss":
+        MapLen = 600
 
     if ScrollLock(player) == "NonLock":
         ScrollX = player.x - 300

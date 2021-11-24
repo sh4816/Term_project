@@ -200,9 +200,13 @@ class RunState:
                     or obj.__class__ == Map_Tile.Tile\
                     or obj.__class__ == Map_MovingTile.MovingTile\
                     or obj.__class__ == Obstacle_Rotatedfire_Center.RotatedfireCenter:  # 충돌체크를 해야할 클래스의 이름
-                if collideCheck(player, obj) == "left" or collideCheck(player, obj) == "right":
-                    #player.x = obj.x - obj.frameX - 1 # 끼임 방지
+                if collideCheck(player, obj) == "left":
                     collipse = True
+                    player.x = obj.x + obj.frameX / 2 + player.frameX / 2 + 1
+                    break
+                elif collideCheck(player, obj) == "right":
+                    collipse = True
+                    player.x = obj.x - obj.frameX / 2 - player.frameX / 2 - 1
                     break
 
         # 충돌하지 않았을 때에만 이동
@@ -277,8 +281,13 @@ class DashState:
                     or obj.__class__ == Map_Tile.Tile\
                     or obj.__class__ == Map_MovingTile.MovingTile\
                     or obj.__class__ == Obstacle_Rotatedfire_Center.RotatedfireCenter:  # 충돌체크를 해야할 클래스의 이름
-                if collideCheck(player, obj) == "left" or collideCheck(player, obj) == "right":
+                if collideCheck(player, obj) == "left":
                     collipse = True
+                    player.x = obj.x + obj.frameX / 2 + player.frameX / 2 + 1
+                    break
+                elif collideCheck(player, obj) == "right":
+                    collipse = True
+                    player.x = obj.x - obj.frameX / 2 - player.frameX / 2 - 1
                     break
 
         # 충돌하지 않았을 때에만 이동
@@ -388,8 +397,13 @@ class JumpState:
                         or obj.__class__ == Map_Tile.Tile\
                         or obj.__class__ == Map_MovingTile.MovingTile\
                         or obj.__class__ == Obstacle_Rotatedfire_Center.RotatedfireCenter:  # 충돌체크를 해야할 클래스의 이름
-                    if collideCheck(player, obj) == "left" or collideCheck(player, obj) == "right":
+                    if collideCheck(player, obj) == "left":
                         collipse = True
+                        player.x = obj.x + obj.frameX / 2 + player.frameX / 2 + 1
+                        break
+                    elif collideCheck(player, obj) == "right":
+                        collipse = True
+                        player.x = obj.x - obj.frameX / 2 - player.frameX / 2 - 1
                         break
 
             # 충돌하지 않았을 때에만 이동
@@ -443,8 +457,14 @@ class JumpState:
                     obj.frame = 0
                     collipse = True
                     break
-            elif obj.__class__ == Map_Brick.Brick \
-                    or obj.__class__ == Map_Pipe.Pipe \
+            elif obj.__class__ == Map_Brick.Brick:
+                if int(player.transform) >= int(P_Transform.T_Super):
+                    if collideCheck(player, obj) == "top":
+                        game_world.remove_object(obj)
+
+                        collipse = True
+                        break
+            elif obj.__class__ == Map_Pipe.Pipe \
                     or obj.__class__ == Map_Tile.Tile\
                     or obj.__class__ == Map_MovingTile.MovingTile\
                     or obj.__class__ == Map_Bridge.BridgeBoom\
@@ -558,8 +578,13 @@ class FallingState:
                                 or obj.__class__ == Map_Tile.Tile\
                                 or obj.__class__ == Map_MovingTile.MovingTile\
                                 or obj.__class__ == Obstacle_Rotatedfire_Center.RotatedfireCenter:  # 충돌체크를 해야할 클래스의 이름
-                            if collideCheck(player, obj) == "left" or collideCheck(player, obj) == "right":
+                            if collideCheck(player, obj) == "left":
                                 collipse = True
+                                player.x = obj.x + obj.frameX / 2 + player.frameX / 2 + 1
+                                break
+                            elif collideCheck(player, obj) == "right":
+                                collipse = True
+                                player.x = obj.x - obj.frameX / 2 - player.frameX / 2 - 1
                                 break
 
                     # 충돌하지 않았을 때에만 이동
@@ -605,7 +630,7 @@ class GroundpoundState:
     def do(player):
         # 아래로 빠르게 낙하
         player.timer_jump += game_framework.frame_time
-        player.timer_jump = clamp(0, player.timer_jump, 0.3)
+        player.timer_jump = clamp(0, player.timer_jump, 0.2)
 
         player.y += (1/2) * GRAVITY_ACCEL_PPS2 * (player.timer_jump ** 2)
 
@@ -646,8 +671,13 @@ class GroundpoundState:
                                 # Box를 사용한 상태로 변경
                                 obj.isUsed = True
                             break
-                    elif obj.__class__ == Map_Brick.Brick \
-                            or obj.__class__ == Map_Pipe.Pipe \
+                    elif obj.__class__ == Map_Brick.Brick:
+                        if int(player.transform) >= int(P_Transform.T_Super):
+                            if collideCheck(player, obj) == "bottom":
+                                game_world.remove_object(obj)
+                                collipse = True
+                                break
+                    elif obj.__class__ == Map_Pipe.Pipe \
                             or obj.__class__ == Map_Tile.Tile\
                             or obj.__class__ == Map_MovingTile.MovingTile\
                             or obj.__class__ == Map_Bridge.BridgeBoom\
@@ -938,25 +968,28 @@ class Player:
             else:
                 self.image = self.image_FireL
 
-        # 움직이는 발판
-        for movingTile in game_world.all_objects():
-            if movingTile.__class__ == Map_MovingTile.MovingTile:
-                if collideCheck(self, movingTile) == 'bottom':
-                    self.y += movingTile.dir * Map_MovingTile.MOVE_SPEED_PPS * game_framework.frame_time
+        # 충돌 관련
+        for obj in game_world.all_objects():
+            # 움직이는 발판
+            if obj.__class__ == Map_MovingTile.MovingTile:
+                if collideCheck(self, obj) == 'bottom':
+                    if obj.ver_or_hor == 'vertical':
+                        self.y += obj.dir * Map_MovingTile.MOVE_SPEED_PPS * game_framework.frame_time
+                    elif obj.ver_or_hor == 'horizontal':
+                        self.y = obj.y + obj.frameY/2 + self.frameY/2
 
-        # 변신 아이템 충돌
-        for transItem in game_world.all_objects():
-            if transItem.__class__ == Item_TransForm.TransformItem:  # 충돌체크를 해야할 클래스의 이름
-                if not collideCheck(self, transItem) == None:
+            # 변신 아이템 충돌
+            if obj.__class__ == Item_TransForm.TransformItem:  # 충돌체크를 해야할 클래스의 이름
+                if not collideCheck(self, obj) == None:
                     game_data.gameData.score += 100
-                    if self.transform < transItem.itemValue:
+                    if self.transform < obj.itemValue:
                         self.prevState = self.cur_state.__name__  # 이전상태의 이름을 저장해둔다.
                         if not self.cur_state == JumpState or self.cur_state == GroundpoundState: #버그방지용
                             self.y += 15
 
-                        if transItem.itemValue == Item_TransForm.Value.Mushroom:
+                        if obj.itemValue == Item_TransForm.Value.Mushroom:
                             self.transform = P_Transform.T_Super
-                        elif transItem.itemValue == Item_TransForm.Value.Fireflower:
+                        elif obj.itemValue == Item_TransForm.Value.Fireflower:
                             self.transform = P_Transform.T_Fire
                         game_data.gameData.transform = self.transform   # 게임데이터 최신화
                         # Frame Image Update
@@ -965,7 +998,7 @@ class Player:
                         self.add_event(TRANSLATE_EVENT)
 
                     # 해당 충돌 아이템 삭제
-                    game_world.remove_object(transItem)
+                    game_world.remove_object(obj)
                     break
 
         #=== 몬스터
@@ -1023,6 +1056,10 @@ class Player:
             if obj.__class__ == Obstacle_Button.BoomButton:
                 if not collideCheck(self, obj) == None:
                     self.add_event(STAGECLEAR_EVENT)
+
+        for trigger in Trigger.triggers:
+            if trigger.type == "autoMoving":
+                self.add_event(STAGECLEAR_EVENT)
 
 
 
@@ -1141,3 +1178,6 @@ def reset_variable(player):
 
     player.cur_state = IdleState
     player.cur_state.enter(player, None)
+
+def StageClearFunc(player):
+    player.add_event(STAGECLEAR_EVENT)

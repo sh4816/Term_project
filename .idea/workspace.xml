@@ -2,13 +2,25 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cd09cdb6-0872-4448-ad26-e7a287389195" name="Changes" comment="Changes">
-      <change afterPath="$PROJECT_DIR$/Npc_Kinopio.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mob_kupa_breath.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/state_mapF_Boss.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Data_Map_3_obj.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Data_Map_3_obj.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Data_Map_2_2_ground.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Data_Map_2_2_ground.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Data_Map_2_2_obj.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Data_Map_2_2_obj.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MapEditor.py" beforeDir="false" afterPath="$PROJECT_DIR$/MapEditor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_Background.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Background.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Map_Tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/Map_Tile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Player.py" beforeDir="false" afterPath="$PROJECT_DIR$/Player.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resource/bridge_boom.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/ScrollManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/ScrollManager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kupa.png" beforeDir="false" afterPath="$PROJECT_DIR$/kupa.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kupaL.png" beforeDir="false" afterPath="$PROJECT_DIR$/kupaL.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kupa_fireDown.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/kupa_fireMid.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/kupa_fireUp.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/mob_kupa.py" beforeDir="false" afterPath="$PROJECT_DIR$/mob_kupa.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mygame.py" beforeDir="false" afterPath="$PROJECT_DIR$/mygame.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/select.png" beforeDir="false" afterPath="$PROJECT_DIR$/select.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/state_map2_1.py" beforeDir="false" afterPath="$PROJECT_DIR$/state_map2_1.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/state_map3.py" beforeDir="false" afterPath="$PROJECT_DIR$/state_map3.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/state_select.py" beforeDir="false" afterPath="$PROJECT_DIR$/state_select.py" afterDir="false" />
     </list>
@@ -47,27 +59,6 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
   </component>
   <component name="RunManager" selected="Python.mygame">
-    <configuration name="MapEditor" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Lecture13_Time" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/MapEditor.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="Map_Flag" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Lecture13_Time" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -81,6 +72,48 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Map_Flag.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Map_Tile" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Lecture13_Time" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Map_Tile.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Trigger" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Lecture13_Time" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Trigger.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -103,27 +136,6 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/mygame.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="player" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Lecture13_Time" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/player.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -156,10 +168,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.mygame" />
+        <item itemvalue="Python.Map_Tile" />
+        <item itemvalue="Python.Trigger" />
         <item itemvalue="Python.state_map2_2" />
         <item itemvalue="Python.Map_Flag" />
-        <item itemvalue="Python.MapEditor" />
-        <item itemvalue="Python.player" />
       </list>
     </recent_temporary>
   </component>

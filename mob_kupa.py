@@ -1,9 +1,11 @@
 from pico2d import *
 import enum
+import random
 
 import Map_Bridge
 import game_framework
 import game_world
+import mob_kupa_breath
 from collide import collideCheck
 import Map_Tile
 import Map_Box
@@ -20,7 +22,7 @@ TIME_PER_ACTION = 0.5
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 FRAMES_PER_ACTION = 4
 
-# Player Run Speed
+# Kupa Run Speed
 def KMPH2MPS(KMPH): # km/h -> m/sec
     MPM = KMPH * 1000.0 / 60.0
     MPS = MPM / 60.0
@@ -49,7 +51,7 @@ class Kupa():
     imageL = None
 
     def __init__(self):  # 생성자
-        self.frameX, self.frameY = 30, 60  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
+        self.frameX, self.frameY = 60, 120  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
         self.x, self.y = 0, 0
         self.scrollX = 0
         self.frame = 0
@@ -61,6 +63,11 @@ class Kupa():
         self.dir = -1
         self.timerFall = 0
 
+        # 브레스 관련
+        self.breath_cooldown = False
+        self.breath_timer = 0
+        self.isFired = True
+
         # 충돌 관련
         self.isOnGround = 0
         self.landYPos = 0
@@ -71,19 +78,43 @@ class Kupa():
             self.imageL = load_image('kupaL.png')
 
     def update(self):
+        frameCut = 0
+        if self.state == K_State.S_Idle or self.state == K_State.S_Jump or self.state == K_State.S_Fall:
+            frameCut = 1
+        elif self.state == K_State.S_Hit:
+            frameCut = 2
+        elif self.state == K_State.S_Hide:
+            framueCut = 3
+        elif self.state == K_State.S_Walk or self.state == K_State.S_Dash or self.state == K_State.S_Breath:
+            frameCut = 4
+
+        self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % frameCut
+
+        # === 바닥에 아무것도 없으면(허공에 있으면) 아래로 낙하
+        collipse = False
+        for obj in game_world.all_objects():
+            if obj.__class__ == Map_Box.Box_Question \
+                    or obj.__class__ == Map_Brick.Brick \
+                    or obj.__class__ == Map_Pipe.Pipe \
+                    or obj.__class__ == Map_Tile.Tile \
+                    or obj.__class__ == Map_Bridge.BridgeBoom:  # 충돌체크를 해야할 클래스의 이름
+                if collideCheck(self, obj) == "bottom":
+                    self.y = obj.y + obj.frameY / 2 + self.frameY / 2
+                    collipse = True
+                    break
+
+        if not collipse:
+            self.timerFall += game_framework.frame_time
+            self.y += GRAVITY_ACCEL_PPS2 * (self.timerFall ** 2)  # v = v0 + gt, d = v * t
+        else:
+            if not self.timerFall == 0:
+                self.timerFall = 0
+
+        if self.y < 0 or self.x < 0:
+            game_world.remove_object(self)
+
+
         if self.ismoving:
-            frameCut = 0
-            if self.state == K_State.S_Idle or self.state == K_State.S_Jump or self.state == K_State.S_Fall:
-                frameCut = 1
-            elif self.state == K_State.S_Hit:
-                frameCut = 2
-            elif self.state == K_State.S_Hide:
-                framueCut = 3
-            elif self.state == K_State.S_Walk or self.state == K_State.S_Dash or self.state == K_State.S_Breath:
-                frameCut = 4
-
-            self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % frameCut
-
             #=== 왼쪽 오른쪽으로 이동
             # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
             collipse = False
@@ -111,36 +142,38 @@ class Kupa():
                     self.x += self.dir * DASH_SPPED_PPS * game_framework.frame_time
 
 
-            #=== 바닥에 아무것도 없으면(허공에 있으면) 아래로 낙하
-            collipse = False
-            for obj in game_world.all_objects():
-                if obj.__class__ == Map_Box.Box_Question \
-                        or obj.__class__ == Map_Brick.Brick \
-                        or obj.__class__ == Map_Pipe.Pipe \
-                        or obj.__class__ == Map_Tile.Tile\
-                        or obj.__class__ == Map_Bridge.BridgeBoom:  # 충돌체크를 해야할 클래스의 이름
-                    if collideCheck(self, obj) == "bottom":
-                        self.y = obj.y + obj.frameY/2 + self.frameY/2
-                        collipse = True
-                        break
+            #=== 불덩이 발사 공격
+            if self.breath_cooldown:
+                self.breath_timer += game_framework.frame_time
 
-            if not collipse:
-                self.timerFall += game_framework.frame_time
-                self.y += GRAVITY_ACCEL_PPS2 * (self.timerFall ** 2) # v = v0 + gt, d = v * t
+                if self.breath_timer >= 1:
+                    print('쿨타임 해제')
+                    self.breath_timer = 0
+                    self.isFired = False
+                    self.breath_cooldown = False
             else:
-                if not self.timerFall == 0:
-                    self.timerFall = 0
+                if not self.isFired:
+                    self.frame = 0
+                    self.state = K_State.S_Breath
+                    mob_kupa_breath.makeFires(self.x, self.y, self.dir, random.randint(0, 2))
+                    self.isFired = True
+                else:
+                    self.breath_timer += game_framework.frame_time
 
-            if self.y < 0 or self.x < 0:
-                game_world.remove_object(self)
+                    if self.breath_timer >= 0.6:
+                        self.breath_timer = 0
+                        self.breath_cooldown = True
+                        self.frame = 0
+                        self.state = K_State.S_Walk
+
 
     def draw(self):
         # 렌더링
         if self.dir == 1:
-            self.image.clip_draw(int(self.frame) * self.frameX, 420 - int(self.state) * self.frameY, self.frameX, self.frameY
+            self.image.clip_draw(int(self.frame) * self.frameX, 840 - int(self.state) * self.frameY, self.frameX, self.frameY
                                  , self.x - self.scrollX, self.y)
         else:
-            self.imageL.clip_draw(int(self.frame) * self.frameX, 420 - int(self.state) * self.frameY, self.frameX, self.frameY
+            self.imageL.clip_draw(int(self.frame) * self.frameX, 840 - int(self.state) * self.frameY, self.frameX, self.frameY
                                  , self.x - self.scrollX, self.y)
 
         # bounding box

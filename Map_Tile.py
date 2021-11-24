@@ -12,6 +12,12 @@ class Tile:
     image_steel = None
     image_stone1 = None
     image_stone2 = None
+    image_stone3 = None
+    image_stone4 = None
+    image_stone5 = None
+    image_stonebrick = None
+    image_brownbox = None
+    image_greenbrick = None
 
     def __init__(self):  # 생성자
         self.frameX, self.frameY = 30, 30  # 한 프레임 크기 (캐릭터 리소스 수정 시 여기 부분 수정하면됨!)
@@ -31,6 +37,9 @@ class Tile:
             self.image_stone5 = load_image('tile_stone5.png')
             self.image_stonebrick = load_image('tile_stonebrick.png')
             self.image_brownbox = load_image('block_used.png')
+            self.image_greenbrick = load_image('block_brick2.png')
+            self.image_chess1 = load_image('tile_chess1.png')
+            self.image_chess2 = load_image('tile_chess2.png')
 
     def update(self):
         pass
@@ -58,6 +67,12 @@ class Tile:
             self.image_stonebrick.draw(self.x - self.scrollX, self.y)
         elif self.type == 'tile_Brownbox':
             self.image_brownbox.draw(self.x - self.scrollX, self.y)
+        elif self.type == 'tile_Greenbrick':
+            self.image_greenbrick.draw(self.x - self.scrollX, self.y)
+        elif self.type == 'tile_Chess1':
+            self.image_chess1.draw(self.x - self.scrollX, self.y)
+        elif self.type == 'tile_Chess2':
+            self.image_chess2.draw(self.x - self.scrollX, self.y)
 
         # bounding box
         global show_bb
@@ -91,6 +106,8 @@ class NonCollideTile:
             self.image_stone4 = load_image('tile_stone4.png')
             self.image_stone5 = load_image('tile_stone5.png')
             self.image_stonebrick = load_image('tile_stonebrick.png')
+            self.image_chess1 = load_image('tile_chess1.png')
+            self.image_chess2 = load_image('tile_chess2.png')
 
     def update(self):
         pass
@@ -116,6 +133,10 @@ class NonCollideTile:
             self.image_stone5.draw(self.x - self.scrollX, self.y)
         elif self.type == 'tile_Stonebrick':
             self.image_stonebrick.draw(self.x - self.scrollX, self.y)
+        elif self.type == 'tile_Chess1':
+            self.image_chess1.draw(self.x - self.scrollX, self.y)
+        elif self.type == 'tile_Chess2':
+            self.image_chess2.draw(self.x - self.scrollX, self.y)
 
 
 # 객체 생성 함수

@@ -43,6 +43,8 @@ def enter():
 
     game_world.add_object(player, 1)
 
+    Trigger.makeTrigger(player.x, player.y, "autoMoving")
+
 
 def exit():
     Trigger.remove_all_triggers()

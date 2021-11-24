@@ -49,6 +49,10 @@ def editMap(mapName):
         ground_file_name = "Data_Map_3_ground.txt"
         obj_file_name = "Data_Map_3_obj.txt"
         mob_file_name = "Data_Map_3_mob.txt"
+    elif mapName == "mapF_Boss":
+        ground_file_name = "Data_Map_F_Boss_ground.txt"
+        obj_file_name = "Data_Map_F_Boss_obj.txt"
+        mob_file_name = "Data_Map_F_Boss_mob.txt"
 
 
     #=== 지형 Ground

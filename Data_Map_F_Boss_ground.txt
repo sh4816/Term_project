@@ -1,0 +1,3 @@
+27 0 2 tile_Chess1 Y
+27 0 1 tile_Chess2 N
+27 0 0 tile_Chess2 N
