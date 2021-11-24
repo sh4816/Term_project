@@ -39,8 +39,9 @@ def enter():
         player.imageH = 300
     else:
         player.frameX, player.frameY = 40, 60
-        player.y = 75
         player.imageH = 660
+
+    player.y = 500
 
     game_world.add_object(player, 1)
 

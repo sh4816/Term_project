@@ -15,6 +15,7 @@ import Obstacle_Rotatedfire_Center
 import Obstacle_Button
 import mob_goomba
 import Trigger
+import mob_kupa
 
 ground_data_file = None
 obj_data_file = None
@@ -45,7 +46,7 @@ def editMap(mapName):
     elif mapName == "map3":
         ground_file_name = "Data_Map_3_ground.txt"
         obj_file_name = "Data_Map_3_obj.txt"
-        mob_file_name = None
+        mob_file_name = "Data_Map_3_mob.txt"
 
 
     #=== 지형 Ground
@@ -127,12 +128,12 @@ def editMap(mapName):
             elif obj_type == "moving_HR":
                 maxdis = 0
                 if mapName == "map3":
-                    maxdis = 40
+                    maxdis = 60
                 Map_MovingTile.makeMovingTile(obj_xPos * size, obj_yPos * size, obj_name, 'horizontal', maxdis, 1)
             elif obj_type == "moving_HL":
                 maxdis = 0
                 if mapName == "map3":
-                    maxdis = 40
+                    maxdis = 60
                 Map_MovingTile.makeMovingTile(obj_xPos * size, obj_yPos * size, obj_name, 'horizontal', maxdis, -1)
             elif obj_type == "bridge":
                 Map_Bridge.makeBridge(obj_xPos * size, obj_yPos * size, obj_name)
@@ -178,6 +179,10 @@ def editMap(mapName):
 
                 if mob_type == "goomba":
                     mob_goomba.makeGoombas(mob_xPos*size, mob_yPos*size, mob_dir)
+                elif mob_type == "kupa":
+                    print('start making kupa...')
+                    mob_kupa.makeKupa(mob_xPos*size, mob_yPos*size, mob_dir)
+                    print('kupa is made in ' + str((mob_xPos*size, mob_yPos*size)))
 
             except:
                 break

@@ -2,6 +2,7 @@ from pico2d import *
 
 import Map_Bridge
 import Obstacle_Button
+import ScrollManager
 import Trigger
 import game_framework
 import game_world
@@ -14,6 +15,7 @@ import MapEditor
 import Map_Background
 
 import Map_Lava
+import mob_kupa
 import Obstacle_Rotatedfire
 import Obstacle_Button
 
@@ -77,6 +79,7 @@ def handle_events():
 
 
 def update():
+    global player, name
     #=== 회전하는불꽃, 용암, 버튼
     for obj in game_world.all_objects():
         if obj.__class__ == Map_Lava.Lava:
@@ -88,10 +91,32 @@ def update():
                 print('Hit by Fire')#
         if obj.__class__ == Obstacle_Button.BoomButton:
             if collideCheck(player, obj) == 'bottom':
-                print('Boom')#
                 for target in game_world.all_objects():
                     if target.__class__ == Map_Bridge.BridgeBoom:
                         game_world.remove_object(target)
+
+                #game_world.remove_object(obj)
+
+    #=== 쿠파
+    for kupa in game_world.all_objects():
+        if kupa.__class__ == mob_kupa.Kupa:
+            if not kupa.ismoving:
+                if player.x + 600 >= kupa.x:    # 쿠파는 화면에 들어왔을 때부터 움직이기 시작한다.
+                    print('kupa start moving')
+                    kupa.ismoving = True
+                    kupa.state = mob_kupa.K_State.S_Walk
+            else:
+                # 쿠파는 플레이어가 있는 방향으로 움직인다.
+                if kupa.dir == -1 and player.x - 100 > kupa.x: kupa.dir = 1
+                elif kupa.dir == 1 and player.x + 100 < kupa.x: kupa.dir = -1
+
+                # 쿠파는 플레이어가 멀어지면 대쉬로 빠르게 접근한다.
+                if kupa.dir * (player.x - kupa.x) > 200: kupa.state = mob_kupa.K_State.S_Dash
+                else: kupa.state = mob_kupa.K_State.S_Walk
+
+            if kupa.y <= 150:
+                name = "Map3_ending" # 맵스크롤 할 수 있는 길이를 늘려 Scroll lock을 해제한다.
+                game_world.remove_object(kupa)
 
     # === 맵 이동 트리거
     for trigger in Trigger.triggers:
@@ -103,12 +128,12 @@ def update():
                 # Game Data 업데이트
                 game_framework.change_state(state_select)  # 스테이지 선택화면으로 이동
 
-    #=== Scroll Update
+    #=== Scroll
     for trigger in Trigger.triggers:
-        trigger.scrollX = scrollMgr.getScrollX("Map3", player)
+        trigger.scrollX = scrollMgr.getScrollX(name, player)
 
     for game_object in game_world.all_objects():
-        game_object.scrollX = scrollMgr.getScrollX("Map3", player)
+        game_object.scrollX = scrollMgr.getScrollX(name, player)
         game_object.update()
 
 

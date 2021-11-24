@@ -8,6 +8,7 @@ import game_data
 # Map
 import state_map1
 import state_map2_1
+import state_map3
 
 name = "TitleState"
 image = None
@@ -57,6 +58,9 @@ def handle_events():
                     elif game_data.gameData.cur_stage == 2:
                         print('2번 맵 입장')#
                         game_framework.change_state(state_map2_1)   # 2-1번 맵 입장
+                    elif game_data.gameData.cur_stage == 3:
+                        print('최종 맵 입장')#
+                        game_framework.change_state(state_map3)   # 3번 맵 입장
                 else:
                     print('잠겨있는 맵')
             elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_LEFT):
