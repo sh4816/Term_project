@@ -74,6 +74,8 @@ def handle_events():
 
 
 def update():
+    if player.x >= 800 - player.frameX: player.x = 800 - player.frameX
+
     for obj in game_world.all_objects():
         # === 쿠파
         if obj.__class__ == mob_kupa.Kupa:
@@ -85,6 +87,9 @@ def update():
                             obj.ismoving = True
                             obj.state = mob_kupa.K_State.S_Idle
             else:
+                if obj.x <= 0: obj.x = obj.frameX
+                elif obj.x >= 800: obj.x = 800 - obj.frameX
+
                 if not obj.state == mob_kupa.K_State.S_Hit:
                     if not obj.state == mob_kupa.K_State.S_Breath or not obj.state == mob_kupa.K_State.S_Hide:
                         # 쿠파는 플레이어가 있는 방향으로 움직인다.

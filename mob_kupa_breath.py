@@ -22,6 +22,7 @@ class F_Direction(enum.IntEnum):
     D_Up = 0
     D_Mid = enum.auto()
     D_Down = enum.auto()
+    D_Sin = enum.auto()
 
 class KupaBreath:
     image = None
@@ -36,6 +37,8 @@ class KupaBreath:
         self.dir = -1
         self.up_mid_down = None
 
+        self.distance = 0
+
         if self.image == None:
             self.image = load_image('kupa_fire.png')
             self.imageL = load_image('kupa_fireL.png')
@@ -44,25 +47,37 @@ class KupaBreath:
         self.frame += game_framework.frame_time
         movingLen = self.dir * MOVE_SPEED_PPS * game_framework.frame_time
         self.x += movingLen
+        self.distance += movingLen
 
         if self.dir == 1:
             if self.up_mid_down == int(F_Direction.D_Up):
                 self.y += (1/3) * movingLen
             elif self.up_mid_down == int(F_Direction.D_Down):
                 self.y -= (1/3) * movingLen
+            elif self.up_mid_down == int(F_Direction.D_Sin):
+                self.y = math.sin(math.radians(self.distance)) * 60 + self.startY
         else:
             if self.up_mid_down == int(F_Direction.D_Up):
                 self.y -= (1/3) * movingLen
             elif self.up_mid_down == int(F_Direction.D_Down):
                 self.y += (1/3) * movingLen
+            elif self.up_mid_down == int(F_Direction.D_Sin):
+                self.y = math.sin(math.radians(self.distance)) * 60 + self.startY
 
     def draw(self):
         # 렌더링
+        randerY = 0
+        if self.up_mid_down == 3:
+            randerY = 1
+        elif self.up_mid_down == 4:
+            randerY = 1
+        else:
+            randerY = self.up_mid_down
         if self.dir == 1:
-            self.image.clip_draw(int(self.frame) % 3 * self.frameX, 60 - self.up_mid_down * self.frameY
+            self.image.clip_draw(int(self.frame) % 3 * self.frameX, 60 - randerY * self.frameY
                                  , self.frameX, self.frameY, self.x - self.scrollX, self.y)
         else:
-            self.imageL.clip_draw(int(self.frame) % 3 * self.frameX, 60 - self.up_mid_down * self.frameY
+            self.imageL.clip_draw(int(self.frame) % 3 * self.frameX, 60 - randerY * self.frameY
                                   , self.frameX, self.frameY, self.x - self.scrollX, self.y)
 
         # bounding box
@@ -79,6 +94,5 @@ def makeFires(xPos, yPos, dir, UMD):
     newFire.startY = newFire.y
     newFire.dir = dir
     newFire.up_mid_down = UMD
-    print('startPos: ' + str((newFire.x, newFire.y)) + ', dir: ' + str(newFire.dir) + ', umd:' + str(newFire.up_mid_down))
 
     game_world.add_object(newFire, 1)

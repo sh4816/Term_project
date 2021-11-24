@@ -157,9 +157,12 @@ class Kupa():
                 self.frame = 0
                 self.state = K_State.S_Breath
                 rndDir = random.randint(0, 4)
-                if rndDir >= 3:
+                #rndDir = 4
+                if rndDir == 3:
                     for i in range(3):
                         mob_kupa_breath.makeFires(self.x, self.y, self.dir, i)
+                elif rndDir == 4:
+                    mob_kupa_breath.makeFires(self.x, self.y, self.dir, rndDir-1)
                 else:
                     mob_kupa_breath.makeFires(self.x, self.y, self.dir, rndDir)
                 self.isFired = True
@@ -178,30 +181,9 @@ class Kupa():
             self.breath_timer += game_framework.frame_time
 
             if self.breath_timer >= 1:
-                print('쿨타임 해제')
                 self.breath_timer = 0
                 self.isFired = False
                 self.breath_cooldown = False
-        # else:
-        #     if not self.state == K_State.S_Hit or not self.state == K_State.S_Hide:
-        #         if not self.isFired:
-        #             self.frame = 0
-        #             self.state = K_State.S_Breath
-        #             rndDir = random.randint(0, 4)
-        #             if rndDir >= 3:
-        #                 for i in range(3):
-        #                     mob_kupa_breath.makeFires(self.x, self.y, self.dir, i)
-        #             else:
-        #                 mob_kupa_breath.makeFires(self.x, self.y, self.dir, rndDir)
-        #             self.isFired = True
-        #         else:
-        #             self.breath_timer += game_framework.frame_time
-        #
-        #             if self.breath_timer >= 0.6:
-        #                 self.breath_timer = 0
-        #                 self.breath_cooldown = True
-        #                 self.frame = 0
-        #                 self.state = K_State.S_Walk
 
 
     def draw(self):
