@@ -57,7 +57,7 @@ class Kupa():
         self.frame = 0
         self.state = K_State.S_Idle
 
-        self.life = 3
+        self.life = 10
 
         self.ismoving = False   # 쿠파는 화면에 처음으로 잡혔을 때부터 움직이기 시작한다.
         self.dir = -1
@@ -67,6 +67,9 @@ class Kupa():
         self.breath_cooldown = False
         self.breath_timer = 0
         self.isFired = True
+
+        # 피격 관련
+        self.hit_timer = 0
 
         # 충돌 관련
         self.isOnGround = 0
@@ -79,10 +82,8 @@ class Kupa():
 
     def update(self):
         frameCut = 0
-        if self.state == K_State.S_Idle or self.state == K_State.S_Jump or self.state == K_State.S_Fall:
+        if self.state == K_State.S_Idle or self.state == K_State.S_Jump or self.state == K_State.S_Fall or self.state == K_State.S_Hit:
             frameCut = 1
-        elif self.state == K_State.S_Hit:
-            frameCut = 2
         elif self.state == K_State.S_Hide:
             framueCut = 3
         elif self.state == K_State.S_Walk or self.state == K_State.S_Dash or self.state == K_State.S_Breath:
@@ -113,58 +114,94 @@ class Kupa():
         if self.y < 0 or self.x < 0:
             game_world.remove_object(self)
 
+        # === State: 걷기 또는 대쉬
+        if self.state == K_State.S_Walk or self.state == K_State.S_Dash:
+            if self.ismoving:
+                # === 왼쪽 오른쪽으로 이동
+                # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
+                collipse = False
+                for obj in game_world.all_objects():
+                    if obj.__class__ == Map_Box.Box_Question \
+                            or obj.__class__ == Map_Brick.Brick \
+                            or obj.__class__ == Map_Pipe.Pipe \
+                            or obj.__class__ == Map_Tile.Tile\
+                            or obj.__class__ == Map_Bridge.BridgeBoom:  # 충돌체크를 해야할 클래스의 이름
+                        if collideCheck(self, obj) == "left":
+                            collipse = True
+                            self.x = obj.x + obj.frameX/2 + self.frameX/2 + 1
+                            break
+                        elif collideCheck(self, obj) == "right":
+                            collipse = True
+                            self.x = obj.x - obj.frameX/2 - self.frameX/2 - 1
+                            break
 
-        if self.ismoving:
-            #=== 왼쪽 오른쪽으로 이동
-            # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
-            collipse = False
-            for obj in game_world.all_objects():
-                if obj.__class__ == Map_Box.Box_Question \
-                        or obj.__class__ == Map_Brick.Brick \
-                        or obj.__class__ == Map_Pipe.Pipe \
-                        or obj.__class__ == Map_Tile.Tile\
-                        or obj.__class__ == Map_Bridge.BridgeBoom:  # 충돌체크를 해야할 클래스의 이름
-                    if collideCheck(self, obj) == "left":
-                        collipse = True
-                        self.x = obj.x + obj.frameX/2 + self.frameX/2 + 1
-                        break
-                    elif collideCheck(self, obj) == "right":
-                        collipse = True
-                        self.x = obj.x - obj.frameX/2 - self.frameX/2 - 1
-                        break
+                # 충돌하지 않았을 때에만 이동
+                if not collipse:
+                    # 움직임
+                    if self.state == K_State.S_Walk:
+                        self.x += self.dir * MOVE_SPEED_PPS * game_framework.frame_time
+                    elif self.state == K_State.S_Dash:
+                        self.x += self.dir * DASH_SPPED_PPS * game_framework.frame_time
 
-            # 충돌하지 않았을 때에만 이동
-            if not collipse:
-                # 움직임
-                if self.state == K_State.S_Walk:
-                    self.x += self.dir * MOVE_SPEED_PPS * game_framework.frame_time
-                elif self.state == K_State.S_Dash:
-                    self.x += self.dir * DASH_SPPED_PPS * game_framework.frame_time
+        # === State: 피격 상태
+        elif self.state == K_State.S_Hit:
+            self.hit_timer += game_framework.frame_time
 
+            if self.hit_timer >= 3:
+                print('피격 무적 해제')
+                self.hit_timer = 0
+                self.state = K_State.S_Walk
 
-            #=== 불덩이 발사 공격
-            if self.breath_cooldown:
-                self.breath_timer += game_framework.frame_time
-
-                if self.breath_timer >= 1:
-                    print('쿨타임 해제')
-                    self.breath_timer = 0
-                    self.isFired = False
-                    self.breath_cooldown = False
-            else:
-                if not self.isFired:
-                    self.frame = 0
-                    self.state = K_State.S_Breath
-                    mob_kupa_breath.makeFires(self.x, self.y, self.dir, random.randint(0, 2))
-                    self.isFired = True
+        elif self.state == K_State.S_Breath:
+            if not self.isFired:
+                self.frame = 0
+                self.state = K_State.S_Breath
+                rndDir = random.randint(0, 4)
+                if rndDir >= 3:
+                    for i in range(3):
+                        mob_kupa_breath.makeFires(self.x, self.y, self.dir, i)
                 else:
-                    self.breath_timer += game_framework.frame_time
+                    mob_kupa_breath.makeFires(self.x, self.y, self.dir, rndDir)
+                self.isFired = True
 
-                    if self.breath_timer >= 0.6:
-                        self.breath_timer = 0
-                        self.breath_cooldown = True
-                        self.frame = 0
-                        self.state = K_State.S_Walk
+            self.breath_timer += game_framework.frame_time
+            if self.breath_timer >= 0.6:
+                self.breath_timer = 0
+                self.breath_cooldown = True
+                self.frame = 0
+                self.state = K_State.S_Walk
+
+
+
+        # === 불덩이 발사 공격
+        if self.breath_cooldown:
+            self.breath_timer += game_framework.frame_time
+
+            if self.breath_timer >= 1:
+                print('쿨타임 해제')
+                self.breath_timer = 0
+                self.isFired = False
+                self.breath_cooldown = False
+        # else:
+        #     if not self.state == K_State.S_Hit or not self.state == K_State.S_Hide:
+        #         if not self.isFired:
+        #             self.frame = 0
+        #             self.state = K_State.S_Breath
+        #             rndDir = random.randint(0, 4)
+        #             if rndDir >= 3:
+        #                 for i in range(3):
+        #                     mob_kupa_breath.makeFires(self.x, self.y, self.dir, i)
+        #             else:
+        #                 mob_kupa_breath.makeFires(self.x, self.y, self.dir, rndDir)
+        #             self.isFired = True
+        #         else:
+        #             self.breath_timer += game_framework.frame_time
+        #
+        #             if self.breath_timer >= 0.6:
+        #                 self.breath_timer = 0
+        #                 self.breath_cooldown = True
+        #                 self.frame = 0
+        #                 self.state = K_State.S_Walk
 
 
     def draw(self):

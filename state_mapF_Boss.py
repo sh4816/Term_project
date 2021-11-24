@@ -85,22 +85,39 @@ def update():
                             obj.ismoving = True
                             obj.state = mob_kupa.K_State.S_Idle
             else:
-                # 쿠파는 플레이어가 있는 방향으로 움직인다.
-                if obj.breath_cooldown:
-                    if obj.dir == -1 and player.x - 100 > obj.x: obj.dir = 1
-                    elif obj.dir == 1 and player.x + 100 < obj.x: obj.dir = -1
+                if not obj.state == mob_kupa.K_State.S_Hit:
+                    if not obj.state == mob_kupa.K_State.S_Breath or not obj.state == mob_kupa.K_State.S_Hide:
+                        # 쿠파는 플레이어가 있는 방향으로 움직인다.
+                        if obj.dir == -1 and player.x - 100 > obj.x:
+                            obj.dir = 1
+                        elif obj.dir == 1 and player.x + 100 < obj.x:
+                            obj.dir = -1
 
-                # 쿠파는 플레이어가 어느정도 멀어지면 대쉬로 빠르게 접근한다.
-                if 180 < obj.dir * (player.x - obj.x) <= 250 and not obj.isFired:
-                    obj.state = mob_kupa.K_State.S_Dash
+                        # 쿠파는 플레이어가 어느정도 멀어지면 대쉬로 빠르게 접근한다.
+                        # if 180 < obj.dir * (player.x - obj.x) <= 250 and not obj.isFired:
+                        #     obj.state = mob_kupa.K_State.S_Dash
 
-                # 쿠파는 플레이어가 완전 멀어진 상태에서 불덩이 발사가 쿨타임이 아닐 때 불덩이를 발사하는 공격을 한다.
-                elif obj.dir * (player.x - obj.x) > 250 and not obj.breath_cooldown:
-                    obj.state = mob_kupa.K_State.S_Breath
+                        # 쿠파는 플레이어가 완전 멀어진 상태에서 불덩이 발사가 쿨타임이 아닐 때 불덩이를 발사하는 공격을 한다.
+                        if obj.dir * (player.x - obj.x) > 150 and not obj.breath_cooldown:
+                            obj.state = mob_kupa.K_State.S_Breath
 
-                # 쿠파는 플레이어가 가까이에 있으면 걸어서 접근한다.
-                else:
-                    obj.state = mob_kupa.K_State.S_Walk
+                        # 쿠파는 플레이어가 가까이에 있으면 걸어서 접근한다.
+                        else:
+                            if not obj.state == mob_kupa.K_State.S_Walk:
+                                obj.state = mob_kupa.K_State.S_Walk
+
+
+                    # 플레이어가 쿠파를 밟았을 때
+                    if collideCheck(player, obj) == 'bottom':
+                        if obj.state == mob_kupa.K_State.S_Hide:
+                            print('쿠파가 등딱지에 숨은 상태에서 밟으면 자신이 피해를 받는다')#test
+                        else:       # 피격 무적 중일 때에는 밟아도 아무일 없음
+                            if obj.life <= 0:
+                                print('게임 클리어')#test
+                            else:
+                                obj.state = mob_kupa.K_State.S_Hit
+                                obj.life -= 1
+                                print(obj.state)
 
         # === 불꽃
         if obj.__class__ == mob_kupa_breath.KupaBreath:
