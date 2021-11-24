@@ -31,7 +31,7 @@ def KMPH2MPS(KMPH): # km/h -> m/sec
 MOVE_SPEED_PPS = (KMPH2MPS(8) * PIXEL_PER_METER)
 DASH_SPPED_PPS = (KMPH2MPS(15) * PIXEL_PER_METER)
 HIDE_SPEED_PPS = (KMPH2MPS(60) * PIXEL_PER_METER)
-GRAVITY_ACCEL_PPS2 = -400.0 # px/s^2
+GRAVITY_ACCEL_PPS2 = -200.0 # px/s^2
 
 
 # enum
@@ -44,6 +44,13 @@ class K_State(enum.IntEnum):
     S_Hit = enum.auto()
     S_Breath = enum.auto()
     S_Hide = enum.auto()
+
+class KupaBB():
+    def __init__(self):  # 생성자
+        self.frameX, self.frameY = 0, 0
+        self.x, self.y = 0, 0
+        self.scrollX = 0
+kupa_bb = KupaBB()
 
 show_bb = False
 
@@ -85,6 +92,19 @@ class Kupa():
             self.imageL = load_image('kupaL.png')
 
     def update(self):
+        # === Bounding Box
+        global kupa_bb
+
+        if self.state == K_State.S_Idle or self.state == K_State.S_Walk or self.state == K_State.S_Dash\
+                or self.state == K_State.S_Breath or self.state == K_State.S_Jump\
+                or self.state == K_State.S_Fall or self.state == K_State.S_Hit:
+            kupa_bb.x, kupa_bb.y = self.x, self.y - 20
+            kupa_bb.frameX, kupa_bb.frameY = 60, 80
+        elif self.state == K_State.S_Hide:
+            kupa_bb.x, kupa_bb.y = self.x, self.y - 45
+            kupa_bb.frameX, kupa_bb.frameY = 60, 30
+
+        # === Frame
         frameCut = 0
         if self.state == K_State.S_Idle or self.state == K_State.S_Jump or self.state == K_State.S_Fall or self.state == K_State.S_Hit:
             frameCut = 1
@@ -214,10 +234,10 @@ class Kupa():
                                  , self.x - self.scrollX, self.y)
 
         # bounding box
-        global show_bb
+        global show_bb, kupa_bb
         if show_bb:
-            draw_rectangle(self.x - self.frameX / 2 - self.scrollX, self.y + self.frameY / 2
-                           , self.x + self.frameX / 2 - self.scrollX, self.y - self.frameY / 2)
+            draw_rectangle(kupa_bb.x - kupa_bb.frameX / 2 - kupa_bb.scrollX, kupa_bb.y + kupa_bb.frameY / 2
+                           , kupa_bb.x + kupa_bb.frameX / 2 - kupa_bb.scrollX, kupa_bb.y - kupa_bb.frameY / 2)
 
 
 def makeKupa(xPos, yPos, dir):

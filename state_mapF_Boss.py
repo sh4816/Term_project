@@ -113,7 +113,7 @@ def update():
 
 
                     # 플레이어가 쿠파를 밟았을 때
-                    if collideCheck(player, obj) == 'bottom':
+                    if collideCheck(player, mob_kupa.kupa_bb) == 'bottom':
                         if obj.state == mob_kupa.K_State.S_Hide:
                             print('쿠파가 등딱지에 숨은 상태에서 밟으면 자신이 피해를 받는다')#test
                         else:       # 피격 무적 중일 때에는 밟아도 아무일 없음
@@ -123,6 +123,12 @@ def update():
                                 obj.state = mob_kupa.K_State.S_Hit
                                 obj.life -= 1
                                 print(obj.state)
+                    # 플레이어가 쿠파와 부딪혔을 때 (양 옆)
+                    if not obj.state == mob_kupa.K_State.S_Hit:
+                        if collideCheck(player, mob_kupa.kupa_bb) == 'left':
+                            print('플레이어 데미지')#test
+                        elif collideCheck(player, mob_kupa.kupa_bb) == 'right':
+                            print('플레이어 데미지')#test
 
         # === 불꽃
         if obj.__class__ == mob_kupa_breath.KupaBreath:
