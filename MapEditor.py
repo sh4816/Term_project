@@ -11,11 +11,13 @@ import Map_Flag
 import Map_MovingTile
 import Map_Bridge
 import Map_Lava
+import Npc_Kinopio
 import Obstacle_Rotatedfire_Center
 import Obstacle_Button
 import mob_goomba
 import Trigger
 import mob_kupa
+import Npc_Kinopio
 
 ground_data_file = None
 obj_data_file = None
@@ -150,6 +152,9 @@ def editMap(mapName):
                 Map_Castle.makeCastle(obj_xPos*size, obj_yPos*size)
             elif obj_type == "flag":
                 Map_Flag.makeFlag(obj_xPos*size, obj_yPos*size)
+            elif obj_type == "npc":
+                if obj_name == "npc_Kinopio":
+                    Npc_Kinopio.makeKino(obj_xPos*size, obj_yPos*size)
 
         except:
             break

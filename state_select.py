@@ -70,7 +70,7 @@ def handle_events():
                 else:
                     print('처음 스테이지여서 움직이지 못함')
             elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_RIGHT):
-                if game_data.gameData.cur_stage < 3:
+                if game_data.gameData.cur_stage < 4:
                     game_data.gameData.cur_stage += 1
                     print('curStage 증가 -> curStage: ' + str(game_data.gameData.cur_stage))
                 else:
@@ -85,23 +85,28 @@ def handle_events():
             elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_3):
                 print('치트키 - 해금 3')
                 game_data.gameData.unlocked_stage = 3
+            elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_4):
+                print('치트키 - 해금 F')
+                game_data.gameData.unlocked_stage = 4
 
 
 def draw():
     clear_canvas()
     image.draw(400, 300)
 
-    if game_data.gameData.unlocked_stage == 1:
-        image_lock.draw(480, 200)
-        image_lock.draw(630, 200)
-    elif game_data.gameData.unlocked_stage == 2:
-        image_lock.draw(630, 200)
+    for i in range(4 - game_data.gameData.unlocked_stage, 0, -1):
+        image_lock.draw(200 + 150 * (4 - i) + 25, 300 - 20)
+    # if game_data.gameData.unlocked_stage == 1:
+    #     image_lock.draw(480, 200)
+    #     image_lock.draw(630, 200)
+    # elif game_data.gameData.unlocked_stage == 2:
+    #     image_lock.draw(630, 200)
 
-    drawX = 325 + 153 * (game_data.gameData.cur_stage - 1)
+    drawX = 200 + 150 * (game_data.gameData.cur_stage - 1)
     if game_data.gameData.transform == int(P_Transform.T_Basic):
-        image_mario.clip_draw(0, 90, 40, 30, drawX, 200)
+        image_mario.clip_draw(0, 90, 40, 30, drawX + 25, 300 - 20)
     else:
-        image_mario.clip_draw(0, 240, 40, 60, drawX, 220)
+        image_mario.clip_draw(0, 240, 40, 60, drawX + 25, 300 - 20)
 
     update_canvas()
 

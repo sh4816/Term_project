@@ -1,9 +1,13 @@
+import Npc_Kinopio
+
 import Map_Bridge
 import Map_Lava
 import Map_MovingTile
+import Obstacle_Button
 import Obstacle_Rotatedfire
 import Obstacle_Rotatedfire_Center
 import game_framework
+import mob_kupa
 
 import state_select
 # import state_map2_2
@@ -737,9 +741,19 @@ class StageclearState:
             # 낙하 (수직낙하운동, FallState 와 동일한 로직)
             player.timer_jump += game_framework.frame_time
             player.y = (1/2) * GRAVITY_ACCEL_PPS2 * (player.timer_jump ** 2) + player.pos_startFalling
-        else:
+
+        # x축 이동
+        collipse = False
+        for obj in game_world.all_objects():
+            if obj.__class__ == Map_Castle.Door or obj.__class__ == Npc_Kinopio.Kinopio:
+                if collideCheck(player, obj) == 'left':
+                    player.y = obj.y - obj.frameY / 2 - player.frameY / 2
+                    collipse = True
+                    break
+
+        if not collipse:
             player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 2
-            #=== 발판에 도달하면 자동으로 x 축 이동을 한다.
+            #=== 자동으로 x 축 이동을 한다.
             player.x += player.velocity * game_framework.frame_time
             player.x = clamp(25, player.x, 6600 - 25)
 
@@ -1001,10 +1015,13 @@ class Player:
 
 
         #=== 스테이지 클리어 관련
-        # Flag
-        for flagbar in game_world.all_objects():
-            if flagbar.__class__ == Map_Flag.Bar:  # 충돌체크를 해야할 클래스의 이름
-                if not collideCheck(self, flagbar) == None:
+        # Flag, Button
+        for obj in game_world.all_objects():
+            if obj.__class__ == Map_Flag.Bar:  # 충돌체크를 해야할 클래스의 이름
+                if not collideCheck(self, obj) == None:
+                    self.add_event(STAGECLEAR_EVENT)
+            if obj.__class__ == Obstacle_Button.BoomButton:
+                if not collideCheck(self, obj) == None:
                     self.add_event(STAGECLEAR_EVENT)
 
 
@@ -1050,6 +1067,11 @@ class Player:
                 Map_MovingTile.show_bb = False
                 Map_Lava.show_bb = False
                 Obstacle_Rotatedfire.show_bb = False
+                Map_Bridge.show_bb = False
+                mob_kupa.show_bb = False
+                Npc_Kinopio.show_bb = False
+                Obstacle_Rotatedfire_Center.show_bb = False
+                Obstacle_Button.show_bb = False
             else:
                 self.show_bb = True
                 Map_Box.show_bb = True
@@ -1064,6 +1086,11 @@ class Player:
                 Map_MovingTile.show_bb = True
                 Map_Lava.show_bb = True
                 Obstacle_Rotatedfire.show_bb = True
+                Map_Bridge.show_bb = True
+                mob_kupa.show_bb = True
+                Npc_Kinopio.show_bb = True
+                Obstacle_Rotatedfire_Center.show_bb = True
+                Obstacle_Button.show_bb = True
 
         if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):
             score = game_data.gameData.score

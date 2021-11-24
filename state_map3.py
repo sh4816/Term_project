@@ -1,6 +1,7 @@
 from pico2d import *
 
 import Map_Bridge
+import Npc_Kinopio
 import Obstacle_Button
 import ScrollManager
 import Trigger
@@ -95,7 +96,19 @@ def update():
                     if target.__class__ == Map_Bridge.BridgeBoom:
                         game_world.remove_object(target)
 
-                #game_world.remove_object(obj)
+        if obj.__class__ == Npc_Kinopio.Kinopio:
+            if player.x + 150 >= obj.x:
+                obj.state = Npc_Kinopio.K_State.S_Hello
+            else:
+                obj.state = Npc_Kinopio.K_State.S_Idle
+
+            if not collideCheck(player, obj) == None:
+                print('우리 공주 여기없음')
+                if player.stageclear and game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
+                    game_data.gameData.unlocked_stage += 1  # 다음 스테이지 해금
+                    print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')  # test
+                # Game Data 업데이트
+                game_framework.change_state(state_select)  # 스테이지 선택화면으로 이동
 
     #=== 쿠파
     for kupa in game_world.all_objects():

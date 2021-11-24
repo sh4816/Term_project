@@ -211,3 +211,4 @@
 155 1 lava lava_T3
 156 1 lava lava_T4
 157 7 obstacle obs_Button
+167 8 npc npc_Kinopio
