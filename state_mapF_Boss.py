@@ -91,7 +91,7 @@ def update():
                 elif obj.x >= 800: obj.x = 800 - obj.frameX
 
                 if not obj.state == mob_kupa.K_State.S_Hit:
-                    if not obj.state == mob_kupa.K_State.S_Breath or not obj.state == mob_kupa.K_State.S_Hide:
+                    if not obj.state == mob_kupa.K_State.S_Breath and not obj.state == mob_kupa.K_State.S_Hide:
                         # 쿠파는 플레이어가 있는 방향으로 움직인다.
                         if obj.dir == -1 and player.x - 100 > obj.x:
                             obj.dir = 1

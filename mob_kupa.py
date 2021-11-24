@@ -30,6 +30,7 @@ def KMPH2MPS(KMPH): # km/h -> m/sec
 
 MOVE_SPEED_PPS = (KMPH2MPS(8) * PIXEL_PER_METER)
 DASH_SPPED_PPS = (KMPH2MPS(15) * PIXEL_PER_METER)
+HIDE_SPEED_PPS = (KMPH2MPS(60) * PIXEL_PER_METER)
 GRAVITY_ACCEL_PPS2 = -400.0 # px/s^2
 
 
@@ -71,6 +72,9 @@ class Kupa():
         # 피격 관련
         self.hit_timer = 0
 
+        # 등껍질 관련
+        self.hide_timer = 0
+
         # 충돌 관련
         self.isOnGround = 0
         self.landYPos = 0
@@ -85,7 +89,7 @@ class Kupa():
         if self.state == K_State.S_Idle or self.state == K_State.S_Jump or self.state == K_State.S_Fall or self.state == K_State.S_Hit:
             frameCut = 1
         elif self.state == K_State.S_Hide:
-            framueCut = 3
+            frameCut = 3
         elif self.state == K_State.S_Walk or self.state == K_State.S_Dash or self.state == K_State.S_Breath:
             frameCut = 4
 
@@ -150,14 +154,13 @@ class Kupa():
             if self.hit_timer >= 3:
                 print('피격 무적 해제')
                 self.hit_timer = 0
-                self.state = K_State.S_Walk
+                self.state = K_State.S_Hide
 
         elif self.state == K_State.S_Breath:
             if not self.isFired:
                 self.frame = 0
                 self.state = K_State.S_Breath
                 rndDir = random.randint(0, 4)
-                #rndDir = 4
                 if rndDir == 3:
                     for i in range(3):
                         mob_kupa_breath.makeFires(self.x, self.y, self.dir, i)
@@ -174,6 +177,21 @@ class Kupa():
                 self.frame = 0
                 self.state = K_State.S_Walk
 
+        elif self.state == K_State.S_Hide:
+            self.hide_timer += game_framework.frame_time
+            self.x += self.dir * HIDE_SPEED_PPS * game_framework.frame_time
+
+            if self.hide_timer >= 5:
+                self.hide_timer = 0
+                self.state = K_State.S_Walk
+
+            # 방향전환
+            if self.x - self.frameX / 2 <= 0:
+                self.dir = 1
+                self.x = self.frameX/2
+            elif self.x + self.frameX / 2 >= 800:
+                self.dir = -1
+                self.x = 800 - self.frameX/2
 
 
         # === 불덩이 발사 공격

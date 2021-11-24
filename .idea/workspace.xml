@@ -4,8 +4,6 @@
     <list default="true" id="cd09cdb6-0872-4448-ad26-e7a287389195" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mob_kupa.py" beforeDir="false" afterPath="$PROJECT_DIR$/mob_kupa.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mob_kupa_breath.py" beforeDir="false" afterPath="$PROJECT_DIR$/mob_kupa_breath.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mygame.py" beforeDir="false" afterPath="$PROJECT_DIR$/mygame.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/state_mapF_Boss.py" beforeDir="false" afterPath="$PROJECT_DIR$/state_mapF_Boss.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
