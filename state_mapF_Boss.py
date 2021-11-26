@@ -22,6 +22,12 @@ name = "MapF_Boss"
 
 player = None
 
+
+image_status = None
+image_numstat = None
+
+playtime = 300
+
 def enter():
     #=== 맵 배경
     bg = Map_Background.BG()
@@ -46,6 +52,13 @@ def enter():
         player.imageH = 660
 
     game_world.add_object(player, 1)
+
+
+    global image_status, image_numstat
+    if image_status == None:
+        image_status = load_image('img_status.png')
+        image_numstat = load_image('numbers_status.png')
+
 
 def exit():
     Trigger.remove_all_triggers()
@@ -160,8 +173,69 @@ def update():
 
 def draw():
     clear_canvas()
+
     for game_object in game_world.all_objects():
         game_object.draw()
     for trigger in Trigger.triggers:
         trigger.draw()
+
+    # === 상태창 (score, coin, stage, time)
+    global image_status, image_numstat
+    image_status.draw(400, 540)
+    # score
+    drawNumbers('score', 0)
+    # coin
+    drawNumbers('coin', 1)
+    # stage
+    drawNumbers('stage', 0)
+    # time
+    drawNumbers('time', 0)
+
     update_canvas()
+
+
+def drawNumbers(type, color):
+    global image_status, image_numstat, playtime
+
+    fullnum = 0
+    if type == 'score':
+        fullnum = game_data.gameData.score
+    elif type == 'coin':
+        fullnum = game_data.gameData.coin
+    elif type == 'stage':
+        fullnum = game_data.gameData.cur_stage
+    elif type == 'time':
+        playtime -= game_framework.frame_time
+        fullnum = int(playtime)
+
+    if type == 'score' and game_data.gameData.score == 0:
+        image_numstat.clip_draw(0, 20 * color, 20, 20, 105, 535)
+    elif type == 'coin' and game_data.gameData.coin == 0:
+        image_numstat.clip_draw(0, 20 * color, 20, 20, 305, 535)
+    elif type == 'stage' and game_data.gameData.cur_stage == 0:
+        image_numstat.clip_draw(0, 20 * color, 20, 20, 455, 535)
+    elif type == 'time' and playtime == 0:
+        image_numstat.clip_draw(0, 20 * color, 20, 20, 665, 535)
+    else:
+        # 1. 몇 자리 숫자인지 구하기
+        cur_score = fullnum
+        positional_num = 0
+        while cur_score >= 1:
+            positional_num += 1
+            cur_score /= 10
+        # 2. 각 자릿수 구하기
+        cur_score = fullnum
+        for i in range(positional_num):
+            digit = cur_score % 10
+
+            cur_score /= 10
+            #print(cur_score, ', ', i, '번째 숫자: ', int(digit)) # test
+
+            if type == 'score':
+                image_numstat.clip_draw(int(digit) * 20, 20 * color, 20, 20, 65 + 11 * (positional_num-i), 535)
+            elif type == 'coin':
+                image_numstat.clip_draw(int(digit) * 20, 20 * color, 20, 20, 305 + 11 * (positional_num-i), 535)
+            elif type == 'stage':
+                image_numstat.clip_draw(int(digit) * 20, 20 * color, 20, 20, 455 + 11 * (positional_num-i), 535)
+            elif type == 'time':
+                image_numstat.clip_draw(int(digit) * 20, 20 * color, 20, 20, 665 + 11 * (positional_num-i), 535)
