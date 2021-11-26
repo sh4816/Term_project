@@ -23,10 +23,8 @@ def update():
 
     if (logo_time > 1.0):
         logo_time = 0
-        #game_framework.quit()
         game_framework.change_state(state_title)
-    delay(0.01)
-    logo_time += 0.01
+    logo_time += game_framework.frame_time
 
 
 def draw():

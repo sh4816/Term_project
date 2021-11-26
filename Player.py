@@ -1,3 +1,5 @@
+import mob_kupa_breath
+
 import Npc_Kinopio
 
 import Map_Bridge
@@ -8,6 +10,8 @@ import Obstacle_Rotatedfire
 import Obstacle_Rotatedfire_Center
 import game_framework
 import mob_kupa
+import mob_kupa_breath
+
 
 import state_select
 # import state_map2_2
@@ -1106,6 +1110,7 @@ class Player:
                 Obstacle_Rotatedfire.show_bb = False
                 Map_Bridge.show_bb = False
                 mob_kupa.show_bb = False
+                mob_kupa_breath.show_bb = False
                 Npc_Kinopio.show_bb = False
                 Obstacle_Rotatedfire_Center.show_bb = False
                 Obstacle_Button.show_bb = False
@@ -1125,10 +1130,10 @@ class Player:
                 Obstacle_Rotatedfire.show_bb = True
                 Map_Bridge.show_bb = True
                 mob_kupa.show_bb = True
+                mob_kupa_breath.show_bb = False
                 Npc_Kinopio.show_bb = True
                 Obstacle_Rotatedfire_Center.show_bb = True
                 Obstacle_Button.show_bb = True
-
         if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):
             score = game_data.gameData.score
             coin = game_data.gameData.coin

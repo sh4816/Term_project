@@ -6,10 +6,7 @@ import enum
 import game_data
 
 # Map
-import state_map1
-import state_map2_1
-import state_map3
-import state_mapF_Boss
+import state_enterStage
 
 name = "TitleState"
 image = None
@@ -52,33 +49,21 @@ def handle_events():
                 game_framework.quit()
             # 입장
             elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_RETURN):
-                if game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:              # 잠겨있지 않은 맵에만
-                    if game_data.gameData.cur_stage == 1:
-                        print('1번 맵 입장')#
-                        game_framework.change_state(state_map1)  # 1번 맵 입장
-                    elif game_data.gameData.cur_stage == 2:
-                        print('2번 맵 입장')#
-                        game_framework.change_state(state_map2_1)   # 2-1번 맵 입장
-                    elif game_data.gameData.cur_stage == 3:
-                        print('3번 맵 입장')#
-                        game_framework.change_state(state_map3)   # 3번 맵 입장
-                    elif game_data.gameData.cur_stage == 4:
-                        print('최종 맵 입장')#
-                        game_framework.change_state(state_mapF_Boss)   # 3번 맵 입장
+                if game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:   # 잠겨있지 않은 맵에만
+                    game_framework.change_state(state_enterStage)
                 else:
                     print('잠겨있는 맵')
             elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_LEFT):
                 if game_data.gameData.cur_stage > 1:
                     game_data.gameData.cur_stage -= 1
-                    print('curStage 감소 -> curStage: ' + str(game_data.gameData.cur_stage))
                 else:
-                    print('처음 스테이지여서 움직이지 못함')
+                    print('처음 스테이지')
             elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_RIGHT):
                 if game_data.gameData.cur_stage < 4:
                     game_data.gameData.cur_stage += 1
-                    print('curStage 증가 -> curStage: ' + str(game_data.gameData.cur_stage))
                 else:
-                    print('마지막 스테이지여서 움직이지 못함')
+                    print('마지막 스테이지')
+
             # 아래 3개는 치트키임
             elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_1):
                 print('치트키 - 해금 1')

@@ -14,7 +14,7 @@ class GameData:
         self.score = 0
         self.coin = 0
         # 마리오
-        self.life = 0
+        self.life = 5
         self.transform = P_Transform.T_Basic
 
 gameData = GameData()
