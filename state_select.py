@@ -93,9 +93,9 @@ def draw():
 
     drawX = 200 + 150 * (game_data.gameData.cur_stage - 1)
     if game_data.gameData.transform == int(P_Transform.T_Basic):
-        image_mario.clip_draw(0, 90, 40, 30, drawX + 25, 300 - 20)
+        image_mario.clip_draw(0, 270, 30, 30, drawX + 25, 300 - 20)
     else:
-        image_mario.clip_draw(0, 240, 40, 60, drawX + 25, 300 - 20)
+        image_mario.clip_draw(0, 540, 30, 60, drawX + 25, 300 - 20)
 
     update_canvas()
 

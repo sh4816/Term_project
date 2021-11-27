@@ -1,0 +1,11 @@
+0 idle 1
+1 run 2
+2 dash 2
+3 jump 1
+4 down 1
+5 gp 1
+6 climb 2
+7 stand 1
+8 hit 1
+9 action 0
+10 gameover / transform 1mm 

@@ -76,19 +76,6 @@ class P_Transform(enum.IntEnum):
     T_Fire = enum.auto()
 
 # 동작 상태
-# class P_State(enum.IntEnum):
-#     S_Idle = 0
-#     S_Run = enum.auto()
-#     S_Hit = enum.auto()
-#     S_Jump = enum.auto()
-#     S_Dash = enum.auto()
-#     S_Down = enum.auto()
-#     S_Slide = enum.auto()
-#     S_Stand = enum.auto()
-#     S_Kick = enum.auto()
-#     S_Climb = enum.auto()
-#     S_Gameover = enum.auto()
-#     S_Transform = enum.auto()
 class P_State(enum.IntEnum):
     S_Idle = 1
     S_Run = enum.auto()
@@ -109,7 +96,8 @@ RIGHT_DOWN, LEFT_DOWN, RIGHT_UP, LEFT_UP\
     ,SPACE\
     ,FALLING_EVENT, LANDING_EVENT, LANDING_RUN_EVENT, LANDING_DASH_EVENT\
     ,TRANSLATE_EVENT, TRANS2IDLE_EVENT, TRANS2RUN_EVENT, TRANS2DASH_EVENT, TRANS2JUMP\
-    ,STAGECLEAR_EVENT = range(21)
+    ,HIT_EVENT, HIT2IDLE_EVENT, HIT2RUN_EVENT, HIT2DASH_EVENT, HIT2JUMP_EVENT\
+    ,STAGECLEAR_EVENT = range(26)
 
 key_event_table = {
     (SDL_KEYDOWN, SDLK_RIGHT): RIGHT_DOWN,
@@ -727,6 +715,9 @@ class TranslateState:
             player.isMovingInAir = False
             player.prevState = "IdleState"
 
+        if player.transform == P_Transform.T_Basic:
+            player.jump_startY = player.y
+
 
     def exit(player, event):
         if event == TRANS2IDLE_EVENT or event == TRANS2RUN_EVENT or event == TRANS2DASH_EVENT:
@@ -734,19 +725,75 @@ class TranslateState:
             player.isTrans = True
 
     def do(player):
-        player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 6
-        if player.frame >= 5:
-            if player.prevState == "RunState":
-                player.add_event(TRANS2RUN_EVENT)
-            elif player.prevState == "DashState":
-                player.add_event(TRANS2DASH_EVENT)
-            else:
-                player.add_event(TRANS2IDLE_EVENT)
+        if player.transform == P_Transform.T_Basic:
+            player.trans_timer += game_framework.frame_time
+            # print('game over')
+            # == y축 이동 ( 위로 올라갔다가 아래로 떨어지는 연출 )
+            vel_jump = JUMP_V0_PPS + GRAVITY_ACCEL_PPS2 * player.trans_timer  # v = v0 + at
+
+            # 위치
+            # v(속도) = v0 + at --(적분)--> s(위치) = (1/2 at + v)t + s0
+            player.y = ((1/2) * GRAVITY_ACCEL_PPS2 * player.trans_timer + JUMP_V0_PPS) * player.trans_timer + player.jump_startY
+
+            if player.y <= 0:
+                player.jump_startY = 0
+                player.trans_timer = 0
+                player.transform = -1
+        else:
+            player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 6
+            if player.frame >= 5:
+                player.frame = 0
+                if player.prevState == "RunState":
+                    player.add_event(TRANS2RUN_EVENT)
+                elif player.prevState == "DashState":
+                    player.add_event(TRANS2DASH_EVENT)
+                else:
+                    player.add_event(TRANS2IDLE_EVENT)
 
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, 0, player.frameX, player.frameY
-                               , player.x - player.scrollX, player.y)
+        if player.transform == P_Transform.T_Basic:
+            player.image.clip_draw(0, 0, player.frameX, player.frameY
+                                   , player.x - player.scrollX, player.y)
+        else:
+            player.image.clip_draw(int(player.frame) * player.frameX, 0, player.frameX, player.frameY
+                                   , player.x - player.scrollX, player.y)
+
+
+class HitState:
+    def enter(player, event):
+        if player.isTrans:                          # 한 번만 수행되도록
+            player.frame = 0
+            player.isTrans = False
+
+        if event == SHIFT_UP:                       # 변신 도중 SHIFT키를 떼었을 때
+            player.isDash = False
+            player.prevState = "RunState"
+
+        if event == LEFT_UP or event == RIGHT_UP:   # 변신 도중 왼쪽or오른쪽 키를 떼었을 때
+            player.isMovingInAir = False
+            player.prevState = "IdleState"
+
+
+    def exit(player, event):
+        if event == HIT2IDLE_EVENT or event == HIT2RUN_EVENT or event == HIT2DASH_EVENT:
+            player.prevState = None
+            player.isTrans = True
+
+    def do(player):
+        player.hit_timer += game_framework.frame_time
+        if player.hit_timer >= 0.3: # 0.3초의 경직
+            if player.prevState == "RunState":
+                player.add_event(HIT2RUN_EVENT)
+            elif player.prevState == "DashState":
+                player.add_event(HIT2DASH_EVENT)
+            else:
+                player.add_event(HIT2IDLE_EVENT)
+
+
+    def draw(player):
+        player.image.clip_draw(0, player.imageH - player.frameY * P_State.S_Hit
+                               , player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
 class StageclearState:
@@ -820,7 +867,8 @@ next_state_table = {
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
         , TRANSLATE_EVENT: TranslateState
-        , STAGECLEAR_EVENT: StageclearState},
+        , STAGECLEAR_EVENT: StageclearState
+        , HIT_EVENT: HitState},
     RunState: {RIGHT_DOWN: IdleState, LEFT_DOWN: IdleState, RIGHT_UP: IdleState, LEFT_UP: IdleState
         , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: DownState, DOWN_UP: IdleState
         , SHIFT_DOWN: DashState, SHIFT_UP: RunState
@@ -828,7 +876,8 @@ next_state_table = {
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
         , TRANSLATE_EVENT: TranslateState
-        , STAGECLEAR_EVENT: StageclearState},
+        , STAGECLEAR_EVENT: StageclearState
+        , HIT_EVENT: HitState},
     DashState: {RIGHT_DOWN: IdleState, LEFT_DOWN: IdleState, RIGHT_UP: IdleState, LEFT_UP: IdleState
         , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: DownState, DOWN_UP: IdleState
         , SHIFT_DOWN: RunState, SHIFT_UP: RunState
@@ -836,7 +885,8 @@ next_state_table = {
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
         , TRANSLATE_EVENT: TranslateState
-        , STAGECLEAR_EVENT: StageclearState},
+        , STAGECLEAR_EVENT: StageclearState
+        , HIT_EVENT: HitState},
     DownState: {RIGHT_DOWN: DownState, LEFT_DOWN: DownState, RIGHT_UP: DownState, LEFT_UP: DownState
         , UP_DOWN: DownState, UP_UP: DownState, DOWN_DOWN: DownState, DOWN_UP: IdleState
         , SHIFT_DOWN: DownState, SHIFT_UP: DownState
@@ -844,7 +894,8 @@ next_state_table = {
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
         , TRANSLATE_EVENT: TranslateState
-        , STAGECLEAR_EVENT: StageclearState},
+        , STAGECLEAR_EVENT: StageclearState
+        , HIT_EVENT: HitState},
     JumpState: {RIGHT_DOWN: JumpState, LEFT_DOWN: JumpState, RIGHT_UP: JumpState, LEFT_UP: JumpState
         , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: GroundpoundState, DOWN_UP: JumpState
         , SHIFT_DOWN: JumpState, SHIFT_UP: JumpState
@@ -852,7 +903,8 @@ next_state_table = {
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
         , TRANSLATE_EVENT: TranslateState
-        , STAGECLEAR_EVENT: StageclearState},
+        , STAGECLEAR_EVENT: StageclearState
+        , HIT_EVENT: HitState},
     FallingState: {RIGHT_DOWN: FallingState, LEFT_DOWN: FallingState, RIGHT_UP: FallingState, LEFT_UP: FallingState
         , UP_DOWN: FallingState, UP_UP: FallingState, DOWN_DOWN: GroundpoundState, DOWN_UP: FallingState
         , SHIFT_DOWN: FallingState, SHIFT_UP: FallingState
@@ -860,7 +912,8 @@ next_state_table = {
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
         , TRANSLATE_EVENT: TranslateState
-        , STAGECLEAR_EVENT: StageclearState},
+        , STAGECLEAR_EVENT: StageclearState
+        , HIT_EVENT: HitState},
     GroundpoundState: {RIGHT_DOWN: GroundpoundState, LEFT_DOWN: GroundpoundState, RIGHT_UP: GroundpoundState, LEFT_UP: GroundpoundState
         , UP_DOWN: GroundpoundState, UP_UP: GroundpoundState, DOWN_DOWN: GroundpoundState, DOWN_UP: GroundpoundState
         , SHIFT_DOWN: GroundpoundState, SHIFT_UP: GroundpoundState
@@ -868,7 +921,8 @@ next_state_table = {
         , FALLING_EVENT: FallingState
         , LANDING_EVENT: IdleState, LANDING_RUN_EVENT: RunState, LANDING_DASH_EVENT: DashState
         , TRANSLATE_EVENT: TranslateState
-        , STAGECLEAR_EVENT: StageclearState},
+        , STAGECLEAR_EVENT: StageclearState
+        , HIT_EVENT: HitState},
     TranslateState: {RIGHT_DOWN: TranslateState, LEFT_DOWN: TranslateState, RIGHT_UP: TranslateState, LEFT_UP: TranslateState
         , UP_DOWN: TranslateState, UP_UP: TranslateState, DOWN_DOWN: TranslateState, DOWN_UP: TranslateState
         , SHIFT_DOWN: TranslateState, SHIFT_UP: TranslateState
@@ -876,7 +930,8 @@ next_state_table = {
         , FALLING_EVENT: TranslateState
         , LANDING_EVENT: TranslateState, LANDING_RUN_EVENT: TranslateState, LANDING_DASH_EVENT: TranslateState
         , TRANSLATE_EVENT: IdleState, TRANS2IDLE_EVENT: IdleState, TRANS2RUN_EVENT: RunState, TRANS2DASH_EVENT: DashState, TRANS2JUMP: JumpState
-        , STAGECLEAR_EVENT: StageclearState},
+        , STAGECLEAR_EVENT: StageclearState
+        , HIT_EVENT: HitState},
     StageclearState: {RIGHT_DOWN: StageclearState, LEFT_DOWN: StageclearState, RIGHT_UP: StageclearState, LEFT_UP: StageclearState
         , UP_DOWN: StageclearState, UP_UP: StageclearState, DOWN_DOWN: StageclearState, DOWN_UP: StageclearState
         , SHIFT_DOWN: StageclearState, SHIFT_UP: StageclearState
@@ -884,10 +939,19 @@ next_state_table = {
         , FALLING_EVENT: StageclearState
         , LANDING_EVENT: StageclearState, LANDING_RUN_EVENT: StageclearState, LANDING_DASH_EVENT: StageclearState
         , TRANSLATE_EVENT: StageclearState, TRANS2IDLE_EVENT: StageclearState, TRANS2RUN_EVENT: StageclearState, TRANS2DASH_EVENT: StageclearState, TRANS2JUMP: StageclearState
-        , STAGECLEAR_EVENT: StageclearState}
+        , STAGECLEAR_EVENT: StageclearState},
+    HitState: {RIGHT_DOWN: HitState, LEFT_DOWN: HitState, RIGHT_UP: HitState, LEFT_UP: HitState
+        , UP_DOWN: HitState, UP_UP: HitState, DOWN_DOWN: HitState, DOWN_UP: HitState
+        , SHIFT_DOWN: HitState, SHIFT_UP: HitState
+        , SPACE: HitState
+        , FALLING_EVENT: HitState
+        , LANDING_EVENT: HitState, LANDING_RUN_EVENT: HitState, LANDING_DASH_EVENT: HitState
+        , TRANSLATE_EVENT: IdleState, TRANS2IDLE_EVENT: IdleState, TRANS2RUN_EVENT: RunState, TRANS2DASH_EVENT: DashState, TRANS2JUMP: JumpState
+        , HIT2IDLE_EVENT: IdleState, HIT2RUN_EVENT: RunState, HIT2DASH_EVENT: DashState, HIT2JUMP_EVENT: JumpState
+        , STAGECLEAR_EVENT: StageclearState},
 }
 
-
+# HIT_EVENT
 class Player:
     image_StandardL = None
     def __init__(self):
@@ -934,6 +998,9 @@ class Player:
         self.isMovingInAir = False  # 공중에서 움직이는지
         self.isDoubleInput = False  # 키입력이 두 개 동시에 되었는지
         self.isDash = False         # 대쉬 중인지
+
+        self.trans_timer = 0
+        self.hit_timer = 0
 
         self.show_bb = False  # 바운딩박스 출력
 
@@ -1023,6 +1090,7 @@ class Player:
         #=== 몬스터
         if self.never_collide_with_mob: # 무적시간
             self.ncwmTimer -= game_framework.frame_time
+            print(self.ncwmTimer)
             if self.ncwmTimer <= 0:
                 self.never_collide_with_mob = False
         # goomba
@@ -1055,21 +1123,20 @@ class Player:
                             if not self.never_collide_with_mob:
                                 if not self.never_collide_with_mob:
                                     self.never_collide_with_mob = True  # 몹과 충돌하지 않는 상태가 되어서
-                                    self.ncwmTimer = 1.0               # 1초의 무적시간이 주어진다.
+                                    self.ncwmTimer = 2.0               # 2초의 무적시간이 주어진다.
 
                                 if self.transform == P_Transform.T_Basic:
-                                    game_data.gameData.life -= 1
-                                    print('life 감소')
+                                    self.add_event(TRANSLATE_EVENT)
                                 elif self.transform == P_Transform.T_Super:
                                     self.frameX, self.frameY = 30, 30
                                     self.imageH = 300
                                     self.transform = P_Transform.T_Basic
                                     game_data.gameData.transform = game_data.P_Transform.T_Basic
-                                    self.add_event(TRANSLATE_EVENT)
+                                    self.add_event(HIT_EVENT)
                                 elif self.transform == P_Transform.T_Fire:
                                     self.transform = P_Transform.T_Super
                                     game_data.gameData.transform = game_data.P_Transform.T_Super
-                                    self.add_event(TRANSLATE_EVENT)
+                                    self.add_event(HIT_EVENT)
 
 
 
