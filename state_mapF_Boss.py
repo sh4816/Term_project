@@ -43,13 +43,13 @@ def enter():
     # Game Data에서 Player 속성 읽어오기
     player.transform = game_data.gameData.transform
     if player.transform == P_Transform.T_Basic:
-        player.frameX, player.frameY = 40, 30
+        player.frameX, player.frameY = 30, 30
         player.x, player.y = 75, 120
         player.imageH = 300
     else:
-        player.frameX, player.frameY = 40, 60
+        player.frameX, player.frameY = 30, 60
         player.x, player.y = 75, 135
-        player.imageH = 660
+        player.imageH = 600
 
     game_world.add_object(player, 1)
 

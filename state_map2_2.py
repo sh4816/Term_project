@@ -40,11 +40,11 @@ def enter():
     # Game Data에서 Player 속성 읽어오기
     player.transform = game_data.gameData.transform
     if player.transform == P_Transform.T_Basic:
-        player.frameX, player.frameY = 40, 30
+        player.frameX, player.frameY = 30, 30
         player.imageH = 300
     else:
-        player.frameX, player.frameY = 40, 60
-        player.imageH = 660
+        player.frameX, player.frameY = 30, 60
+        player.imageH = 600
 
     player.y = 500
 

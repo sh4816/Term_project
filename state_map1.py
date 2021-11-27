@@ -5,6 +5,7 @@ import ScrollManager as scrollMgr
 from collide import *
 
 from player import Player, P_Transform
+import mob_goomba
 import game_data
 import Trigger
 import MapEditor
@@ -37,12 +38,12 @@ def enter():
     # Game Data에서 Player 속성 읽어오기
     player.transform = game_data.gameData.transform
     if player.transform == P_Transform.T_Basic:
-        player.frameX, player.frameY = 40, 30
+        player.frameX, player.frameY = 30, 30
         player.imageH = 300
     else:
-        player.frameX, player.frameY = 40, 60
+        player.frameX, player.frameY = 30, 60
         player.y = 75
-        player.imageH = 660
+        player.imageH = 600
 
     game_world.add_object(player, 1)
 

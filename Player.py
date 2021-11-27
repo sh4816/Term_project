@@ -76,19 +76,30 @@ class P_Transform(enum.IntEnum):
     T_Fire = enum.auto()
 
 # 동작 상태
+# class P_State(enum.IntEnum):
+#     S_Idle = 0
+#     S_Run = enum.auto()
+#     S_Hit = enum.auto()
+#     S_Jump = enum.auto()
+#     S_Dash = enum.auto()
+#     S_Down = enum.auto()
+#     S_Slide = enum.auto()
+#     S_Stand = enum.auto()
+#     S_Kick = enum.auto()
+#     S_Climb = enum.auto()
+#     S_Gameover = enum.auto()
+#     S_Transform = enum.auto()
 class P_State(enum.IntEnum):
-    S_Idle = 0
+    S_Idle = 1
     S_Run = enum.auto()
-    S_Hit = enum.auto()
-    S_Jump = enum.auto()
     S_Dash = enum.auto()
+    S_Jump = enum.auto()
     S_Down = enum.auto()
-    S_Slide = enum.auto()
-    S_Stand = enum.auto()
-    S_Kick = enum.auto()
+    S_GP = enum.auto()
     S_Climb = enum.auto()
-    S_Gameover = enum.auto()
-    S_Transform = enum.auto()
+    S_Hit = enum.auto()
+    S_Action = enum.auto()
+    S_Die_Transform = enum.auto()
 
 
 # Player Event
@@ -159,8 +170,8 @@ class IdleState:
             player.add_event(FALLING_EVENT)
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH, player.frameX, player.frameY
-                               , player.x - player.scrollX, player.y)
+        player.image.clip_draw(0, player.imageH - player.frameY
+                               , player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
 class RunState:
@@ -239,8 +250,8 @@ class RunState:
             player.add_event(FALLING_EVENT)
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Run,
-                               player.frameX, player.frameY, player.x - player.scrollX, player.y)
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Run
+                               ,player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
 class DashState:
@@ -321,8 +332,8 @@ class DashState:
             player.add_event(FALLING_EVENT)
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Dash,
-                               player.frameX, player.frameY, player.x - player.scrollX, player.y)
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Dash
+                               ,player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
 class DownState:
@@ -338,8 +349,8 @@ class DownState:
         pass
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Down,
-                               player.frameX, player.frameY, player.x - player.scrollX, player.y)
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Down
+                               ,player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
 class JumpState:
@@ -698,8 +709,8 @@ class GroundpoundState:
 
 
     def draw(player):
-        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Slide,
-                               player.frameX, player.frameY, player.x - player.scrollX, player.y)
+        player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_GP
+                               ,player.frameX, player.frameY, player.x - player.scrollX, player.y)
 
 
 class TranslateState:
@@ -760,14 +771,16 @@ class StageclearState:
 
     def do(player):
         #=== 공중에서 깃발과 충돌했다면 y 축 이동을 먼저 한다.
-        # 충돌 체크 (아래에 발판이 없는지 확인)
+        # 충돌 체크 (아래에 발판이 없는지 & 현재 깃발과 충돌중인지 확인)
         collipse = False
+        player_in_flag = True
 
         for obj in game_world.all_objects():
             if obj.__class__ == Map_Tile.Tile:
                 if collideCheck(player, obj) == 'bottom':
                     player.y = obj.y + obj.frameY / 2 + player.frameY / 2
                     collipse = True
+                    player_in_flag = False
                     break
 
         if not collipse:
@@ -776,20 +789,22 @@ class StageclearState:
             player.timer_jump += game_framework.frame_time
             player.y = (1/2) * GRAVITY_ACCEL_PPS2 * (player.timer_jump ** 2) + player.pos_startFalling
 
-        # x축 이동
-        collipse = False
-        for obj in game_world.all_objects():
-            if obj.__class__ == Map_Castle.Door or obj.__class__ == Npc_Kinopio.Kinopio:
-                if collideCheck(player, obj) == 'left':
-                    player.y = obj.y - obj.frameY / 2 - player.frameY / 2
-                    collipse = True
-                    break
 
-        if not collipse:
-            player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 2
-            #=== 자동으로 x 축 이동을 한다.
-            player.x += player.velocity * game_framework.frame_time
-            player.x = clamp(25, player.x, 6600 - 25)
+        # x축 이동
+        if not player_in_flag:
+            collipse = False
+            for obj in game_world.all_objects():
+                if obj.__class__ == Map_Castle.Door or obj.__class__ == Npc_Kinopio.Kinopio:
+                    if collideCheck(player, obj) == 'left':
+                        player.y = obj.y - obj.frameY / 2 - player.frameY / 2
+                        collipse = True
+                        break
+
+            if not collipse:
+                player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 2
+                #=== 자동으로 x 축 이동을 한다.
+                player.x += player.velocity * game_framework.frame_time
+                player.x = clamp(25, player.x, 6600 - 25)
 
     def draw(player):
         player.image.clip_draw(int(player.frame) * player.frameX, player.imageH - player.frameY * P_State.S_Run,
@@ -878,7 +893,7 @@ class Player:
     def __init__(self):
         # position
         self.x, self.y = 100, 60
-        self.frameX, self.frameY = 40, 30
+        self.frameX, self.frameY = 30, 30
         self.imageH = 300
 
         # Scroll
@@ -997,8 +1012,8 @@ class Player:
                             self.transform = P_Transform.T_Fire
                         game_data.gameData.transform = self.transform   # 게임데이터 최신화
                         # Frame Image Update
-                        self.frameX, self.frameY = 40, 60
-                        self.imageH = 660
+                        self.frameX, self.frameY = 30, 60
+                        self.imageH = 600
                         self.add_event(TRANSLATE_EVENT)
 
                     # 해당 충돌 아이템 삭제
@@ -1038,17 +1053,24 @@ class Player:
                                 game_world.remove_object(goomba)
                         else:
                             if not self.never_collide_with_mob:
-                                game_data.gameData.life -= 1
                                 if not self.never_collide_with_mob:
                                     self.never_collide_with_mob = True  # 몹과 충돌하지 않는 상태가 되어서
-                                    self.ncwmTimer = 1000               # 1초의 무적시간이 주어진다.
-                                if self.transform > P_Transform.T_Basic:
-                                    if self.transform == P_Transform.T_Fire:
-                                        self.transform = P_Transform.T_Super
-                                    elif self.transform == P_Transform.T_Super:
-                                        self.transform = P_Transform.T_Basic
-                                else:
-                                    print('Game over')#
+                                    self.ncwmTimer = 1.0               # 1초의 무적시간이 주어진다.
+
+                                if self.transform == P_Transform.T_Basic:
+                                    game_data.gameData.life -= 1
+                                    print('life 감소')
+                                elif self.transform == P_Transform.T_Super:
+                                    self.frameX, self.frameY = 30, 30
+                                    self.imageH = 300
+                                    self.transform = P_Transform.T_Basic
+                                    game_data.gameData.transform = game_data.P_Transform.T_Basic
+                                    self.add_event(TRANSLATE_EVENT)
+                                elif self.transform == P_Transform.T_Fire:
+                                    self.transform = P_Transform.T_Super
+                                    game_data.gameData.transform = game_data.P_Transform.T_Super
+                                    self.add_event(TRANSLATE_EVENT)
+
 
 
         #=== 스테이지 클리어 관련
