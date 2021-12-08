@@ -37,6 +37,7 @@ import Item_TransForm
 import ball
 
 import game_world
+import enum
 
 # Physics Variables...
 #
@@ -374,6 +375,11 @@ class JumpState:
 
         if event == SHIFT_UP:
             player.isDash = False
+
+        if event == UP_UP:
+            collipse = False
+            vel_jump = 0
+            player.timer_jump = 0
 
         if event == FALLING_EVENT:
             collipse = False
@@ -735,7 +741,7 @@ class TranslateState:
             # v(속도) = v0 + at --(적분)--> s(위치) = (1/2 at + v)t + s0
             player.y = ((1/2) * GRAVITY_ACCEL_PPS2 * player.trans_timer + JUMP_V0_PPS) * player.trans_timer + player.jump_startY
 
-            if player.y <= 0:
+            if player.y <= 0 or player.trans_timer >= 3.0:
                 player.jump_startY = 0
                 player.trans_timer = 0
                 player.transform = -1
@@ -782,7 +788,8 @@ class HitState:
 
     def do(player):
         player.hit_timer += game_framework.frame_time
-        if player.hit_timer >= 0.3: # 0.3초의 경직
+        if player.hit_timer >= 0.5: # 0.3초의 경직
+            player.hit_timer = 0
             if player.prevState == "RunState":
                 player.add_event(HIT2RUN_EVENT)
             elif player.prevState == "DashState":
@@ -897,7 +904,7 @@ next_state_table = {
         , STAGECLEAR_EVENT: StageclearState
         , HIT_EVENT: HitState},
     JumpState: {RIGHT_DOWN: JumpState, LEFT_DOWN: JumpState, RIGHT_UP: JumpState, LEFT_UP: JumpState
-        , UP_DOWN: JumpState, UP_UP: JumpState, DOWN_DOWN: GroundpoundState, DOWN_UP: JumpState
+        , UP_DOWN: JumpState, UP_UP: FallingState, DOWN_DOWN: GroundpoundState, DOWN_UP: JumpState
         , SHIFT_DOWN: JumpState, SHIFT_UP: JumpState
         , SPACE: JumpState
         , FALLING_EVENT: FallingState
@@ -948,7 +955,8 @@ next_state_table = {
         , LANDING_EVENT: HitState, LANDING_RUN_EVENT: HitState, LANDING_DASH_EVENT: HitState
         , TRANSLATE_EVENT: IdleState, TRANS2IDLE_EVENT: IdleState, TRANS2RUN_EVENT: RunState, TRANS2DASH_EVENT: DashState, TRANS2JUMP: JumpState
         , HIT2IDLE_EVENT: IdleState, HIT2RUN_EVENT: RunState, HIT2DASH_EVENT: DashState, HIT2JUMP_EVENT: JumpState
-        , STAGECLEAR_EVENT: StageclearState},
+        , STAGECLEAR_EVENT: StageclearState
+        , HIT_EVENT: HitState},
 }
 
 # HIT_EVENT
@@ -1055,6 +1063,11 @@ class Player:
                 self.image = self.image_FireL
 
         # 충돌 관련
+        # if self.y <= 0:
+        #     self.transform = P_Transform.T_Basic
+        #     game_data.gameData.transform = game_data.P_Transform.T_Basic
+        #     self.add_event(TRANSLATE_EVENT)
+
         for obj in game_world.all_objects():
             # 움직이는 발판
             if obj.__class__ == Map_MovingTile.MovingTile:
@@ -1094,36 +1107,35 @@ class Player:
             if self.ncwmTimer <= 0:
                 self.never_collide_with_mob = False
         # goomba
-        for goomba in game_world.all_objects():
-            if goomba.__class__ == mob_goomba.Goomba:  # 충돌체크를 해야할 클래스의 이름
-                if not goomba.ismoving:
+        for mob in game_world.all_objects():
+            if mob.__class__ == mob_goomba.Goomba:  # 충돌체크를 해야할 클래스의 이름
+                if not mob.ismoving:
                     # goomba는 화면에 처음 잡혔을 때부터 움직이기 시작한다.
-                    if self.x <= goomba.x <= self.x + 800:
-                        goomba.ismoving = True
+                    if self.x <= mob.x <= self.x + 800:
+                        mob.ismoving = True
                 else:
                     # goomba의 시야에 플레이어가 들어오면 돌진을 시작한다.
-                    if goomba.dir == 1:
-                        if goomba.x < self.x < goomba.x + 300:
-                            goomba.state = mob_goomba.G_State.Dash
+                    if mob.dir == 1:
+                        if mob.x < self.x < mob.x + 300:
+                            mob.state = mob_goomba.G_State.Dash
                         else:
-                            goomba.state = mob_goomba.G_State.Walk
+                            mob.state = mob_goomba.G_State.Walk
                     else:
-                        if goomba.x - 300 < self.x < goomba.x:
-                            goomba.state = mob_goomba.G_State.Dash
+                        if mob.x - 300 < self.x < mob.x:
+                            mob.state = mob_goomba.G_State.Dash
                         else:
-                            goomba.state = mob_goomba.G_State.Walk
+                            mob.state = mob_goomba.G_State.Walk
 
                     # 충돌체크
-                    if not collideCheck(self, goomba) == None:
+                    if not collideCheck(self, mob) == None:
                         if self.cur_state == FallingState or self.cur_state == GroundpoundState:
-                            if collideCheck(self, goomba) == 'bottom':
+                            if collideCheck(self, mob) == 'bottom':
                                 # 충돌한 객체 삭제
-                                game_world.remove_object(goomba)
+                                game_world.remove_object(mob)
                         else:
                             if not self.never_collide_with_mob:
-                                if not self.never_collide_with_mob:
-                                    self.never_collide_with_mob = True  # 몹과 충돌하지 않는 상태가 되어서
-                                    self.ncwmTimer = 2.0               # 2초의 무적시간이 주어진다.
+                                self.never_collide_with_mob = True  # 몹과 충돌하지 않는 상태가 되어서
+                                self.ncwmTimer = 2.0               # 2초의 무적시간이 주어진다.
 
                                 if self.transform == P_Transform.T_Basic:
                                     self.add_event(TRANSLATE_EVENT)
@@ -1137,6 +1149,61 @@ class Player:
                                     self.transform = P_Transform.T_Super
                                     game_data.gameData.transform = game_data.P_Transform.T_Super
                                     self.add_event(HIT_EVENT)
+
+            elif mob.__class__ == Map_Lava.Lava:
+                if not self.cur_state == TranslateState:
+                    if not collideCheck(self, mob) == None:     # 용암에 충돌헀다면
+                        self.transform = P_Transform.T_Basic
+                        game_data.gameData.transform = game_data.P_Transform.T_Basic
+                        self.add_event(TRANSLATE_EVENT)
+
+            elif mob.__class__ == Obstacle_Rotatedfire.RotatedFire:     # 회전하는 불에 충돌하면
+                if not collideCheck(self, mob) == None:
+                    if not self.never_collide_with_mob:
+                        self.never_collide_with_mob = True  # 몹과 충돌하지 않는 상태가 되어서
+                        self.ncwmTimer = 2.0                # 2초의 무적시간이 주어진다.
+
+                        if self.transform == P_Transform.T_Basic:
+                            self.add_event(TRANSLATE_EVENT)
+                        elif self.transform == P_Transform.T_Super:
+                            self.frameX, self.frameY = 30, 30
+                            self.imageH = 300
+                            self.transform = P_Transform.T_Basic
+                            game_data.gameData.transform = game_data.P_Transform.T_Basic
+                            self.add_event(HIT_EVENT)
+                        elif self.transform == P_Transform.T_Fire:
+                            self.transform = P_Transform.T_Super
+                            game_data.gameData.transform = game_data.P_Transform.T_Super
+                            self.add_event(HIT_EVENT)
+
+            elif mob.__class__ == mob_kupa.Kupa:
+                if not collideCheck(self, mob) == None:
+                    if collideCheck(self, mob) == 'bottom':
+                        if not self.never_collide_with_mob:
+                            if mob.state == mob_kupa.K_State.S_Hide:
+                                print('쿠파가 등딱지에 숨은 상태에서 밟으면 자신이 피해를 받는다')  # test
+                            else:
+                                self.never_collide_with_mob = True  # 몹과 충돌하지 않는 상태가 되어서
+                                self.ncwmTimer = 1.3  # 1.3초의 무적시간이 주어진다.
+
+                                self.cur_state = JumpState
+                    else:
+                        if not self.never_collide_with_mob:
+                            self.never_collide_with_mob = True  # 몹과 충돌하지 않는 상태가 되어서
+                            self.ncwmTimer = 2.0                # 2초의 무적시간이 주어진다.
+
+                            if self.transform == P_Transform.T_Basic:
+                                self.add_event(TRANSLATE_EVENT)
+                            elif self.transform == P_Transform.T_Super:
+                                self.frameX, self.frameY = 30, 30
+                                self.imageH = 300
+                                self.transform = P_Transform.T_Basic
+                                game_data.gameData.transform = game_data.P_Transform.T_Basic
+                                self.add_event(HIT_EVENT)
+                            elif self.transform == P_Transform.T_Fire:
+                                self.transform = P_Transform.T_Super
+                                game_data.gameData.transform = game_data.P_Transform.T_Super
+                                self.add_event(HIT_EVENT)
 
 
 
@@ -1223,6 +1290,7 @@ class Player:
                 Npc_Kinopio.show_bb = True
                 Obstacle_Rotatedfire_Center.show_bb = True
                 Obstacle_Button.show_bb = True
+
         if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):
             score = game_data.gameData.score
             coin = game_data.gameData.coin

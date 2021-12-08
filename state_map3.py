@@ -151,6 +151,14 @@ def update():
                 # Game Data 업데이트
                 game_framework.change_state(state_select)  # 스테이지 선택화면으로 이동
 
+    # === 플레이어 사망 (스테이지 선택화면으로 다시 이동.)
+    if player.transform <= -1:
+        game_data.gameData.life -= 1
+        if game_data.gameData.life > 0:
+            game_framework.change_state(state_select)  # 스테이지 선택화면으로 이동
+        else:
+            print('게임오버 화면 추가해서 그쪽으로 이동시킬 예정.')  # temp
+
     #=== Scroll
     for trigger in Trigger.triggers:
         trigger.scrollX = scrollMgr.getScrollX(name, player)

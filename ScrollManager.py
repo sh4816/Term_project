@@ -1,6 +1,4 @@
 # 오브젝트 스크롤
-import player
-
 ScrollX = 0
 MapLen = 0
 

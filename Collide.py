@@ -1,6 +1,5 @@
-import enum
-
 # 충돌체크 함수
+
 def collideCheck(player, obj):
     # 충돌Rect
     p_left, p_right = player.x - player.frameX/2, player.x + player.frameX/2
@@ -43,7 +42,7 @@ def collideCheck(player, obj):
         if p_bottom <= o_bottom <= p_top: # obj충돌rect 아랫변이 player 안에 있음
             return "left"
 
-    # player 왼쪽 충돌 검사
+    # player 오른쪽 충돌 검사
     if o_left <= p_right <= o_midX:       # player충돌rect 오른쪽이 obj 안에 있을 때
         if o_bottom <= p_top <= o_top:     # player충돌rect 윗변이 obj 안에 있음
             return "right"
