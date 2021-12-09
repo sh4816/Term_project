@@ -2,10 +2,6 @@ import game_framework
 from pico2d import *
 import game_world
 from collide import collideCheck
-import Map_Tile
-import Map_Box
-import Map_Brick
-import Map_Pipe
 
 PIXEL_PER_METER = (10.0 / 0.3) #10 pixel 30cm boy.py와 동일
 SHOOT_SPEED_KMPH = 100.0
@@ -28,6 +24,9 @@ class Fireball:
         self.frame = 0
         self.velocity = SHOOT_SPEED_PPS
 
+        # 이동
+        self.dir = -1
+
         if Fireball.image == None:
             Fireball.image = load_image('fireball.png')
 
@@ -35,13 +34,14 @@ class Fireball:
         self.image.clip_draw(int(self.frame) * self.frameX, 0, self.frameX, self.frameY, self.x - self.scrollX, self.y)
 
     def update(self):
-        self.x += self.velocity * game_framework.frame_time
         self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
 
-        # 충돌 체크 (왼쪽 or 오른쪽이이 오브젝트로 혀있는지 확인)
+        self.x += self.velocity * game_framework.frame_time
+
+        # 충돌 체크
 
         # 맵을 벗어나면 삭제
-        if self.x < 0 or self.x > 6600:
+        if self.x < 0 or self.x > 8000:
             game_world.remove_object(self)
 
 fireballs = []

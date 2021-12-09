@@ -109,6 +109,7 @@ def update():
             print('게임오버 화면 추가해서 그쪽으로 이동시킬 예정.') #temp
 
 
+
 def draw():
     clear_canvas()
 

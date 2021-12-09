@@ -445,7 +445,7 @@ class JumpState:
                             newCoin.x, newCoin.y = obj.x, obj.y + obj.frameY/2 + 15
                             newCoin.isEffect = True
                             game_world.add_object(newCoin, 0)
-
+                            game_data.gameData.score += 200
                             game_data.gameData.coin += 1
                         elif obj.itemValue == Map_Box.boxType.mushroom:
                             newMush = Item_TransForm.TransformItem()
@@ -469,6 +469,7 @@ class JumpState:
             elif obj.__class__ == Map_Brick.Brick:
                 if collideCheck(player, obj) == "top":
                     if int(player.transform) >= int(P_Transform.T_Super):
+                        game_data.gameData.score += 100
                         game_world.remove_object(obj)
                     else:
                         print('col')
@@ -667,6 +668,7 @@ class GroundpoundState:
                                     newCoin.x, newCoin.y = obj.x, obj.y - obj.frameY/2 - 15
                                     newCoin.isEffect = True
                                     game_world.add_object(newCoin, 0)
+                                    game_data.gameData.score += 200
                                     game_data.gameData.coin += 1
                                 elif obj.itemValue == Map_Box.boxType.mushroom:
                                     newMush = Item_TransForm.TransformItem()
@@ -686,6 +688,7 @@ class GroundpoundState:
                     elif obj.__class__ == Map_Brick.Brick:
                         if int(player.transform) >= int(P_Transform.T_Super):
                             if collideCheck(player, obj) == "bottom":
+                                game_data.gameData.score += 100
                                 game_world.remove_object(obj)
                                 collipse = True
                                 break
@@ -1013,6 +1016,8 @@ class Player:
         self.trans_timer = 0
         self.hit_timer = 0
 
+        self.once = False
+
         self.show_bb = False  # 바운딩박스 출력
 
         self.stageclear = False     # stage를 클리어했는지
@@ -1083,7 +1088,7 @@ class Player:
             # 변신 아이템 충돌
             if obj.__class__ == Item_TransForm.TransformItem:  # 충돌체크를 해야할 클래스의 이름
                 if not collideCheck(self, obj) == None:
-                    game_data.gameData.score += 100
+                    game_data.gameData.score += 1000
                     if self.transform < obj.itemValue:
                         self.prevState = self.cur_state.__name__  # 이전상태의 이름을 저장해둔다.
                         if not self.cur_state == JumpState or self.cur_state == GroundpoundState: #버그방지용
@@ -1134,6 +1139,7 @@ class Player:
                         if self.cur_state == FallingState or self.cur_state == GroundpoundState:
                             if collideCheck(self, mob) == 'bottom':
                                 # 충돌한 객체 삭제
+                                game_data.gameData.score += 100
                                 game_world.remove_object(mob)
                         else:
                             if not self.never_collide_with_mob:
@@ -1184,7 +1190,7 @@ class Player:
                     if collideCheck(self, mob) == 'bottom':
                         if not self.never_collide_with_mob:
                             if mob.state == mob_kupa.K_State.S_Hide:
-                                print('쿠파가 등딱지에 숨은 상태에서 밟으면 자신이 피해를 받는다')  # test
+                                pass
                             else:
                                 self.never_collide_with_mob = True  # 몹과 충돌하지 않는 상태가 되어서
                                 self.ncwmTimer = 1.3  # 1.3초의 무적시간이 주어진다.
@@ -1215,6 +1221,18 @@ class Player:
         for obj in game_world.all_objects():
             if obj.__class__ == Map_Flag.Bar:  # 충돌체크를 해야할 클래스의 이름
                 if not collideCheck(self, obj) == None:
+                    if not self.once:
+                        if self.y < 200:
+                            game_data.gameData.score += 1000
+                        elif 200 <= self.y < 400:
+                            game_data.gameData.score += 3000
+                        elif self.y >= 400:
+                            game_data.gameData.score += 5000
+
+                        self.once = True
+
+                    game_data.gameData.score += 200 * game_data.gameData.coin
+                    game_data.gameData.coin = 0
                     self.add_event(STAGECLEAR_EVENT)
             if obj.__class__ == Obstacle_Button.BoomButton:
                 if not collideCheck(self, obj) == None:

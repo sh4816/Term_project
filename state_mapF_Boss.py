@@ -128,10 +128,11 @@ def update():
                     # 플레이어가 쿠파를 밟았을 때
                     if collideCheck(player, mob_kupa.kupa_bb) == 'bottom':
                         if obj.state == mob_kupa.K_State.S_Hide:
-                            print('쿠파가 등딱지에 숨은 상태에서 밟으면 자신이 피해를 받는다')#test
+                            pass
                         else:       # 피격 무적 중일 때에는 밟아도 아무일 없음
                             if obj.life <= 0:
-                                print('게임 클리어')#test
+                                game_data.gameData.score += 5000
+                                game_world.remove_object(obj)
                             else:
                                 obj.state = mob_kupa.K_State.S_Hit
                                 obj.life -= 1
@@ -169,6 +170,12 @@ def update():
     for game_object in game_world.all_objects():
         game_object.scrollX = scrollMgr.getScrollX("MapF_Boss", player)
         game_object.update()
+
+    # 플레이어 사망
+    if player.transform <= -1:
+        game_data.gameData.life -= 1
+        if game_data.gameData.life > 0:
+            game_framework.change_state(state_select)  # 스테이지 선택화면으로 이동
 
 
 def draw():

@@ -110,14 +110,14 @@ def update():
         if obj.__class__ == Npc_Kinopio.Kinopio:
             if player.x + 150 >= obj.x:
                 obj.state = Npc_Kinopio.K_State.S_Hello
+                obj.showDialogue = True
             else:
                 obj.state = Npc_Kinopio.K_State.S_Idle
+                obj.showDialogue = False
 
             if not collideCheck(player, obj) == None:
-                print('우리 공주 여기없음')
                 if player.stageclear and game_data.gameData.cur_stage <= game_data.gameData.unlocked_stage:
                     game_data.gameData.unlocked_stage += 1  # 다음 스테이지 해금
-                    print('스테이지 ' + str(game_data.gameData.unlocked_stage) + ' 이 해금되었습니다.')  # test
                 # Game Data 업데이트
                 game_framework.change_state(state_select)  # 스테이지 선택화면으로 이동
 
@@ -156,8 +156,6 @@ def update():
         game_data.gameData.life -= 1
         if game_data.gameData.life > 0:
             game_framework.change_state(state_select)  # 스테이지 선택화면으로 이동
-        else:
-            print('게임오버 화면 추가해서 그쪽으로 이동시킬 예정.')  # temp
 
     #=== Scroll
     for trigger in Trigger.triggers:
