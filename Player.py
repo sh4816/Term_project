@@ -1107,6 +1107,12 @@ class Player:
                     # 해당 충돌 아이템 삭제
                     game_world.remove_object(obj)
                     break
+            if obj.__class__ == Item_Coin.Coin:
+                if not obj.isEffect:
+                    if not collideCheck(self, obj) == None:
+                        game_data.gameData.coin += 1
+                        game_world.remove_object(obj)
+                        break
 
         #=== 몬스터
         if self.never_collide_with_mob: # 무적시간
@@ -1256,8 +1262,8 @@ class Player:
                            , self.x + self.frameX/2 - self.scrollX, self.y - self.frameY/2)
 
         # Debug #
-        self.font.draw(self.x - 60 - self.scrollX, self.y + 70, 'State' + str(self.cur_state), (255, 255, 0))
-        self.font.draw(self.x - 60 - self.scrollX, self.y + 50, 'Dir ' + str(self.dir), (255, 255, 0))
+        # self.font.draw(self.x - 60 - self.scrollX, self.y + 70, 'State' + str(self.cur_state), (255, 255, 0))
+        # self.font.draw(self.x - 60 - self.scrollX, self.y + 50, 'Dir ' + str(self.dir), (255, 255, 0))
         ###
 
     def handle_event(self, event):

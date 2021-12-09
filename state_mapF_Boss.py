@@ -222,7 +222,6 @@ def drawNumbers(type, color):
             playtime -= game_framework.frame_time
         elif gameClear:
             playtime -= game_framework.frame_time * 100
-            game_data.gameData.score += 10
 
             if playtime <= 0:
                 playtime = 0
