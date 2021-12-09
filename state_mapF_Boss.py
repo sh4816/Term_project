@@ -28,6 +28,8 @@ image_numstat = None
 
 playtime = 300
 
+gameClear = False
+
 def enter():
     #=== 맵 배경
     bg = Map_Background.BG()
@@ -87,6 +89,8 @@ def handle_events():
 
 
 def update():
+    global gameClear, playtime
+
     if player.x >= 800 - player.frameX: player.x = 800 - player.frameX
 
     for obj in game_world.all_objects():
@@ -133,6 +137,8 @@ def update():
                             if obj.life <= 0:
                                 game_data.gameData.score += 5000
                                 game_world.remove_object(obj)
+
+                                gameClear = True
                             else:
                                 obj.state = mob_kupa.K_State.S_Hit
                                 obj.life -= 1
@@ -212,7 +218,16 @@ def drawNumbers(type, color):
     elif type == 'stage':
         fullnum = game_data.gameData.cur_stage
     elif type == 'time':
-        playtime -= game_framework.frame_time
+        if not gameClear:
+            playtime -= game_framework.frame_time
+        elif gameClear:
+            playtime -= game_framework.frame_time * 100
+            game_data.gameData.score += 10
+
+            if playtime <= 0:
+                playtime = 0
+            else:
+                game_data.gameData.score += 10
         fullnum = int(playtime)
 
     if type == 'score' and game_data.gameData.score == 0:

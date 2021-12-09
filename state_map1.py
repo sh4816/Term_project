@@ -22,6 +22,7 @@ image_status = None
 image_numstat = None
 
 playtime = 300
+gameClear = False
 
 def enter():
     #=== 맵 배경
@@ -108,6 +109,10 @@ def update():
         else:
             print('게임오버 화면 추가해서 그쪽으로 이동시킬 예정.') #temp
 
+    global gameClear
+    if player.once and not gameClear:
+        gameClear = True
+
 
 
 def draw():
@@ -134,7 +139,7 @@ def draw():
 
 
 def drawNumbers(type, color):
-    global image_status, image_numstat, playtime
+    global image_status, image_numstat, playtime, gameClear
 
     fullnum = 0
     if type == 'score':
@@ -144,7 +149,15 @@ def drawNumbers(type, color):
     elif type == 'stage':
         fullnum = game_data.gameData.cur_stage
     elif type == 'time':
-        playtime -= game_framework.frame_time
+        if not gameClear:
+            playtime -= game_framework.frame_time
+        elif gameClear:
+            playtime -= game_framework.frame_time * 100
+
+            if playtime <= 0:
+                playtime = 0
+            else:
+                game_data.gameData.score += 10
         fullnum = int(playtime)
 
     if type == 'score' and game_data.gameData.score == 0:

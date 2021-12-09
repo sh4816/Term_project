@@ -23,6 +23,7 @@ image_status = None
 image_numstat = None
 
 playtime = 300
+gameClear = False
 
 
 def enter():
@@ -102,6 +103,10 @@ def update():
         game_object.scrollX = scrollMgr.getScrollX("Map3", player)
         game_object.update()
 
+    global gameClear
+    if player.once and not gameClear:
+        gameClear = True
+
 
 def draw():
     clear_canvas()
@@ -127,7 +132,7 @@ def draw():
 
 
 def drawNumbers(type, color):
-    global image_status, image_numstat, playtime
+    global image_status, image_numstat, playtime, gameClear
 
     fullnum = 0
     if type == 'score':
@@ -137,7 +142,15 @@ def drawNumbers(type, color):
     elif type == 'stage':
         fullnum = game_data.gameData.cur_stage
     elif type == 'time':
-        playtime -= game_framework.frame_time
+        if not gameClear:
+            playtime -= game_framework.frame_time
+        elif gameClear:
+            playtime -= game_framework.frame_time * 100
+
+            if playtime <= 0:
+                playtime = 0
+            else:
+                game_data.gameData.score += 10
         fullnum = int(playtime)
 
     if type == 'score' and game_data.gameData.score == 0:

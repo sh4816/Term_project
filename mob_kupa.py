@@ -65,7 +65,7 @@ class Kupa():
         self.frame = 0
         self.state = K_State.S_Idle
 
-        self.life = 2
+        self.life = 1
 
         self.ismoving = False   # 쿠파는 화면에 처음으로 잡혔을 때부터 움직이기 시작한다.
         self.dir = -1
