@@ -467,12 +467,15 @@ class JumpState:
                     collipse = True
                     break
             elif obj.__class__ == Map_Brick.Brick:
-                if int(player.transform) >= int(P_Transform.T_Super):
-                    if collideCheck(player, obj) == "top":
+                if collideCheck(player, obj) == "top":
+                    if int(player.transform) >= int(P_Transform.T_Super):
                         game_world.remove_object(obj)
+                    else:
+                        print('col')
+                        obj.nonDestroyCollide = True
 
-                        collipse = True
-                        break
+                    collipse = True
+                    break
             elif obj.__class__ == Map_Pipe.Pipe \
                     or obj.__class__ == Map_Tile.Tile\
                     or obj.__class__ == Map_MovingTile.MovingTile\

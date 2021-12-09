@@ -1,5 +1,6 @@
 from pico2d import *
 
+import game_framework
 import game_world
 
 show_bb = False
@@ -17,8 +18,8 @@ class Brick():
         self.imgType = None
 
         # 충돌 관련
-        self.isCollipse = False
-        self.destroy = 0
+        self.nonDestroyCollide = False
+        self.nonDestroyMoving = 0
 
         # 이미지
         if self.image == None:
@@ -27,7 +28,14 @@ class Brick():
             self.image2 = load_image('block_brick2.png')
 
     def update(self):
-        pass
+        if self.nonDestroyCollide:
+            if self.nonDestroyMoving < 8.0:
+                print(self.nonDestroyMoving)
+                self.nonDestroyMoving += game_framework.frame_time * 100
+            else:
+                self.nonDestroyMoving = 0
+                self.nonDestroyCollide = False
+
 
     def draw(self):
         if self.imgType == "Default":
@@ -35,7 +43,7 @@ class Brick():
         elif self.imgType == "Blue":
             self.image = self.image2
 
-        self.image.draw(self.x - self.scrollX, self.y)
+        self.image.draw(self.x - self.scrollX, self.y + self.nonDestroyMoving)
 
         # bounding box
         global show_bb
